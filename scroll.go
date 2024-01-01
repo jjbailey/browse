@@ -12,6 +12,7 @@ import (
 
 func (x *browseObj) scrollDown(count int) {
 	// scroll down, toward EOF
+	// there's more hand-waving here than meets the eye
 
 	if x.lastRow > x.mapSiz {
 		return

@@ -25,6 +25,7 @@ func main() {
 
 	// do this now
 	ttySaveTerm()
+	syscall.Umask(077)
 
 	if term.IsTerminal(int(os.Stdin.Fd())) {
 		if argc < 2 {
@@ -113,6 +114,8 @@ func main() {
 }
 
 func resizeWindow(br *browseObj) {
+	// catch SIGWINCH for window size changes
+
 	br.dispWidth, br.dispHeight, _ = term.GetSize(int(br.tty.Fd()))
 	br.dispRows = br.dispHeight - 1
 	br.lastMatch = RESETSRCH
