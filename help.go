@@ -36,7 +36,17 @@ func (x *browseObj) printHelp() {
 		"                                                               ",
 	}
 
-	col := int((x.dispWidth - len(lines[0])) / 2)
+	// the help screen needs room to print
+
+	helpHeight := len(lines)
+	helpWidth := len(lines[0])
+
+	if x.dispHeight < (helpHeight+4) || x.dispWidth < (helpWidth+2) {
+		x.printMessage("Screen is too small")
+		return
+	}
+
+	col := int((x.dispWidth - helpWidth) / 2)
 
 	// top line
 
