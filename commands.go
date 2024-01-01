@@ -269,9 +269,10 @@ func commands(br *browseObj) {
 		case b[0] == CMD_MARK:
 			// mark page
 			lbuf := br.userInput("Mark: ")
-			m := getDigit(lbuf)
-			br.marks[m] = br.firstRow
-			br.printMessage("OK")
+			if m := getMark(lbuf); m != 0 {
+				br.marks[m] = br.firstRow
+				br.printMessage("OK")
+			}
 			movecursor(2, 1, false)
 			continue
 
@@ -297,9 +298,8 @@ func commands(br *browseObj) {
 			continue
 
 		default:
-			// go to marked page
-			if b[0] >= '1' && b[0] <= '9' {
-				m := getDigit(bbuf)
+			// if digit, go to marked page
+			if m := getMark(bbuf); m != 0 {
 				br.pageMarked(m)
 			}
 			movecursor(2, 1, false) // no modes active
