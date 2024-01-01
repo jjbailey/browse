@@ -31,12 +31,11 @@ func (x *browseObj) searchFile(pattern string, searchFWD bool) {
 	x.pattern = pattern
 
 	if err != nil {
-		msg := fmt.Sprintf("%v", err)
-		x.printMessage(msg)
+		x.printMessage(fmt.Sprintf("%v", err))
 		return
 	}
 
-	// save regexp.Compile result
+	// save regexp.Compile source
 	x.pattern = re.String()
 
 	// initial settings

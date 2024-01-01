@@ -187,7 +187,7 @@ func commands(br *browseObj) {
 				fmt.Printf("%s", CURRESTORE)
 			}
 
-			// br.modeTail is a faster version of modeScrollDown
+			// modeTail is a faster version of modeScrollDown
 			br.modeTail = false
 			continue
 
@@ -224,7 +224,7 @@ func commands(br *browseObj) {
 				fmt.Printf("%s", CURRESTORE)
 			}
 
-			// br.modeScrollDown is a slower version of modeTail
+			// modeScrollDown is a slower version of modeTail
 			br.modeScrollDown = false
 			continue
 

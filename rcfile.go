@@ -13,10 +13,10 @@ import (
 	"path/filepath"
 )
 
-const rcFileName = ".browserc"
+const RCFILENAME = ".browserc"
 
 func writeRcFile(br *browseObj) bool {
-	filePath := fmt.Sprintf("%s/%s", os.Getenv("HOME"), rcFileName)
+	filePath := fmt.Sprintf("%s/%s", os.Getenv("HOME"), RCFILENAME)
 	fp, err := os.Create(filePath)
 
 	if err != nil {
@@ -47,7 +47,7 @@ func writeRcFile(br *browseObj) bool {
 func readRcFile(br *browseObj) bool {
 	var lbuf string
 
-	filePath := fmt.Sprintf("%s/%s", os.Getenv("HOME"), rcFileName)
+	filePath := fmt.Sprintf("%s/%s", os.Getenv("HOME"), RCFILENAME)
 
 	fp, err := os.Open(filePath)
 
