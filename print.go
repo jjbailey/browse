@@ -1,5 +1,8 @@
 // print.go
-// vim: set ts=4 sw=4 noet:
+// printing and some support functions
+//
+// Copyright (c) 2024 jjb
+// All rights reserved.
 
 package main
 
@@ -93,3 +96,5 @@ func (x *browseObj) restoreLast() {
 	movecursor(2, 1, false)
 	x.shownMsg = false
 }
+
+// vim: set ts=4 sw=4 noet:

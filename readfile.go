@@ -1,5 +1,8 @@
 // readfile.go
-// vim: set ts=4 sw=4 noet:
+// the go routine for reading files
+//
+// Copyright (c) 2024 jjb
+// All rights reserved.
 
 package main
 
@@ -99,3 +102,5 @@ func (x *browseObj) readFromMap(lineno int) ([]byte, int) {
 	x.fp.Read(data)
 	return expandTabs(data)
 }
+
+// vim: set ts=4 sw=4 noet:

@@ -1,5 +1,8 @@
 // search.go
-// vim: set ts=4 sw=4 noet:
+// search the file for a given regex
+//
+// Copyright (c) 2024 jjb
+// All rights reserved.
 
 package main
 
@@ -175,3 +178,5 @@ func (x *browseObj) replaceMatch(re *regexp.Regexp, lineno int, input, replstr s
 
 	return output
 }
+
+// vim: set ts=4 sw=4 noet:

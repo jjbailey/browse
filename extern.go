@@ -1,5 +1,8 @@
 // extern.go
-// vim: set ts=4 sw=4 noet:
+// verious constants, the structire of a browser object
+//
+// Copyright (c) 2024 jjb
+// All rights reserved.
 
 package main
 
@@ -73,3 +76,5 @@ type browseObj struct {
 	modeScrollDown bool
 	modeTail       bool
 }
+
+// vim: set ts=4 sw=4 noet:

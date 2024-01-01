@@ -1,5 +1,8 @@
 // main.go
-// vim: set ts=4 sw=4 noet:
+// start here
+//
+// Copyright (c) 2024 jjb
+// All rights reserved.
 
 package main
 
@@ -139,3 +142,5 @@ func saneExit(br *browseObj) {
 
 	os.Exit(0)
 }
+
+// vim: set ts=4 sw=4 noet:

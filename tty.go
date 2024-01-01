@@ -1,5 +1,8 @@
 // tty.go
-// vim: set ts=4 sw=4 noet:
+// tty line discipline functions
+//
+// Copyright (c) 2024 jjb
+// All rights reserved.
 
 package main
 
@@ -7,7 +10,6 @@ import (
 	"github.com/k0kubun/go-termios"
 )
 
-// tty line disciplines
 var (
 	saneTerm termios.Termios
 	prmTerm  termios.Termios
@@ -48,3 +50,5 @@ func ttyPrompter() {
 
 	_ = prmTerm.SetAttr(termios.Stdout, termios.TCSAFLUSH)
 }
+
+// vim: set ts=4 sw=4 noet:

@@ -1,5 +1,8 @@
 // user.go
-// vim: set ts=4 sw=4 noet:
+// user input functions
+//
+// Copyright (c) 2024 jjb
+// All rights reserved.
 
 package main
 
@@ -117,3 +120,5 @@ func (x *browseObj) userInput(prompt string) string {
 
 	return linebuf
 }
+
+// vim: set ts=4 sw=4 noet:

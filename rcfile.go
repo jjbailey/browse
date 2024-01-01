@@ -1,5 +1,8 @@
 // rcfile.go
-// vim: set ts=4 sw=4 noet:
+// write and read the .browserc session file
+//
+// Copyright (c) 2024 jjb
+// All rights reserved.
 
 package main
 
@@ -76,3 +79,5 @@ func readRcFile(br *browseObj) bool {
 	fp.Close()
 	return true
 }
+
+// vim: set ts=4 sw=4 noet:

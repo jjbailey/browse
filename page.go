@@ -1,5 +1,8 @@
 // page.go
-// vim: set ts=4 sw=4 noet:
+// paging and some support functions
+//
+// Copyright (c) 2024 jjb
+// All rights reserved.
 
 package main
 
@@ -51,3 +54,5 @@ func (x *browseObj) pageLast() {
 func (x *browseObj) pageMarked(lineno int) {
 	x.printPage(x.marks[lineno])
 }
+
+// vim: set ts=4 sw=4 noet:

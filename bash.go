@@ -1,5 +1,9 @@
 // bash.go
-// vim: set ts=4 sw=4 noet:
+// run a command with bash
+// note: the process has no tty
+//
+// Copyright (c) 2024 jjb
+// All rights reserved.
 
 package main
 
@@ -21,3 +25,5 @@ func (x *browseObj) bashCommand() {
 	fmt.Print(string(stdout))
 	x.userAnyKey(VIDBOLDREV + " Press any key to continue... " + VIDOFF)
 }
+
+// vim: set ts=4 sw=4 noet:

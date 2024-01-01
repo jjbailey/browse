@@ -1,5 +1,8 @@
 // init.go
-// vim: set ts=4 sw=4 noet:
+// functions to initialize objects
+//
+// Copyright (c) 2024 jjb
+// All rights reserved.
 
 package main
 
@@ -36,3 +39,5 @@ func (x *browseObj) screenInit(fp *os.File, name string) {
 	x.dispWidth, x.dispHeight, _ = term.GetSize(int(x.tty.Fd()))
 	x.dispRows = x.dispHeight - 1
 }
+
+// vim: set ts=4 sw=4 noet:

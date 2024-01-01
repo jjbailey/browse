@@ -1,5 +1,9 @@
 // commands.go
-// vim: set ts=4 sw=4 noet:
+// the command processor
+// all user activity starts here
+//
+// Copyright (c) 2024 jjb
+// All rights reserved.
 
 package main
 
@@ -307,3 +311,5 @@ func commands(br *browseObj) {
 		}
 	}
 }
+
+// vim: set ts=4 sw=4 noet:

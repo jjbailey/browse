@@ -1,5 +1,8 @@
 // util.go
-// vim: set ts=4 sw=4 noet:
+// verious uncategorized functions
+//
+// Copyright (c) 2024 jjb
+// All rights reserved.
 
 package main
 
@@ -108,3 +111,5 @@ func getDigit(buf string) int {
 
 	return 1
 }
+
+// vim: set ts=4 sw=4 noet:

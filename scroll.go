@@ -1,5 +1,8 @@
 // scroll.go
-// vim: set ts=4 sw=4 noet:
+// scrolling and some support functions
+//
+// Copyright (c) 2024 jjb
+// All rights reserved.
 
 package main
 
@@ -76,3 +79,5 @@ func (x *browseObj) scrollUp(count int) {
 		}
 	}
 }
+
+// vim: set ts=4 sw=4 noet:
