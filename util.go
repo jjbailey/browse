@@ -12,6 +12,9 @@ import (
 )
 
 func expandTabs(data []byte) ([]byte, int) {
+	// replace tabs with the appropriate amount of spaces
+	// assume the standard 8-character tab stops
+
 	var newdata = make([]byte, READBUFSIZ*2)
 	var j int = 0
 

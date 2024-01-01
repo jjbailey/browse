@@ -105,6 +105,8 @@ func (x *browseObj) searchFile(pattern string, searchFWD bool) {
 }
 
 func (x *browseObj) pageIsMatch(re *regexp.Regexp, sop, eop int) int {
+	// check if this page has a regex match
+
 	for i := sop; i < eop; i++ {
 		matches, _ := x.lineIsMatch(re, i)
 
@@ -117,6 +119,8 @@ func (x *browseObj) pageIsMatch(re *regexp.Regexp, sop, eop int) int {
 }
 
 func (x *browseObj) lineIsMatch(re *regexp.Regexp, lineno int) (int, string) {
+	// check if this line has a regex match
+
 	var n int
 
 	data, nbytes := x.readFromMap(lineno)
@@ -163,6 +167,8 @@ func (x *browseObj) setNextPage(searchFWD bool, sop int) (int, int, bool) {
 }
 
 func (x *browseObj) replaceMatch(re *regexp.Regexp, lineno int, input, replstr string) string {
+	// make the regex replacements, return the new line
+
 	var output string
 
 	line := re.ReplaceAllString(input, replstr)

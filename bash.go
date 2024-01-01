@@ -14,10 +14,14 @@ import (
 )
 
 func (x *browseObj) bashCommand() {
+	// run a command with bash
+
 	lbuf := x.userInput("!")
 	ttyRestore()
 
+	// substitute % with the current file name
 	rbuf := strings.Replace(lbuf, "%", x.fileName, -1)
+
 	cmd := exec.Command("/bin/bash", "-c", rbuf)
 	stdout, _ := cmd.Output()
 

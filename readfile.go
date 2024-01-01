@@ -14,8 +14,10 @@ import (
 )
 
 func readFile(br *browseObj, ch chan bool) {
-	var notified bool
+	// initial read file, and continuously read for updates
+
 	var bytesRead int64
+	var notified bool
 	var savFileSiz, newFileSiz int64
 
 	reader := bufio.NewReader(br.fp)
@@ -97,6 +99,8 @@ func readStdin(fin, fout *os.File) {
 }
 
 func (x *browseObj) readFromMap(lineno int) ([]byte, int) {
+	// use the maps to read a line from the file 
+
 	data := make([]byte, x.sizeMap[lineno])
 	x.fp.Seek(x.seekMap[lineno], io.SeekStart)
 	x.fp.Read(data)

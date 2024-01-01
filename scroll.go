@@ -1,5 +1,5 @@
 // scroll.go
-// scrolling and some support functions
+// scrolling functions
 //
 // Copyright (c) 2024 jjb
 // All rights reserved.
@@ -11,6 +11,8 @@ import (
 )
 
 func (x *browseObj) scrollDown(count int) {
+	// scroll down, toward EOF
+
 	if x.lastRow > x.mapSiz {
 		return
 	}
@@ -57,6 +59,8 @@ func (x *browseObj) scrollDown(count int) {
 }
 
 func (x *browseObj) scrollUp(count int) {
+	// scroll up, toward SOF
+
 	if x.firstRow <= 0 {
 		return
 	}
