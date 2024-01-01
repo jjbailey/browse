@@ -1,0 +1,38 @@
+// init.go
+// vim: set ts=4 sw=4 noet:
+
+package main
+
+import (
+	"os"
+
+	"golang.org/x/term"
+)
+
+func (x *browseObj) fileInit(fp *os.File, name string, fromStdin bool) {
+	x.fp = fp
+	x.fileName = name
+	x.fromStdin = fromStdin
+
+	x.mapSiz = 0
+	x.seekMap = make(map[int]int64, 1)
+	x.sizeMap = make(map[int]int64, 1)
+
+	x.lastMatch = RESETSRCH
+	x.hitEOF = false
+	x.shownEOF = false
+	x.shownMsg = false
+	x.saveRC = false
+
+	x.seekMap[0] = 0
+	x.sizeMap[0] = 0
+	x.mapSiz++
+}
+
+func (x *browseObj) screenInit(fp *os.File, name string) {
+	x.tty = fp
+	x.screenName = name
+
+	x.dispWidth, x.dispHeight, _ = term.GetSize(int(x.tty.Fd()))
+	x.dispRows = x.dispHeight - 1
+}
