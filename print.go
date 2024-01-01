@@ -83,6 +83,9 @@ func (x *browseObj) printPage(lineno int) {
 		x.printLine(i)
 	}
 
+	// searches should start from the current page
+	x.lastMatch = RESETSRCH
+
 	x.lastRow = i
 	movecursor(2, 1, false)
 }

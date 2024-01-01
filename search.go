@@ -139,6 +139,8 @@ func (x *browseObj) lineIsMatch(re *regexp.Regexp, lineno int) (int, string) {
 }
 
 func (x *browseObj) setNextPage(searchFWD bool, sop int) (int, int, bool) {
+	// figure out which page to search next
+
 	var eop int
 	var wrapped bool
 

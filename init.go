@@ -17,9 +17,9 @@ func (x *browseObj) fileInit(fp *os.File, name string, fromStdin bool) {
 	x.fileName = name
 	x.fromStdin = fromStdin
 
-	x.mapSiz = 0
 	x.seekMap = make(map[int]int64, 1)
 	x.sizeMap = make(map[int]int64, 1)
+	x.mapSiz = 1
 
 	x.lastMatch = RESETSRCH
 	x.hitEOF = false
@@ -29,7 +29,6 @@ func (x *browseObj) fileInit(fp *os.File, name string, fromStdin bool) {
 
 	x.seekMap[0] = 0
 	x.sizeMap[0] = 0
-	x.mapSiz++
 }
 
 func (x *browseObj) screenInit(fp *os.File, name string) {

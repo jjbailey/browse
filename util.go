@@ -98,21 +98,23 @@ func errorExit(err error) {
 	}
 }
 
-func getDigit(buf string) int {
-	if buf != "" {
-		var n int
-		fmt.Sscanf(buf, "%d", &n)
+func getMark(buf string) int {
+	// scan a mark digit from the buffer
+	// valid marks are 1 - 9
 
-		if n < 1 {
-			n = 1
-		} else if n > 9 {
-			n = 9
-		}
+	var d int
 
-		return n
+	if n, _ := fmt.Sscanf(buf, "%d", &d); n != 1 {
+		return 0
 	}
 
-	return 1
+	if d < 1 {
+		d = 1
+	} else if d > 9 {
+		d = 9
+	}
+
+	return d
 }
 
 // vim: set ts=4 sw=4 noet:

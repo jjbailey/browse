@@ -146,7 +146,6 @@ func commands(br *browseObj) {
 			if !br.shownEOF {
 				br.pageDown()
 			}
-
 			movecursor(2, 1, false)
 			continue
 
@@ -167,7 +166,6 @@ func commands(br *browseObj) {
 			if br.firstRow > 0 {
 				br.pageUp()
 			}
-
 			movecursor(2, 1, false)
 			continue
 
@@ -186,7 +184,6 @@ func commands(br *browseObj) {
 				br.modeScrollDown = true
 				fmt.Printf("%s", CURRESTORE)
 			}
-
 			// modeTail is a faster version of modeScrollDown
 			br.modeTail = false
 			continue
@@ -206,7 +203,6 @@ func commands(br *browseObj) {
 		case b[0] == CMD_NUMBERS, b[0] == CMD_NUMBERS_1:
 			// show line numbers
 			br.modeNumbers = !br.modeNumbers
-			br.lastMatch = RESETSRCH
 			br.pageCurrent()
 			movecursor(2, 1, false)
 			continue
@@ -223,39 +219,43 @@ func commands(br *browseObj) {
 				}
 				fmt.Printf("%s", CURRESTORE)
 			}
-
 			// modeScrollDown is a slower version of modeTail
 			br.modeScrollDown = false
 			continue
 
 		case b[0] == CMD_JUMP:
 			// jump to line
-			var l int
+			var n int
 			lbuf := br.userInput("Junp: ")
 
 			if lbuf == "" {
 				br.pageCurrent()
 			} else {
-				fmt.Sscanf(lbuf, "%d", &l)
-				br.printPage(l)
+				fmt.Sscanf(lbuf, "%d", &n)
+				br.printPage(n)
 			}
-
 			movecursor(2, 1, false)
 			continue
 
 		case b[0] == CMD_SRCH_FWD:
 			// search forward/down
 			patbuf = br.userInput("/")
-			br.lastMatch = RESETSRCH
 			searchFWD = true
+			// null -- just changing direction -- don't reset
+			if patbuf != "" {
+				br.lastMatch = RESETSRCH
+			}
 			br.searchFile(patbuf, searchFWD)
 			continue
 
 		case b[0] == CMD_SRCH_REV:
 			// search backward/up
 			patbuf = br.userInput("?")
-			br.lastMatch = RESETSRCH
 			searchFWD = false
+			// null -- just changing direction -- don't reset
+			if patbuf != "" {
+				br.lastMatch = br.firstRow
+			}
 			br.searchFile(patbuf, searchFWD)
 			continue
 
@@ -264,15 +264,15 @@ func commands(br *browseObj) {
 			if len(br.pattern) > 0 {
 				br.searchFile(br.pattern, searchFWD)
 			}
-
 			continue
 
 		case b[0] == CMD_MARK:
 			// mark page
 			lbuf := br.userInput("Mark: ")
-			m := getDigit(lbuf)
-			br.marks[m] = br.firstRow
-			br.printMessage("OK")
+			if m := getMark(lbuf); m != 0 {
+				br.marks[m] = br.firstRow
+				br.printMessage("OK")
+			}
 			movecursor(2, 1, false)
 			continue
 
@@ -280,7 +280,6 @@ func commands(br *browseObj) {
 			// bash command
 			br.bashCommand()
 			br.pageCurrent()
-			br.lastMatch = RESETSRCH
 			continue
 
 		case b[0] == CMD_QUIT:
@@ -296,16 +295,13 @@ func commands(br *browseObj) {
 		case b[0] == CMD_HELP:
 			// help
 			br.printHelp()
-			br.lastMatch = RESETSRCH
 			continue
 
 		default:
-			// go to marked page
-			if b[0] >= '1' && b[0] <= '9' {
-				m := getDigit(bbuf)
+			// if digit, go to marked page
+			if m := getMark(bbuf); m != 0 {
 				br.pageMarked(m)
 			}
-
 			movecursor(2, 1, false) // no modes active
 			continue
 		}

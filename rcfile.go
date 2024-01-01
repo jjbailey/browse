@@ -73,8 +73,8 @@ func readRcFile(br *browseObj) bool {
 	lbuf, _ = r.ReadString('\n')
 	fmt.Sscanf(lbuf, "%d %d %d %d %d %d %d %d %d",
 		&br.marks[1], &br.marks[2], &br.marks[3],
-		&br.marks[4], &br.marks[5], &br.marks[9],
-		&br.marks[7], &br.marks[8], &br.marks[5])
+		&br.marks[4], &br.marks[5], &br.marks[6],
+		&br.marks[7], &br.marks[8], &br.marks[9])
 
 	fp.Close()
 	return true
