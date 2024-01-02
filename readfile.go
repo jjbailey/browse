@@ -18,7 +18,8 @@ func readFile(br *browseObj, ch chan bool) {
 
 	var bytesRead int64
 	var notified bool
-	var savFileSiz, newFileSiz int64
+	var savFileSiz int64 = 0
+	var newFileSiz int64 = 0
 
 	reader := bufio.NewReader(br.fp)
 
