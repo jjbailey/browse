@@ -30,7 +30,7 @@ func (x *browseObj) printHelp() {
 		"   t                            Tail mode                      ",
 		"   !                            bash command                   ",
 		"   q                            Quit                           ",
-		"   Q                            Quit, don't save .browserc     ",
+		"   Q                            Quit, don't save ~/.browserc   ",
 		"                                                               ",
 		"   Press any key to continue browsing...                       ",
 		"                                                               ",
