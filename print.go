@@ -11,6 +11,8 @@ import (
 )
 
 func (x *browseObj) printLine(lineno int) {
+	// printLine finds EOF, sets hitEOF
+
 	var prLine string
 
 	if lineno == 0 {
@@ -36,11 +38,12 @@ func (x *browseObj) printLine(lineno int) {
 	if windowAtEOF(lineno, x.mapSiz) {
 		printSEOF("EOF")
 		x.hitEOF = true
-		x.shownEOF = true
 	} else {
 		x.hitEOF = false
-		x.shownEOF = false
 	}
+
+	// scrollDown needs this
+	x.shownEOF = x.hitEOF
 }
 
 func (x *browseObj) printMessage(msg string) {
@@ -79,7 +82,6 @@ func (x *browseObj) printPage(lineno int) {
 	movecursor(2, 1, false)
 
 	for i = x.firstRow; i < eop; i++ {
-		// printLine finds EOF, sets hitEOF
 		x.printLine(i)
 	}
 
@@ -92,7 +94,6 @@ func (x *browseObj) printPage(lineno int) {
 
 func (x *browseObj) restoreLast() {
 	// restore the last (prompt) line
-	// printLine starts with \r\n
 
 	movecursor(x.dispRows, 1, false)
 	x.printLine(x.lastRow - 1)
