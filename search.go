@@ -157,6 +157,8 @@ func (x *browseObj) setNextPage(searchFWD bool, sop int) (int, int, bool) {
 		if sop < 0 {
 			sop = x.mapSiz - x.dispRows
 			wrapped = true
+			// +1 for EOF
+			sop++
 
 			if sop < 0 {
 				sop = 0
