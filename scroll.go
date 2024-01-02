@@ -28,10 +28,7 @@ func (x *browseObj) scrollDown(count int) {
 			break
 		}
 
-		// add line
-		// printLine finds EOF, sets hitEOF
-		// printLine starts with \r\n
-		// +1 for header
+		// add line -- +1 for header
 		movecursor(x.lastRow+1, 1, false)
 
 		if x.shownEOF {
@@ -75,7 +72,6 @@ func (x *browseObj) scrollUp(count int) {
 		fmt.Printf("%s", SCROLLREV)
 
 		// add line
-		// printLine starts with \r\n
 		movecursor(1, 1, false)
 		x.printLine(x.firstRow)
 
