@@ -5,7 +5,7 @@ A simple, unconventional file browser.
 ### Goals
 
  - Create a file browser with only the most common functions
- - Keep it friendly
+ - Keep it simple, keep it friendly
  - Learn Go
 
 ### Features
@@ -26,6 +26,7 @@ A simple, unconventional file browser.
  - Xterm specific
  - Logical lines chopped to the screen width
  - Probably US-centric
+ - Can be confused by lines with non-printable characters
 
 ### Status
 
