@@ -58,10 +58,12 @@ func (x *browseObj) printMessage(msg string) {
 }
 
 func (x *browseObj) printPage(lineno int) {
-	var eop int
+	// print a page -- full screen if possible
+
 	var i int
 
 	if lineno+x.dispRows > x.mapSiz {
+		// beyond EOF
 		lineno -= (lineno - x.mapSiz)
 		lineno -= x.dispRows
 		// +1 for EOF
@@ -72,12 +74,12 @@ func (x *browseObj) printPage(lineno int) {
 		lineno = 0
 	}
 
-	// (re)set some vars
+	// reset these
 	x.firstRow = lineno
 	x.hitEOF = false
 
 	// +1 for EOF
-	eop = minimum((x.firstRow + x.dispRows), x.mapSiz+1)
+	eop := minimum((x.firstRow + x.dispRows), x.mapSiz+1)
 
 	movecursor(2, 1, false)
 
