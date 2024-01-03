@@ -13,7 +13,7 @@ import (
 func (x *browseObj) printHelp() {
 	lines := []string{
 		"                                                               ",
-		"   Browse                       Version 0.3                    ",
+		"   Browse                       Version 0.4                    ",
 		"                                                               ",
 		"   Command                      Function                       ",
 		"   f b [PG UP] [PG DN]          Page forward/back (down/up)    ",
@@ -30,7 +30,7 @@ func (x *browseObj) printHelp() {
 		"   t                            Tail mode                      ",
 		"   !                            bash command                   ",
 		"   q                            Quit                           ",
-		"   Q                            Quit, don't save .browserc     ",
+		"   Q                            Quit, don't save ~/.browserc   ",
 		"                                                               ",
 		"   Press any key to continue browsing...                       ",
 		"                                                               ",

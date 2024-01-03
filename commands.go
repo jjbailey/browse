@@ -143,7 +143,7 @@ func commands(br *browseObj) {
 
 		case b[0] == CMD_PAGE_DN:
 			// page forward/down
-			if !br.shownEOF {
+			if !br.hitEOF {
 				br.pageDown()
 			}
 			movecursor(2, 1, false)
@@ -214,7 +214,7 @@ func commands(br *browseObj) {
 				movecursor(2, 1, false)
 			} else {
 				br.modeTail = true
-				if !br.shownEOF {
+				if !br.hitEOF {
 					br.pageLast()
 				}
 				fmt.Printf("%s", CURRESTORE)
@@ -261,9 +261,7 @@ func commands(br *browseObj) {
 
 		case b[0] == CMD_SRCH_NEXT:
 			// repeat search of saved pattern
-			if len(br.pattern) > 0 {
-				br.searchFile(br.pattern, searchFWD)
-			}
+			br.searchFile(br.pattern, searchFWD)
 			continue
 
 		case b[0] == CMD_MARK:

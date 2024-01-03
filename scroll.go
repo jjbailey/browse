@@ -15,6 +15,7 @@ func (x *browseObj) scrollDown(count int) {
 	// there's more hand-waving here than meets the eye
 
 	if x.lastRow > x.mapSiz {
+		// nothing more to show
 		return
 	}
 
@@ -24,17 +25,17 @@ func (x *browseObj) scrollDown(count int) {
 	}
 
 	for i := 0; i < count; i++ {
+		// printLine finds EOF, sets hitEOF
+
 		if x.hitEOF {
 			break
 		}
 
-		// add line
-		// printLine finds EOF, sets hitEOF
-		// printLine starts with \r\n
-		// +1 for header
+		// add line -- +1 for header
 		movecursor(x.lastRow+1, 1, false)
 
 		if x.shownEOF {
+			// print pervious line before printing current line
 			fmt.Printf("%s", CURRESTORE)
 			fmt.Printf("%s", CURUP)
 			x.printLine(x.lastRow - 1)
@@ -46,6 +47,7 @@ func (x *browseObj) scrollDown(count int) {
 		x.lastRow++
 
 		if x.lastRow == x.mapSiz {
+			// caught up to the reader
 			break
 		}
 	}
@@ -75,11 +77,11 @@ func (x *browseObj) scrollUp(count int) {
 		fmt.Printf("%s", SCROLLREV)
 
 		// add line
-		// printLine starts with \r\n
 		movecursor(1, 1, false)
 		x.printLine(x.firstRow)
 
 		if x.firstRow == 0 {
+			// at SOF
 			break
 		}
 	}
