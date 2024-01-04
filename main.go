@@ -104,12 +104,9 @@ func main() {
 	close(syncOK)
 
 	// go
-
-	setScrRegion(2, br.dispHeight)
 	commands(&br)
 
 	// done
-
 	saneExit(&br)
 }
 

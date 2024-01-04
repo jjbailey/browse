@@ -23,16 +23,18 @@ func (x *browseObj) pageDown() {
 }
 
 func (x *browseObj) pageHeader() {
-	var i int
+	// print the header line
 
-	linelen := x.dispWidth - 4 // minus tees and spaces
+	// minus tees and spaces
+	linelen := x.dispWidth - 4
 	oneside := (linelen - len(x.screenName)) / 2
 
+	resetScrRegion()
 	movecursor(1, 1, true)
 	fmt.Printf("%s", CLEARSCREEN)
 	fmt.Printf("%s", ENTERGRAPHICS)
 
-	for i = 0; i < oneside; i++ {
+	for i := 0; i < oneside; i++ {
 		fmt.Printf("%s", HORIZLINE)
 	}
 
@@ -40,11 +42,12 @@ func (x *browseObj) pageHeader() {
 	fmt.Printf("%s %s %s", VIDBOLDREV, x.screenName, VIDOFF)
 	fmt.Printf("%s%s", ENTERGRAPHICS, RIGHTTEE)
 
-	for i = 0; i <= oneside; i++ {
+	for i := 0; i <= oneside; i++ {
 		fmt.Printf("%s", HORIZLINE)
 	}
 
 	fmt.Printf("%s", EXITGRAPHICS)
+	setScrRegion(2, x.dispHeight)
 }
 
 func (x *browseObj) pageLast() {

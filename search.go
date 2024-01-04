@@ -15,7 +15,6 @@ import (
 func (x *browseObj) searchFile(pattern string, searchFWD bool) {
 	var sop, eop int
 	var wrapped, warned bool
-	var i int
 
 	if len(pattern) == 0 {
 		if len(x.pattern) == 0 {
@@ -80,7 +79,7 @@ func (x *browseObj) searchFile(pattern string, searchFWD bool) {
 			curRow := 1
 			foundMatch := false
 
-			for i = sop; i < eop; i++ {
+			for i := sop; i < eop; i++ {
 				matches, input := x.lineIsMatch(re, i)
 				curRow++
 
