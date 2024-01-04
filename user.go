@@ -58,7 +58,6 @@ func (x *browseObj) userInput(prompt string) string {
 	)
 
 	var linebuf string
-	var nbuf string
 
 	b := make([]byte, 1)
 
@@ -68,6 +67,8 @@ func (x *browseObj) userInput(prompt string) string {
 	fmt.Printf("%s", prompt)
 
 	for {
+		var nbuf string
+
 		_, err := x.tty.Read(b)
 		errorExit(err)
 
