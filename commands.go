@@ -49,8 +49,13 @@ func commands(br *browseObj) {
 		VK_NEXT  = "\033[6~"
 	)
 
+	const (
+		searchFWD = true
+		searchREV = false
+	)
+
 	var patbuf string
-	var searchFWD bool = true
+	var searchDIR bool
 
 	ttyBrowser()
 	br.pageHeader()
@@ -155,10 +160,17 @@ func commands(br *browseObj) {
 			movecursor(2, 1, false)
 			continue
 
-		case b[0] == MODE_UP:
-			// toggle continuous scroll-up mode
-			br.modeScrollUp = !br.modeScrollUp
-			br.modeScrollDown = false
+		case b[0] == MODE_DN:
+			// toggle continuous scroll-down mode
+			if br.modeScrollDown {
+				br.modeScrollDown = false
+				movecursor(2, 1, false)
+			} else {
+				br.modeScrollDown = true
+				fmt.Printf("%s", CURRESTORE)
+			}
+			// modeTail is a faster version of modeScrollDown
+			br.modeTail = false
 			continue
 
 		case b[0] == CMD_PAGE_UP:
@@ -175,17 +187,10 @@ func commands(br *browseObj) {
 			movecursor(2, 1, false)
 			continue
 
-		case b[0] == MODE_DN:
-			// toggle continuous scroll-down mode
-			if br.modeScrollDown {
-				br.modeScrollDown = false
-				movecursor(2, 1, false)
-			} else {
-				br.modeScrollDown = true
-				fmt.Printf("%s", CURRESTORE)
-			}
-			// modeTail is a faster version of modeScrollDown
-			br.modeTail = false
+		case b[0] == MODE_UP:
+			// toggle continuous scroll-up mode
+			br.modeScrollUp = !br.modeScrollUp
+			br.modeScrollDown = false
 			continue
 
 		case b[0] == CMD_SOF, b[0] == CMD_SOF_1:
@@ -225,12 +230,12 @@ func commands(br *browseObj) {
 
 		case b[0] == CMD_JUMP:
 			// jump to line
-			var n int
 			lbuf := br.userInput("Junp: ")
 
 			if lbuf == "" {
 				br.pageCurrent()
 			} else {
+				var n int
 				fmt.Sscanf(lbuf, "%d", &n)
 				br.printPage(n)
 			}
@@ -240,28 +245,27 @@ func commands(br *browseObj) {
 		case b[0] == CMD_SRCH_FWD:
 			// search forward/down
 			patbuf = br.userInput("/")
-			searchFWD = true
+			searchDIR = searchFWD
 			// null -- just changing direction -- don't reset
 			if patbuf != "" {
 				br.lastMatch = RESETSRCH
 			}
-			br.searchFile(patbuf, searchFWD)
+			br.searchFile(patbuf, searchDIR)
 			continue
 
 		case b[0] == CMD_SRCH_REV:
 			// search backward/up
 			patbuf = br.userInput("?")
-			searchFWD = false
+			searchDIR = searchREV
 			// null -- just changing direction -- don't reset
 			if patbuf != "" {
 				br.lastMatch = br.firstRow
 			}
-			br.searchFile(patbuf, searchFWD)
+			br.searchFile(patbuf, searchDIR)
 			continue
 
 		case b[0] == CMD_SRCH_NEXT:
-			// repeat search of saved pattern
-			br.searchFile(br.pattern, searchFWD)
+			br.searchFile(br.pattern, searchDIR)
 			continue
 
 		case b[0] == CMD_MARK:
