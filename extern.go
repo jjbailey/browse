@@ -43,6 +43,8 @@ const (
 	UPPERLEFT     = "\033)0l"
 	LOWERLEFT     = "\033)0m"
 	WHITEBLUE     = "\033[48;5;21m"
+	LINEWRAPOFF   = "\033[?7l"
+	LINEWRAPON    = "\033[?7h"
 )
 
 type browseObj struct {

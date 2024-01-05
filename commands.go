@@ -281,6 +281,7 @@ func commands(br *browseObj) {
 		case b[0] == CMD_BASH:
 			// bash command
 			br.bashCommand()
+			br.pageHeader()
 			br.pageCurrent()
 			continue
 
