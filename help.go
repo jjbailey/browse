@@ -13,7 +13,7 @@ import (
 func (x *browseObj) printHelp() {
 	lines := []string{
 		"                                                               ",
-		"   Browse                       Version 0.5                    ",
+		"   Browse                       Version 0.6                    ",
 		"                                                               ",
 		"   Command                      Function                       ",
 		"   f b [PG UP] [PG DN]          Page forward/back (down/up)    ",
