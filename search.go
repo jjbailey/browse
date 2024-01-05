@@ -174,9 +174,13 @@ func (x *browseObj) replaceMatch(re *regexp.Regexp, lineno int, input, replstr s
 
 	var output string
 
+	if len(x.pattern) == 0 {
+		return input
+	}
+
 	line := re.ReplaceAllString(input, replstr)
 
-	if !x.modeNumbers {
+	if !x.modeNumbers || windowAtEOF(lineno, x.mapSiz) {
 		// no line numbers
 		output = line
 	} else {

@@ -130,6 +130,7 @@ func saneExit(br *browseObj) {
 
 	ttyRestore()
 	resetScrRegion()
+	fmt.Printf("%s", LINEWRAPON)
 	movecursor(br.dispHeight, 1, true)
 
 	if br.fromStdin {

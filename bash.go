@@ -16,8 +16,10 @@ import (
 func (x *browseObj) bashCommand() {
 	// run a command with bash
 
+	fmt.Printf("%s", LINEWRAPON)
 	lbuf := x.userInput("!")
 	ttyRestore()
+	resetScrRegion()
 
 	// substitute % with the current file name
 	rbuf := strings.Replace(lbuf, "%", x.fileName, -1)

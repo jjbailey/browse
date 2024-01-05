@@ -81,6 +81,7 @@ func (x *browseObj) printPage(lineno int) {
 	// +1 for EOF
 	eop := minimum((x.firstRow + x.dispRows), x.mapSiz+1)
 
+	fmt.Printf("%s", LINEWRAPOFF)
 	movecursor(2, 1, false)
 
 	for i = x.firstRow; i < eop; i++ {
