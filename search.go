@@ -12,9 +12,13 @@ import (
 	"time"
 )
 
-func (x *browseObj) searchFile(pattern string, searchFWD bool) {
+func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 	var sop, eop int
 	var wrapped, warned bool
+	var err error
+
+	// to suppress S1002
+	var searchFwd = searchDir
 
 	if len(pattern) == 0 {
 		if len(x.pattern) == 0 {
@@ -23,9 +27,12 @@ func (x *browseObj) searchFile(pattern string, searchFWD bool) {
 		}
 
 		pattern = x.pattern
+		// reset on first search
+		x.lastMatch = RESETSRCH
+		next = false
 	}
 
-	re, err := regexp.Compile(pattern)
+	x.re, err = regexp.Compile(pattern)
 	// save in case regexp.Compile fails
 	x.pattern = pattern
 
@@ -34,24 +41,25 @@ func (x *browseObj) searchFile(pattern string, searchFWD bool) {
 		return
 	}
 
-	// save regexp.Compile source
-	x.pattern = re.String()
+	// save regexp.Compile source and replstr
+	x.pattern = x.re.String()
+	x.replstr = fmt.Sprintf("%s%s%s", VIDBOLDGREEN, "$0", VIDOFF)
 
-	// initial settings
-	replstr := fmt.Sprintf("%s%s%s", VIDBOLDGREEN, "$0", VIDOFF)
-	sop = x.firstRow
-	eop = sop + x.dispRows
-	wrapped = false
+	// where to start search
+
+	if x.lastMatch == RESETSRCH {
+		// new search
+		sop = x.firstRow
+		eop = sop + x.dispRows
+		wrapped = false
+	} else if next {
+		sop, eop, wrapped = x.setNextPage(searchDir, x.firstRow)
+	}
+
 	warned = false
 
 	for {
-		matchLine := x.pageIsMatch(re, sop, eop)
-		searchThisPage := (x.lastMatch == RESETSRCH || wrapped) && (matchLine > 0)
-
-		if !searchThisPage {
-			sop, eop, wrapped = x.setNextPage(searchFWD, sop)
-			matchLine = x.pageIsMatch(re, sop, eop)
-		}
+		matchLine := x.pageIsMatch(sop, eop)
 
 		if wrapped {
 			if warned {
@@ -59,9 +67,7 @@ func (x *browseObj) searchFile(pattern string, searchFWD bool) {
 				return
 			}
 
-			time.Sleep(750 * time.Millisecond)
-
-			if searchFWD {
+			if searchFwd {
 				x.printMessage("Resuming search from SOF")
 			} else {
 				x.printMessage("Resuming search from EOF")
@@ -72,52 +78,32 @@ func (x *browseObj) searchFile(pattern string, searchFWD bool) {
 		}
 
 		if matchLine > 0 {
-			x.printPage(sop) // sets firstRow, lastRow
-			// reset
-			sop = x.firstRow
-			eop = x.lastRow
-			curRow := 1
-			foundMatch := false
+			// sets firstRow, lastRow
+			x.printPage(sop)
+			return
+		}
 
-			for i := sop; i < eop; i++ {
-				matches, input := x.lineIsMatch(re, i)
-				curRow++
-
-				if matches == 0 {
-					continue
-				}
-
-				output := x.replaceMatch(re, i, input, replstr)
-				n := (len(VIDBOLDGREEN)+len(VIDOFF))*matches + x.dispWidth
-				movecursor(curRow, 1, false)
-				fmt.Printf("%.*s%s%s", n, output, VIDOFF, CLEARLINE)
-				x.lastMatch = i
-				foundMatch = true
-			}
-
-			if foundMatch {
-				movecursor(2, 1, false)
-				return
-			}
+		if matchLine == 0 {
+			sop, eop, wrapped = x.setNextPage(searchDir, sop)
 		}
 	}
 }
 
-func (x *browseObj) pageIsMatch(re *regexp.Regexp, sop, eop int) int {
+func (x *browseObj) pageIsMatch(sop, eop int) int {
 	// check if this page has a regex match
 
-	for i := sop; i < eop; i++ {
-		matches, _ := x.lineIsMatch(re, i)
+	for lineno := sop; lineno < eop; lineno++ {
+		matches, _ := x.lineIsMatch(lineno)
 
 		if matches > 0 {
-			return i
+			return lineno
 		}
 	}
 
 	return 0
 }
 
-func (x *browseObj) lineIsMatch(re *regexp.Regexp, lineno int) (int, string) {
+func (x *browseObj) lineIsMatch(lineno int) (int, string) {
 	// check if this line has a regex match
 
 	var n int
@@ -134,16 +120,25 @@ func (x *browseObj) lineIsMatch(re *regexp.Regexp, lineno int) (int, string) {
 	}
 
 	input := string(data[0:n])
-	return len(re.FindAllString(input, -1)), input
+
+	if x.noSearchPattern() {
+		// no regex
+		return 0, input
+	}
+
+	return len(x.re.FindAllString(input, -1)), input
 }
 
-func (x *browseObj) setNextPage(searchFWD bool, sop int) (int, int, bool) {
+func (x *browseObj) setNextPage(searchDir bool, sop int) (int, int, bool) {
 	// figure out which page to search next
 
 	var eop int
 	var wrapped bool
 
-	if searchFWD {
+	// to suppress S1002
+	var searchFwd = searchDir
+
+	if searchFwd {
 		sop += x.dispRows
 
 		if sop >= x.mapSiz {
@@ -169,16 +164,18 @@ func (x *browseObj) setNextPage(searchFWD bool, sop int) (int, int, bool) {
 	return sop, eop, wrapped
 }
 
-func (x *browseObj) replaceMatch(re *regexp.Regexp, lineno int, input, replstr string) string {
+func (x *browseObj) replaceMatch(lineno int, input string) string {
 	// make the regex replacements, return the new line
 
+	var line string
 	var output string
 
-	if len(x.pattern) == 0 {
-		return input
+	if x.noSearchPattern() {
+		// no regex
+		line = input
+	} else {
+		line = x.re.ReplaceAllString(input, x.replstr)
 	}
-
-	line := re.ReplaceAllString(input, replstr)
 
 	if !x.modeNumbers || windowAtEOF(lineno, x.mapSiz) {
 		// no line numbers
@@ -189,6 +186,10 @@ func (x *browseObj) replaceMatch(re *regexp.Regexp, lineno int, input, replstr s
 	}
 
 	return output
+}
+
+func (x *browseObj) noSearchPattern() bool {
+	return x.re == nil || len(x.re.String()) == 0
 }
 
 // vim: set ts=4 sw=4 noet:

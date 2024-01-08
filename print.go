@@ -13,27 +13,24 @@ import (
 func (x *browseObj) printLine(lineno int) {
 	// printLine finds EOF, sets hitEOF
 
-	var prLine string
-
 	if lineno == 0 {
-		// no line numbers
 		movecursor(2, 1, true)
 		printSEOF("SOF")
 		return
 	}
 
-	data, lineSiz := x.readFromMap(lineno)
+	// lineIsMatch reads lines from the map,
+	matches, input := x.lineIsMatch(lineno)
 
-	if !x.modeNumbers || windowAtEOF(lineno, x.mapSiz) {
-		// no line numbers
-		prLine = string(data)
-	} else {
-		// 7 columns for line numbers
-		prLine = fmt.Sprintf("%6d %s", lineno, string(data))
-		lineSiz += 7
+	// replaceMatch adds line numbers if applicable
+	output := x.replaceMatch(lineno, input)
+
+	n := (len(VIDBOLDGREEN)+len(VIDOFF))*matches + x.dispWidth
+	fmt.Printf("\r\n%.*s%s%s", n, output, VIDOFF, CLEARLINE)
+
+	if matches > 0 {
+		x.lastMatch = lineno
 	}
-
-	fmt.Printf("\r\n%.*s%s\r", minimum(lineSiz, x.dispWidth), prLine, CLEARLINE)
 
 	if windowAtEOF(lineno, x.mapSiz) {
 		printSEOF("EOF")
@@ -50,7 +47,7 @@ func (x *browseObj) printMessage(msg string) {
 	// print a message on the bottom line of the display
 
 	movecursor(x.dispHeight, 1, true)
-	fmt.Printf("%s %s %s", VIDBOLDREV, msg, VIDOFF)
+	fmt.Printf("%s %s %s", VIDMESSAGE, msg, VIDOFF)
 	movecursor(2, 1, false)
 
 	// scrollDown needs this
@@ -87,9 +84,6 @@ func (x *browseObj) printPage(lineno int) {
 	for i = x.firstRow; i < eop; i++ {
 		x.printLine(i)
 	}
-
-	// searches should start from the current page
-	x.lastMatch = RESETSRCH
 
 	x.lastRow = i
 	movecursor(2, 1, false)

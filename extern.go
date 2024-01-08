@@ -8,13 +8,16 @@ package main
 
 import (
 	"os"
+	"regexp"
 )
 
 const (
-	READBUFSIZ int = 256
-	TABWIDTH   int = 8
-	MAXMARKS   int = 10
-	RESETSRCH  int = 0
+	READBUFSIZ int  = 256
+	TABWIDTH   int  = 8
+	MAXMARKS   int  = 10
+	RESETSRCH  int  = 0
+	SEARCHFWD  bool = true
+	SEARCHREV  bool = false
 )
 
 const (
@@ -31,6 +34,7 @@ const (
 	VIDBLINK      = "\033[5m"
 	VIDBOLDREV    = "\033[1m\033[7m"
 	VIDBOLDGREEN  = "\033[1m\033[32m"
+	VIDMESSAGE    = "\033[1;7m\033[32m"
 	VIDOFF        = "\033[0m"
 	ENTERGRAPHICS = "\033(0"
 	EXITGRAPHICS  = "\033(B"
@@ -65,6 +69,8 @@ type browseObj struct {
 	seekMap   map[int]int64
 	sizeMap   map[int]int64
 	pattern   string
+	re        *regexp.Regexp
+	replstr   string
 	lastMatch int
 	hitEOF    bool
 	shownEOF  bool
