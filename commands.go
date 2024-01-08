@@ -9,6 +9,7 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 )
 
 func commands(br *browseObj) {
@@ -33,6 +34,7 @@ func commands(br *browseObj) {
 		CMD_SRCH_FWD     = '/'
 		CMD_SRCH_REV     = '?'
 		CMD_SRCH_NEXT    = 'n'
+		CMD_SRCH_CLEAR   = 'C'
 
 		MODE_UP   = 'u'
 		MODE_DN   = 'd'
@@ -49,13 +51,26 @@ func commands(br *browseObj) {
 		VK_NEXT  = "\033[6~"
 	)
 
-	const (
-		searchFWD = true
-		searchREV = false
-	)
-
 	var patbuf string
-	var searchDIR bool
+	var searchDir bool = SEARCHFWD
+
+	// seed the saved search pattern
+
+	if len(br.pattern) > 0 {
+		var err error
+
+		br.re, err = regexp.Compile(br.pattern)
+
+		if err != nil {
+			// silently throw away bad pattern
+			br.re = nil
+			br.pattern = ""
+		} else {
+			// save regexp.Compile source and replstr
+			br.pattern = br.re.String()
+			br.replstr = fmt.Sprintf("%s%s%s", VIDBOLDGREEN, "$0", VIDOFF)
+		}
+	}
 
 	ttyBrowser()
 	br.pageHeader()
@@ -245,27 +260,33 @@ func commands(br *browseObj) {
 		case b[0] == CMD_SRCH_FWD:
 			// search forward/down
 			patbuf = br.userInput("/")
-			searchDIR = searchFWD
+			searchDir = SEARCHFWD
 			// null -- just changing direction -- don't reset
 			if patbuf != "" {
 				br.lastMatch = RESETSRCH
 			}
-			br.searchFile(patbuf, searchDIR)
+			br.searchFile(patbuf, searchDir, false)
 			continue
 
 		case b[0] == CMD_SRCH_REV:
 			// search backward/up
 			patbuf = br.userInput("?")
-			searchDIR = searchREV
+			searchDir = SEARCHREV
 			// null -- just changing direction -- don't reset
 			if patbuf != "" {
-				br.lastMatch = br.firstRow
+				br.lastMatch = RESETSRCH
 			}
-			br.searchFile(patbuf, searchDIR)
+			br.searchFile(patbuf, searchDir, false)
 			continue
 
 		case b[0] == CMD_SRCH_NEXT:
-			br.searchFile(br.pattern, searchDIR)
+			br.searchFile(br.pattern, searchDir, true)
+			continue
+
+		case b[0] == CMD_SRCH_CLEAR:
+			br.re = nil
+			br.pattern = ""
+			br.printMessage("OK")
 			continue
 
 		case b[0] == CMD_MARK:

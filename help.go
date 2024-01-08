@@ -13,12 +13,12 @@ import (
 func (x *browseObj) printHelp() {
 	lines := []string{
 		"                                                               ",
-		"   Browse                       Version 0.6                    ",
+		"   Browse                       Version 0.8                    ",
 		"                                                               ",
 		"   Command                      Function                       ",
 		"   f b [PG UP] [PG DN]          Page forward/back (down/up)    ",
 		"   + - [LEFT] [RIGHT] [ENTER]   Scroll one line                ",
-		"   u d [UP] [DOWN]              Scroll continuous              ",
+		"   u d [UP] [DOWN]              Continuous scroll mode         ",
 		"   N #                          Line numbers                   ",
 		"   j                            Jump to line number            ",
 		"   0 ^ [HOME]                   Jump to SOF                    ",
@@ -27,6 +27,7 @@ func (x *browseObj) printHelp() {
 		"   /                            Regex pattern search           ",
 		"   ?                            Regex pattern reverse search   ",
 		"   n                            Repeat search                  ",
+		"   C                            Clear search                   ",
 		"   t                            Tail mode                      ",
 		"   !                            bash command                   ",
 		"   q                            Quit                           ",
