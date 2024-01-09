@@ -94,7 +94,7 @@ func (x *browseObj) restoreLast() {
 
 	movecursor(x.dispRows, 1, false)
 	x.printLine(x.lastRow - 1)
-	movecursor(2, 1, false)
+	fmt.Printf("%s", CURRESTORE)
 	x.shownMsg = false
 }
 
