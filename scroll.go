@@ -35,7 +35,7 @@ func (x *browseObj) scrollDown(count int) {
 		movecursor(x.lastRow+1, 1, false)
 
 		if x.shownEOF {
-			// print pervious line before printing current line
+			// print previous line before printing current line
 			fmt.Printf("%s", CURRESTORE)
 			fmt.Printf("%s", CURUP)
 			x.printLine(x.lastRow - 1)
