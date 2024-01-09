@@ -14,14 +14,14 @@ func (x *browseObj) scrollDown(count int) {
 	// scroll down, toward EOF
 	// there's more hand-waving here than meets the eye
 
-	if x.lastRow > x.mapSiz {
-		// nothing more to show
-		return
-	}
-
 	if x.shownMsg {
 		// the last line contains a message
 		x.restoreLast()
+	}
+
+	if x.lastRow > x.mapSiz {
+		// nothing more to show
+		return
 	}
 
 	for i := 0; i < count; i++ {
