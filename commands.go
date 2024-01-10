@@ -31,10 +31,10 @@ func commands(br *browseObj) {
 		CMD_SCROLL_UP    = '-'
 		CMD_SOF          = '^'
 		CMD_SOF_1        = '0'
-		CMD_SRCH_FWD     = '/'
-		CMD_SRCH_REV     = '?'
-		CMD_SRCH_NEXT    = 'n'
-		CMD_SRCH_CLEAR   = 'C'
+		CMD_SEARCH_FWD   = '/'
+		CMD_SEARCH_REV   = '?'
+		CMD_SEARCH_NEXT  = 'n'
+		CMD_SEARCH_CLEAR = 'C'
 
 		MODE_UP   = 'u'
 		MODE_DN   = 'd'
@@ -51,8 +51,15 @@ func commands(br *browseObj) {
 		VK_NEXT  = "\033[6~"
 	)
 
+	const (
+		SEARCH_FWD  = true
+		SEARCH_REV  = false
+		SCROLL_TAIL = 256
+		SCROLL_CONT = 2
+	)
+
 	var patbuf string
-	var searchDir bool = SEARCHFWD
+	var searchDir bool = SEARCH_FWD
 
 	// seed the saved search pattern
 
@@ -88,17 +95,17 @@ func commands(br *browseObj) {
 		if err != nil {
 			if br.modeTail {
 				// in tail mode
-				br.scrollDown(READBUFSIZ)
+				br.scrollDown(SCROLL_TAIL)
 			}
 
 			if br.modeScrollUp {
 				// in continuous scroll-up mode
-				br.scrollUp(2)
+				br.scrollUp(SCROLL_CONT)
 			}
 
 			if br.modeScrollDown {
 				// in continuous scroll-down mode
-				br.scrollDown(2)
+				br.scrollDown(SCROLL_CONT)
 			}
 
 			continue
@@ -257,33 +264,33 @@ func commands(br *browseObj) {
 			movecursor(2, 1, false)
 			continue
 
-		case b[0] == CMD_SRCH_FWD:
+		case b[0] == CMD_SEARCH_FWD:
 			// search forward/down
 			patbuf = br.userInput("/")
-			searchDir = SEARCHFWD
+			searchDir = SEARCH_FWD
 			// null -- just changing direction -- don't reset
 			if patbuf != "" {
-				br.lastMatch = RESETSRCH
+				br.lastMatch = SEARCH_RESET
 			}
 			br.searchFile(patbuf, searchDir, false)
 			continue
 
-		case b[0] == CMD_SRCH_REV:
+		case b[0] == CMD_SEARCH_REV:
 			// search backward/up
 			patbuf = br.userInput("?")
-			searchDir = SEARCHREV
+			searchDir = SEARCH_REV
 			// null -- just changing direction -- don't reset
 			if patbuf != "" {
-				br.lastMatch = RESETSRCH
+				br.lastMatch = SEARCH_RESET
 			}
 			br.searchFile(patbuf, searchDir, false)
 			continue
 
-		case b[0] == CMD_SRCH_NEXT:
+		case b[0] == CMD_SEARCH_NEXT:
 			br.searchFile(br.pattern, searchDir, true)
 			continue
 
-		case b[0] == CMD_SRCH_CLEAR:
+		case b[0] == CMD_SEARCH_CLEAR:
 			br.re = nil
 			br.pattern = ""
 			br.printMessage("OK")

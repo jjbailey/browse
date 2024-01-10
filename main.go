@@ -117,7 +117,7 @@ func resizeWindow(br *browseObj) {
 
 	br.dispWidth, br.dispHeight, _ = term.GetSize(int(br.tty.Fd()))
 	br.dispRows = br.dispHeight - 1
-	br.lastMatch = RESETSRCH
+	br.lastMatch = SEARCH_RESET
 
 	br.pageHeader()
 	br.pageCurrent()

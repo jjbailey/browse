@@ -28,7 +28,7 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 
 		pattern = x.pattern
 		// reset on first search
-		x.lastMatch = RESETSRCH
+		x.lastMatch = SEARCH_RESET
 		next = false
 	}
 
@@ -47,7 +47,7 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 
 	// where to start search
 
-	if x.lastMatch == RESETSRCH {
+	if x.lastMatch == SEARCH_RESET {
 		// new search
 		sop = x.firstRow
 		eop = sop + x.dispRows
