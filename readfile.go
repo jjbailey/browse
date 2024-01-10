@@ -29,7 +29,16 @@ func readFile(br *browseObj, ch chan bool) {
 	}
 
 	for {
-		fInfo, _ := br.fp.Stat()
+		fInfo, err := br.fp.Stat()
+
+		if err != nil {
+			if !notified {
+				ch <- false
+			}
+
+			return
+		}
+
 		newFileSiz = fInfo.Size()
 
 		if newFileSiz < savFileSiz {
@@ -49,6 +58,8 @@ func readFile(br *browseObj, ch chan bool) {
 
 		if savFileSiz == 0 || savFileSiz < newFileSiz {
 			// file unread or grew
+			// read and map the new lines
+
 			br.fp.Seek(br.seekMap[br.mapSiz], io.SeekStart)
 
 			for {
@@ -56,7 +67,6 @@ func readFile(br *browseObj, ch chan bool) {
 				line, err := reader.ReadString('\n')
 
 				if err != nil {
-					br.hitEOF = true
 					break
 				}
 
@@ -65,6 +75,7 @@ func readFile(br *browseObj, ch chan bool) {
 				br.sizeMap[br.mapSiz] = int64(minimum(lineLen-1, READBUFSIZ))
 				br.mapSiz++
 
+				// init the next map entry
 				br.seekMap[br.mapSiz] = 0
 				br.sizeMap[br.mapSiz] = 0
 			}

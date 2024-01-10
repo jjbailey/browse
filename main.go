@@ -100,11 +100,13 @@ func main() {
 
 	syncOK := make(chan bool)
 	go readFile(&br, syncOK)
-	<-syncOK
+	readerOK := <-syncOK
 	close(syncOK)
 
-	// go
-	commands(&br)
+	if readerOK {
+		// go
+		commands(&br)
+	}
 
 	// done
 	saneExit(&br)
