@@ -18,9 +18,9 @@ import (
 func (x *browseObj) userAnyKey(prompt string) {
 	b := make([]byte, 1)
 
-	// prompt is optional
-
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT)
+
+	// prompt is optional
 
 	if prompt == "" {
 		movecursor(2, 1, false)

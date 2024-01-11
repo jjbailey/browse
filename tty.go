@@ -17,11 +17,11 @@ var (
 )
 
 func ttySaveTerm() {
-	_ = saneTerm.GetAttr(termios.Stdout)
+	saneTerm.GetAttr(termios.Stdout)
 }
 
 func ttyRestore() {
-	_ = saneTerm.SetAttr(termios.Stdout, termios.TCSAFLUSH)
+	saneTerm.SetAttr(termios.Stdout, termios.TCSAFLUSH)
 }
 
 func ttyBrowser() {
@@ -34,7 +34,7 @@ func ttyBrowser() {
 	rawTerm.CC[termios.VMIN] = 0
 	rawTerm.CC[termios.VTIME] = 1
 
-	_ = rawTerm.SetAttr(termios.Stdout, termios.TCSAFLUSH)
+	rawTerm.SetAttr(termios.Stdout, termios.TCSAFLUSH)
 }
 
 func ttyPrompter() {
@@ -48,7 +48,7 @@ func ttyPrompter() {
 	prmTerm.CC[termios.VMIN] = 1
 	prmTerm.CC[termios.VTIME] = 0
 
-	_ = prmTerm.SetAttr(termios.Stdout, termios.TCSAFLUSH)
+	prmTerm.SetAttr(termios.Stdout, termios.TCSAFLUSH)
 }
 
 // vim: set ts=4 sw=4 noet:

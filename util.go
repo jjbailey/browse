@@ -70,8 +70,8 @@ func printSEOF(what string) {
 	fmt.Printf("\r %s%s%s\r", VIDBLINK, what, VIDOFF)
 }
 
-func windowAtEOF(ln int, ml int) bool {
-	return ln == ml
+func windowAtEOF(lineno int, mapsiz int) bool {
+	return lineno == mapsiz
 }
 
 func minimum(a int, b int) int {

@@ -35,7 +35,7 @@ func (x *browseObj) bashCommand() {
 		cmd := exec.Command("/bin/bash", "-c", rbuf)
 		stdout, _ := cmd.Output()
 		movecursor(x.dispHeight, 1, true)
-		fmt.Printf("---\n")
+		fmt.Print("---\n")
 		fmt.Printf("$ %s\n", rbuf)
 		fmt.Print(string(stdout))
 	}

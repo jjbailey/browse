@@ -19,14 +19,16 @@ func (x *browseObj) printLine(lineno int) {
 		return
 	}
 
-	// lineIsMatch reads lines from the map,
+	// lineIsMatch reads lines from the map
 	matches, input := x.lineIsMatch(lineno)
 
 	// replaceMatch adds line numbers if applicable
 	output := x.replaceMatch(lineno, input)
 
-	n := (len(VIDBOLDGREEN)+len(VIDOFF))*matches + x.dispWidth
-	fmt.Printf("\r\n%.*s%s%s", n, output, VIDOFF, CLEARLINE)
+	// line length after string replacements
+	n := (len(VIDBOLDGREEN)+len(VIDOFF))*matches + len(output)
+
+	fmt.Printf("\r\n%.*s%s%s", minimum(n, x.dispWidth), output, VIDOFF, CLEARLINE)
 
 	if matches > 0 {
 		x.lastMatch = lineno
