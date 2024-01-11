@@ -63,8 +63,7 @@ func movecursor(row int, col int, clrflag bool) {
 func printSEOF(what string) {
 	if what == "EOF" {
 		// save for modeTail
-		fmt.Printf("\r%s", CLEARSCREEN)
-		fmt.Printf("%s", CURSAVE)
+		fmt.Printf("\r%s%s", CLEARSCREEN, CURSAVE)
 	}
 
 	fmt.Printf("\r %s%s%s\r", VIDBLINK, what, VIDOFF)
@@ -104,7 +103,7 @@ func getMark(buf string) int {
 
 	var d int
 
-	if n, _ := fmt.Sscanf(buf, "%d", &d); n != 1 {
+	if _, err := fmt.Sscanf(buf, "%d", &d); err != nil {
 		return 0
 	}
 
