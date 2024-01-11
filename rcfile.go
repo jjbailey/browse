@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const RCFILENAME = ".browserc"
@@ -59,7 +60,7 @@ func readRcFile(br *browseObj) bool {
 
 	// fileName
 	lbuf, _ = r.ReadString('\n')
-	br.fileName = lbuf[:len(lbuf)-1]
+	br.fileName = strings.TrimSpace(lbuf)
 
 	// firstRow
 	lbuf, _ = r.ReadString('\n')
@@ -67,7 +68,7 @@ func readRcFile(br *browseObj) bool {
 
 	// pattern
 	lbuf, _ = r.ReadString('\n')
-	br.pattern = lbuf[:len(lbuf)-1]
+	br.pattern = strings.TrimSpace(lbuf)
 
 	// marks
 	lbuf, _ = r.ReadString('\n')
