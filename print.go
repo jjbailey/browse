@@ -11,7 +11,7 @@ import (
 )
 
 func (x *browseObj) printLine(lineno int) {
-	// printLine finds EOF, sets hitEOF
+	// print a line from the map, finds EOF, sets hitEOF
 
 	if lineno == 0 {
 		movecursor(2, 1, true)
@@ -28,7 +28,7 @@ func (x *browseObj) printLine(lineno int) {
 	// line length after string replacements
 	n := (len(VIDBOLDGREEN)+len(VIDOFF))*matches + len(output)
 
-	fmt.Printf("\r\n%.*s%s%s", minimum(n, x.dispWidth), output, VIDOFF, CLEARLINE)
+	fmt.Printf("\r\n%.*s%s%s\r", minimum(n, x.dispWidth), output, VIDOFF, CLEARLINE)
 
 	if matches > 0 {
 		x.lastMatch = lineno
