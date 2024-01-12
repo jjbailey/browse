@@ -100,11 +100,13 @@ func main() {
 
 	syncOK := make(chan bool)
 	go readFile(&br, syncOK)
-	<-syncOK
+	readerOK := <-syncOK
 	close(syncOK)
 
-	// go
-	commands(&br)
+	if readerOK {
+		// go
+		commands(&br)
+	}
 
 	// done
 	saneExit(&br)
@@ -115,7 +117,7 @@ func resizeWindow(br *browseObj) {
 
 	br.dispWidth, br.dispHeight, _ = term.GetSize(int(br.tty.Fd()))
 	br.dispRows = br.dispHeight - 1
-	br.lastMatch = RESETSRCH
+	br.lastMatch = SEARCH_RESET
 
 	br.pageHeader()
 	br.pageCurrent()

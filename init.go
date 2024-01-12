@@ -21,7 +21,7 @@ func (x *browseObj) fileInit(fp *os.File, name string, fromStdin bool) {
 	x.sizeMap = make(map[int]int64, 1)
 	x.mapSiz = 1
 
-	x.lastMatch = RESETSRCH
+	x.lastMatch = SEARCH_RESET
 	x.hitEOF = false
 	x.shownEOF = false
 	x.shownMsg = false

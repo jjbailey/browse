@@ -14,14 +14,14 @@ func (x *browseObj) scrollDown(count int) {
 	// scroll down, toward EOF
 	// there's more hand-waving here than meets the eye
 
-	if x.lastRow > x.mapSiz {
-		// nothing more to show
-		return
-	}
-
 	if x.shownMsg {
 		// the last line contains a message
 		x.restoreLast()
+	}
+
+	if x.lastRow > x.mapSiz {
+		// nothing more to show
+		return
 	}
 
 	for i := 0; i < count; i++ {
@@ -35,9 +35,8 @@ func (x *browseObj) scrollDown(count int) {
 		movecursor(x.lastRow+1, 1, false)
 
 		if x.shownEOF {
-			// print pervious line before printing current line
-			fmt.Printf("%s", CURRESTORE)
-			fmt.Printf("%s", CURUP)
+			// print previous line before printing current line
+			fmt.Printf("%s%s", CURRESTORE, CURUP)
 			x.printLine(x.lastRow - 1)
 		}
 

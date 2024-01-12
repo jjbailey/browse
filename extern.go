@@ -12,12 +12,10 @@ import (
 )
 
 const (
-	READBUFSIZ int  = 256
-	TABWIDTH   int  = 8
-	MAXMARKS   int  = 10
-	RESETSRCH  int  = 0
-	SEARCHFWD  bool = true
-	SEARCHREV  bool = false
+	READBUFSIZ   = 256
+	TABWIDTH     = 8
+	MAXMARKS     = 10
+	SEARCH_RESET = 0
 )
 
 const (
