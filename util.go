@@ -1,5 +1,5 @@
 // util.go
-// verious uncategorized functions
+// various uncategorized functions
 //
 // Copyright (c) 2024 jjb
 // All rights reserved.
