@@ -24,7 +24,7 @@ func (x *browseObj) resetSignals() {
 func (x *browseObj) catchSignals() {
 	// signals
 
-	sigChan := make(chan os.Signal, 2)
+	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan)
 	signal.Ignore(syscall.SIGCHLD)
 	signal.Ignore(syscall.SIGURG)
