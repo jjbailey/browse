@@ -11,6 +11,7 @@ import (
 	"os"
 	"syscall"
 
+	"github.com/pborman/getopt/v2"
 	"golang.org/x/term"
 )
 
@@ -20,16 +21,28 @@ func main() {
 	var fileName string
 	var screenName string
 
-	argc := len(os.Args[0:])
+	followFlag := getopt.BoolLong("follow", 'f', "follow file")
+	numberFlag := getopt.BoolLong("numbers", 'n', "line numbers")
+	helpFlag := getopt.BoolLong("help", '?', "this message")
+
+	getopt.SetUsage(usageMessage)
+	getopt.Parse()
+	args := getopt.Args()
+	argc := len(args)
+
+	if *helpFlag {
+		usageMessage()
+		os.Exit(0)
+	}
 
 	// do this now
 	ttySaveTerm()
 	syscall.Umask(077)
 
 	if term.IsTerminal(int(os.Stdin.Fd())) {
-		if argc < 2 {
+		if argc == 0 {
 			if !readRcFile(&br) {
-				fmt.Printf("Usage: browse [filename]\n")
+				usageMessage()
 				os.Exit(1)
 			}
 
@@ -38,8 +51,8 @@ func main() {
 			screenName = br.fileName
 		} else {
 			// use file given
-			fileName = os.Args[1]
-			screenName = os.Args[1]
+			fileName = args[0]
+			screenName = args[0]
 		}
 
 		// open file for reading
@@ -79,6 +92,10 @@ func main() {
 	// signals
 	br.catchSignals()
 
+	// set options from commandline
+	br.modeNumbers = *numberFlag
+	br.modeScrollDown = *followFlag
+
 	// start a file reader
 	syncOK := make(chan bool)
 	go readFile(&br, syncOK)
@@ -92,6 +109,13 @@ func main() {
 
 	// done
 	br.saneExit()
+}
+
+func usageMessage() {
+	fmt.Print("Usage: browse [-fn] [filename]\n")
+	fmt.Print(" -f, --follow   follow file\n")
+	fmt.Print(" -n, --numbers  line numbers\n")
+	fmt.Print(" -?, --help     this message\n")
 }
 
 // vim: set ts=4 sw=4 noet:

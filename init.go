@@ -29,6 +29,9 @@ func (x *browseObj) fileInit(fp *os.File, name string, fromStdin bool) {
 
 	x.seekMap[0] = 0
 	x.sizeMap[0] = 0
+
+	x.modeNumbers = false
+	x.modeScrollDown = false
 }
 
 func (x *browseObj) screenInit(fp *os.File, name string) {

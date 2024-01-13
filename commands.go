@@ -81,7 +81,13 @@ func commands(br *browseObj) {
 
 	ttyBrowser()
 	br.pageHeader()
-	br.pageCurrent()
+
+	if br.modeScrollDown {
+		br.pageLast()
+		fmt.Printf("%s", CURRESTORE)
+	} else {
+		br.pageCurrent()
+	}
 
 	for {
 		// scan for input -- need to compare 4 characters
