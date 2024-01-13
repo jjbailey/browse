@@ -43,6 +43,8 @@ func (x *browseObj) bashCommand() {
 
 		// set up env, run
 		bashPath, err := exec.LookPath("bash")
+		x.resetSignals()
+		fmt.Printf("%s", LINEWRAPON) // again
 
 		if err != nil {
 			fmt.Printf("%v\n", err)
@@ -61,7 +63,10 @@ func (x *browseObj) bashCommand() {
 		}
 	}
 
+	// cleanup
+	x.catchSignals()
 	x.userAnyKey(VIDMESSAGE + " Press any key to continue... " + VIDOFF)
+	x.resizeWindow()
 }
 
 // vim: set ts=4 sw=4 noet:

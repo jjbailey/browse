@@ -9,7 +9,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/signal"
 	"syscall"
 
 	"golang.org/x/term"
@@ -72,32 +71,15 @@ func main() {
 		if err := recover(); err != nil {
 			movecursor(br.dispHeight, 1, true)
 			fmt.Printf("panic occurred: %v", err)
-			saneExit(&br)
 		}
+
+		br.saneExit()
 	}()
 
 	// signals
-
-	sigChan := make(chan os.Signal, 2)
-	signal.Notify(sigChan, syscall.SIGABRT, syscall.SIGTERM, syscall.SIGWINCH)
-	go func() {
-		for {
-			sig := <-sigChan
-
-			switch sig {
-
-			case syscall.SIGABRT:
-			case syscall.SIGTERM:
-				saneExit(&br)
-
-			case syscall.SIGWINCH:
-				resizeWindow(&br)
-			}
-		}
-	}()
+	br.catchSignals()
 
 	// start a file reader
-
 	syncOK := make(chan bool)
 	go readFile(&br, syncOK)
 	readerOK := <-syncOK
@@ -109,41 +91,7 @@ func main() {
 	}
 
 	// done
-	saneExit(&br)
-}
-
-func resizeWindow(br *browseObj) {
-	// catch SIGWINCH for window size changes
-
-	br.dispWidth, br.dispHeight, _ = term.GetSize(int(br.tty.Fd()))
-	br.dispRows = br.dispHeight - 1
-	br.lastMatch = SEARCH_RESET
-
-	br.pageHeader()
-	br.pageCurrent()
-
-	if br.modeTail {
-		fmt.Printf("%s", CURRESTORE)
-	}
-}
-
-func saneExit(br *browseObj) {
-	// clean up
-
-	ttyRestore()
-	resetScrRegion()
-	fmt.Printf("%s", LINEWRAPON)
-	movecursor(br.dispHeight, 1, true)
-
-	if br.fromStdin {
-		os.Remove(br.fileName)
-	}
-
-	if !br.fromStdin && br.saveRC {
-		writeRcFile(br)
-	}
-
-	os.Exit(0)
+	br.saneExit()
 }
 
 // vim: set ts=4 sw=4 noet:
