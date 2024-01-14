@@ -24,6 +24,8 @@ func commands(br *browseObj) {
 		CMD_NUMBERS_1    = 'N'
 		CMD_PAGE_DN      = 'f'
 		CMD_PAGE_UP      = 'b'
+		CMD_SHIFT_LEFT   = '<'
+		CMD_SHIFT_RIGHT  = '>'
 		CMD_QUIT         = 'q'
 		CMD_QUIT_NO_SAVE = 'Q'
 		CMD_SCROLL_DN    = '+'
@@ -219,6 +221,24 @@ func commands(br *browseObj) {
 			// toggle continuous scroll-up mode
 			br.modeScrollUp = !br.modeScrollUp
 			br.modeScrollDown = false
+			continue
+
+		case b[0] == CMD_SHIFT_LEFT:
+			// horizontal scroll left
+			if br.shiftWidth > 0 {
+				br.shiftWidth--
+				br.pageCurrent()
+			}
+			movecursor(2, 1, false)
+			continue
+
+		case b[0] == CMD_SHIFT_RIGHT:
+			// horizontal scroll right
+			if br.shiftWidth < READBUFSIZ {
+				br.shiftWidth++
+				br.pageCurrent()
+			}
+			movecursor(2, 1, false)
 			continue
 
 		case b[0] == CMD_SOF, b[0] == CMD_SOF_1:

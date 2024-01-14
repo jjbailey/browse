@@ -116,8 +116,18 @@ func readStdin(fin, fout *os.File) {
 func (x *browseObj) readFromMap(lineno int) ([]byte, int) {
 	// use the maps to read a line from the file
 
-	data := make([]byte, x.sizeMap[lineno])
-	x.fp.Seek(x.seekMap[lineno], io.SeekStart)
+	// for line shift (horizontal scroll)
+	readFrom := x.seekMap[lineno] + x.shiftWidth
+	readSize := x.sizeMap[lineno] - x.shiftWidth
+
+	if readSize <= 0 {
+		// shift beyond EOL
+		return nil, 0
+	}
+
+	data := make([]byte, readSize)
+	x.fp.Seek(readFrom, io.SeekStart)
+
 	x.fp.Read(data)
 	return expandTabs(data)
 }

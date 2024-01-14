@@ -60,21 +60,22 @@ type browseObj struct {
 	lastRow    int
 
 	// file vars
-	fp        *os.File
-	fileName  string
-	fromStdin bool
-	mapSiz    int
-	seekMap   map[int]int64
-	sizeMap   map[int]int64
-	pattern   string
-	re        *regexp.Regexp
-	replstr   string
-	lastMatch int
-	hitEOF    bool
-	shownEOF  bool
-	shownMsg  bool
-	marks     [MAXMARKS]int
-	saveRC    bool
+	fp         *os.File
+	fileName   string
+	fromStdin  bool
+	mapSiz     int
+	seekMap    map[int]int64
+	sizeMap    map[int]int64
+	shiftWidth int64
+	pattern    string
+	re         *regexp.Regexp
+	replstr    string
+	lastMatch  int
+	hitEOF     bool
+	shownEOF   bool
+	shownMsg   bool
+	marks      [MAXMARKS]int
+	saveRC     bool
 
 	// modes
 	modeNumbers    bool
