@@ -52,7 +52,20 @@ func (x *browseObj) bashCommand() {
 			bashArgs := []string{"bash", "-c", rbuf}
 			bashEnv := os.Environ()
 			bashFiles := []uintptr{0, 1, 2}
-			bashAttr := &syscall.ProcAttr{Dir: ".", Env: bashEnv, Files: bashFiles}
+			bashAttr := &syscall.ProcAttr{
+				Dir:   ".",
+				Env:   bashEnv,
+				Files: bashFiles,
+				Sys: &syscall.SysProcAttr{
+					// fixme
+					// Setsid: true,
+					// Setpgid: true,
+					// Setctty: true,
+					Ctty: int(x.tty.Fd()),
+					// Pgid: 0,
+				},
+			}
+
 			pid, err := syscall.ForkExec(bashPath, bashArgs, bashAttr)
 
 			if err != nil {
