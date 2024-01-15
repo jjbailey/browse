@@ -8,47 +8,49 @@ package main
 
 import (
 	"bufio"
-	"fmt"
+	"bytes"
 	"os"
+	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
 const RCFILENAME = ".browserc"
 
 func writeRcFile(br *browseObj) bool {
-	filePath := fmt.Sprintf("%s/%s", os.Getenv("HOME"), RCFILENAME)
-	fp, err := os.Create(filePath)
-
-	if err != nil {
-		return false
-	}
+	filePath := filepath.Join(os.Getenv("HOME"), RCFILENAME)
 
 	// fileName
 	absPath, _ := filepath.Abs(br.fileName)
-	fileName := fmt.Sprintf("%s\n", absPath)
-	fp.WriteString(fileName)
+	fileName := absPath + "\n"
+
+	// data buffer to accumulate all the data
+	var data bytes.Buffer
+
+	data.WriteString(fileName)
 
 	// firstRow
-	fp.WriteString(fmt.Sprintf("%d\n", br.firstRow))
+	data.WriteString(strconv.Itoa(br.firstRow) + "\n")
 
 	// pattern
-	fp.WriteString(fmt.Sprintf("%s\n", br.pattern))
+	data.WriteString(br.pattern + "\n")
 
 	// marks
 	for i := 1; i <= 9; i++ {
-		fp.WriteString(fmt.Sprintf("%d ", br.marks[i]))
+		data.WriteString(strconv.Itoa(br.marks[i]) + " ")
 	}
-	fp.WriteString("\n")
+	data.WriteString("\n")
 
-	fp.Close()
-	return true
+	// write the buffer data to the file
+	err := os.WriteFile(filePath, data.Bytes(), 0644)
+
+	return err == nil
 }
 
 func readRcFile(br *browseObj) bool {
-	var lbuf string
-
-	filePath := fmt.Sprintf("%s/%s", os.Getenv("HOME"), RCFILENAME)
+	filePath := path.Join(os.Getenv("HOME"), RCFILENAME)
+	filePath = os.ExpandEnv(filePath)
 
 	fp, err := os.Open(filePath)
 
@@ -56,28 +58,54 @@ func readRcFile(br *browseObj) bool {
 		return false
 	}
 
-	r := bufio.NewReader(fp)
+	defer fp.Close()
 
-	// fileName
-	lbuf, _ = r.ReadString('\n')
-	br.fileName = strings.TrimSpace(lbuf)
+	scanner := bufio.NewScanner(fp)
 
-	// firstRow
-	lbuf, _ = r.ReadString('\n')
-	fmt.Sscanf(lbuf, "%d", &br.firstRow)
+	if scanner.Scan() {
+		br.fileName = strings.TrimSpace(scanner.Text())
+	} else {
+		return false
+	}
 
-	// pattern
-	lbuf, _ = r.ReadString('\n')
-	br.pattern = strings.TrimSpace(lbuf)
+	if scanner.Scan() {
+		firstRow, err := strconv.Atoi(strings.TrimSpace(scanner.Text()))
 
-	// marks
-	lbuf, _ = r.ReadString('\n')
-	fmt.Sscanf(lbuf, "%d %d %d %d %d %d %d %d %d",
-		&br.marks[1], &br.marks[2], &br.marks[3],
-		&br.marks[4], &br.marks[5], &br.marks[6],
-		&br.marks[7], &br.marks[8], &br.marks[9])
+		if err != nil {
+			return false
+		}
 
-	fp.Close()
+		br.firstRow = firstRow
+	} else {
+		return false
+	}
+
+	if scanner.Scan() {
+		br.pattern = strings.TrimSpace(scanner.Text())
+	} else {
+		return false
+	}
+
+	if scanner.Scan() {
+		markStrings := strings.Fields(strings.TrimSpace(scanner.Text()))
+
+		if len(markStrings) != 9 {
+			return false
+		}
+
+		for i, markString := range markStrings {
+			mark, err := strconv.Atoi(markString)
+
+			if err != nil {
+				return false
+			}
+
+			br.marks[i+1] = mark
+		}
+	} else {
+		return false
+	}
+
 	return true
 }
 

@@ -11,6 +11,8 @@ import (
 )
 
 func (x *browseObj) printHelp() {
+	var i int
+
 	lines := []string{
 		"                                                               ",
 		"   Browse                       Version 0.10                   ",
@@ -62,14 +64,12 @@ func (x *browseObj) printHelp() {
 
 	// body
 
-	i := 0
-
-	for range lines {
+	for i = 0; i < len(lines); i++ {
 		movecursor(i+4, col, false)
-		fmt.Printf(ENTERGRAPHICS + VERTLINE + EXITGRAPHICS)
-		fmt.Printf(lines[i])
-		fmt.Printf(ENTERGRAPHICS + VERTLINE + EXITGRAPHICS)
-		i++
+
+		fmt.Printf("%s%s%s%s%s%s%s", ENTERGRAPHICS, VERTLINE, EXITGRAPHICS,
+			lines[i],
+			ENTERGRAPHICS, VERTLINE, EXITGRAPHICS)
 	}
 
 	// bottom line

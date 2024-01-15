@@ -118,17 +118,17 @@ func (x *browseObj) readFromMap(lineno int) ([]byte, int) {
 
 	// for line shift (horizontal scroll)
 	readFrom := x.seekMap[lineno] + x.shiftWidth
-	readSize := x.sizeMap[lineno] - x.shiftWidth
+	lineSize := x.sizeMap[lineno] - x.shiftWidth
 
-	if readSize <= 0 {
-		// shift beyond EOL
+	if lineSize <= 0 {
+		// shifted beyond EOL
 		return nil, 0
 	}
 
-	data := make([]byte, readSize)
+	data := make([]byte, lineSize)
 	x.fp.Seek(readFrom, io.SeekStart)
-
 	x.fp.Read(data)
+
 	return expandTabs(data)
 }
 
