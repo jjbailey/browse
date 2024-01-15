@@ -295,11 +295,12 @@ func commands(br *browseObj) {
 			patbuf := br.userInput("/")
 			searchDir = SEARCH_FWD
 			// null -- just changing direction -- don't reset
-			if patbuf != "" {
+			if patbuf == "" {
+				br.pageCurrent()
+			} else {
 				br.lastMatch = SEARCH_RESET
 				br.searchFile(patbuf, searchDir, false)
 			}
-			movecursor(2, 1, false)
 			continue
 
 		case b[0] == CMD_SEARCH_REV:
@@ -308,11 +309,12 @@ func commands(br *browseObj) {
 			patbuf := br.userInput("?")
 			searchDir = SEARCH_REV
 			// null -- just changing direction -- don't reset
-			if patbuf != "" {
+			if patbuf == "" {
+				br.pageCurrent()
+			} else {
 				br.lastMatch = SEARCH_RESET
 				br.searchFile(patbuf, searchDir, false)
 			}
-			movecursor(2, 1, false)
 			continue
 
 		case b[0] == CMD_SEARCH_NEXT:
