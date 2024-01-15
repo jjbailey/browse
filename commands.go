@@ -60,7 +60,6 @@ func commands(br *browseObj) {
 		SCROLL_CONT = 2
 	)
 
-	var patbuf string
 	var searchDir bool = SEARCH_FWD
 
 	// seed the saved search pattern
@@ -92,7 +91,7 @@ func commands(br *browseObj) {
 	}
 
 	for {
-		// scan for input -- need to compare 4 characters
+		// scan for input -- compare 4 characters
 
 		b := make([]byte, 4)
 		_, err := br.tty.Read(b)
@@ -292,24 +291,28 @@ func commands(br *browseObj) {
 
 		case b[0] == CMD_SEARCH_FWD:
 			// search forward/down
-			patbuf = br.userInput("/")
+			// fixme: distinguish between change direction and cancel
+			patbuf := br.userInput("/")
 			searchDir = SEARCH_FWD
 			// null -- just changing direction -- don't reset
 			if patbuf != "" {
 				br.lastMatch = SEARCH_RESET
+				br.searchFile(patbuf, searchDir, false)
 			}
-			br.searchFile(patbuf, searchDir, false)
+			movecursor(2, 1, false)
 			continue
 
 		case b[0] == CMD_SEARCH_REV:
 			// search backward/up
-			patbuf = br.userInput("?")
+			// fixme: distinguish between change direction and cancel
+			patbuf := br.userInput("?")
 			searchDir = SEARCH_REV
 			// null -- just changing direction -- don't reset
 			if patbuf != "" {
 				br.lastMatch = SEARCH_RESET
+				br.searchFile(patbuf, searchDir, false)
 			}
-			br.searchFile(patbuf, searchDir, false)
+			movecursor(2, 1, false)
 			continue
 
 		case b[0] == CMD_SEARCH_NEXT:
