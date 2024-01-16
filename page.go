@@ -8,6 +8,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
 func (x *browseObj) pageUp() {
@@ -33,19 +34,11 @@ func (x *browseObj) pageHeader() {
 	movecursor(1, 1, true)
 	fmt.Printf("%s", CLEARSCREEN)
 	fmt.Printf("%s", ENTERGRAPHICS)
-
-	for i := 0; i < oneside; i++ {
-		fmt.Printf("%s", HORIZLINE)
-	}
-
+	fmt.Printf("%s", strings.Repeat(HORIZLINE, oneside))
 	fmt.Printf("%s%s", LEFTTEE, EXITGRAPHICS)
 	fmt.Printf("%s %s %s", VIDBOLDREV, x.screenName, VIDOFF)
 	fmt.Printf("%s%s", ENTERGRAPHICS, RIGHTTEE)
-
-	for i := 0; i <= oneside; i++ {
-		fmt.Printf("%s", HORIZLINE)
-	}
-
+	fmt.Printf("%s", strings.Repeat(HORIZLINE, oneside+1))
 	fmt.Printf("%s", EXITGRAPHICS)
 	setScrRegion(2, x.dispHeight)
 }
