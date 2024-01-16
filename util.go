@@ -8,7 +8,9 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
+	"strconv"
 )
 
 func expandTabs(data []byte) ([]byte, int) {
@@ -74,11 +76,7 @@ func windowAtEOF(lineno int, mapsiz int) bool {
 }
 
 func minimum(a int, b int) int {
-	if a < b {
-		return a
-	}
-
-	return b
+	return int(math.Min(float64(a), float64(b)))
 }
 
 func setScrRegion(top int, bot int) {
@@ -101,19 +99,13 @@ func getMark(buf string) int {
 	// scan a mark digit from the buffer
 	// valid marks are 1 - 9
 
-	var d int
+	d, err := strconv.Atoi(buf)
 
-	if _, err := fmt.Sscanf(buf, "%d", &d); err != nil {
+	if err != nil {
 		return 0
 	}
 
-	if d < 1 {
-		d = 1
-	} else if d > 9 {
-		d = 9
-	}
-
-	return d
+	return int(math.Min(math.Max(float64(d), 1), 9))
 }
 
 // vim: set ts=4 sw=4 noet:
