@@ -282,7 +282,7 @@ func commands(br *browseObj) {
 			searchDir = SEARCH_FWD
 			// null -- just changing direction -- don't reset
 			if patbuf == "" {
-				br.pageCurrent()
+				br.printMessage("Searching forward")
 			} else {
 				br.lastMatch = SEARCH_RESET
 				br.searchFile(patbuf, searchDir, false)
@@ -295,7 +295,8 @@ func commands(br *browseObj) {
 			searchDir = SEARCH_REV
 			// null -- just changing direction -- don't reset
 			if patbuf == "" {
-				br.pageCurrent()
+				// br.pageCurrent()
+				br.printMessage("Searching reverse")
 			} else {
 				br.lastMatch = SEARCH_RESET
 				br.searchFile(patbuf, searchDir, false)
