@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"strconv"
 )
 
 func expandTabs(data []byte) ([]byte, int) {
@@ -99,7 +98,10 @@ func getMark(buf string) int {
 	// scan a mark digit from the buffer
 	// valid marks are 1 - 9
 
-	d, err := strconv.Atoi(buf)
+	var d int
+	var err error
+
+	d, err = fmt.Sscanf(buf, "%d", &d)
 
 	if err != nil {
 		return 0
