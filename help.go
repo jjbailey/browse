@@ -18,7 +18,7 @@ func (x *browseObj) printHelp() {
 		"   Browse                       Version 0.10                   ",
 		"                                                               ",
 		"   Command                      Function                       ",
-		"   f b [PG UP] [PG DN]          Page forward/back (down/up)    ",
+		"   f b [PAGE UP] [PAGE DOWN]    Page forward/back (down/up)    ",
 		"   + - [LEFT] [RIGHT] [ENTER]   Scroll one line                ",
 		"   u d [UP] [DOWN]              Continuous scroll mode         ",
 		"   < >                          Horizontal scroll left/right   ",
