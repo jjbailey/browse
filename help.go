@@ -11,14 +11,17 @@ import (
 )
 
 func (x *browseObj) printHelp() {
+	var i int
+
 	lines := []string{
 		"                                                               ",
-		"   Browse                       Version 0.9                    ",
+		"   Browse                       Version 0.10                   ",
 		"                                                               ",
 		"   Command                      Function                       ",
-		"   f b [PG UP] [PG DN]          Page forward/back (down/up)    ",
+		"   f b [PAGE UP] [PAGE DOWN]    Page forward/back (down/up)    ",
 		"   + - [LEFT] [RIGHT] [ENTER]   Scroll one line                ",
 		"   u d [UP] [DOWN]              Continuous scroll mode         ",
+		"   < >                          Horizontal scroll left/right   ",
 		"   N #                          Line numbers                   ",
 		"   j                            Jump to line number            ",
 		"   0 ^ [HOME]                   Jump to SOF                    ",
@@ -61,14 +64,12 @@ func (x *browseObj) printHelp() {
 
 	// body
 
-	i := 0
-
-	for range lines {
+	for i = 0; i < len(lines); i++ {
 		movecursor(i+4, col, false)
-		fmt.Printf(ENTERGRAPHICS + VERTLINE + EXITGRAPHICS)
-		fmt.Printf(lines[i])
-		fmt.Printf(ENTERGRAPHICS + VERTLINE + EXITGRAPHICS)
-		i++
+
+		fmt.Printf("%s%s%s%s%s%s%s", ENTERGRAPHICS, VERTLINE, EXITGRAPHICS,
+			lines[i],
+			ENTERGRAPHICS, VERTLINE, EXITGRAPHICS)
 	}
 
 	// bottom line

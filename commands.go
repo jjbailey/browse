@@ -24,6 +24,8 @@ func commands(br *browseObj) {
 		CMD_NUMBERS_1    = 'N'
 		CMD_PAGE_DN      = 'f'
 		CMD_PAGE_UP      = 'b'
+		CMD_SHIFT_LEFT   = '<'
+		CMD_SHIFT_RIGHT  = '>'
 		CMD_QUIT         = 'q'
 		CMD_QUIT_NO_SAVE = 'Q'
 		CMD_SCROLL_DN    = '+'
@@ -58,7 +60,6 @@ func commands(br *browseObj) {
 		SCROLL_CONT = 2
 	)
 
-	var patbuf string
 	var searchDir bool = SEARCH_FWD
 
 	// seed the saved search pattern
@@ -81,14 +82,19 @@ func commands(br *browseObj) {
 
 	ttyBrowser()
 	br.pageHeader()
-	br.pageCurrent()
+
+	if br.modeScrollDown {
+		br.pageLast()
+		fmt.Printf("%s", CURRESTORE)
+	} else {
+		br.pageCurrent()
+	}
 
 	for {
-		// scan for input -- need to compare 4 characters
+		// scan for input -- compare 4 characters
 
 		b := make([]byte, 4)
 		_, err := br.tty.Read(b)
-		bbuf := string(b)
 
 		// continuous modes
 
@@ -113,44 +119,44 @@ func commands(br *browseObj) {
 
 		// convert arrow and page keys to commands
 
-		switch {
+		switch string(b) {
 
-		case bbuf == VK_UP:
+		case VK_UP:
 			// up arrow -- lines move down
 			b[0] = MODE_UP
 
-		case bbuf == VK_DOWN:
+		case VK_DOWN:
 			// down arrow -- lines move up
 			b[0] = MODE_DN
 
-		case bbuf == VK_RIGHT:
+		case VK_RIGHT:
 			// right arrow -- scroll up one
 			b[0] = CMD_SCROLL_DN
 
-		case bbuf == VK_LEFT:
+		case VK_LEFT:
 			// left arrow -- scroll down one
 			b[0] = CMD_SCROLL_UP
 
-		case bbuf == VK_HOME:
+		case VK_HOME:
 			// home/SOF
 			b[0] = CMD_SOF
 
-		case bbuf == VK_END:
+		case VK_END:
 			// end/EOF
 			b[0] = CMD_EOF
 
-		case bbuf == VK_PRIOR:
+		case VK_PRIOR:
 			// PG UP
 			b[0] = CMD_PAGE_UP
 
-		case bbuf == VK_NEXT:
+		case VK_NEXT:
 			// PG DN
 			b[0] = CMD_PAGE_DN
 		}
 
 		// mode cancellations
 
-		if bbuf != "" {
+		if string(b) != "" {
 			if b[0] != MODE_TAIL {
 				br.modeTail = false
 			}
@@ -166,23 +172,22 @@ func commands(br *browseObj) {
 
 		// commands
 
-		switch {
+		switch b[0] {
 
-		case b[0] == CMD_PAGE_DN:
+		case CMD_PAGE_DN:
 			// page forward/down
 			if !br.hitEOF {
 				br.pageDown()
+			} else {
+				movecursor(2, 1, false)
 			}
-			movecursor(2, 1, false)
-			continue
 
-		case b[0] == CMD_SCROLL_DN, b[0] == CMD_SCROLL_DN_1:
+		case CMD_SCROLL_DN, CMD_SCROLL_DN_1:
 			// scroll forward/down
 			br.scrollDown(1)
 			movecursor(2, 1, false)
-			continue
 
-		case b[0] == MODE_DN:
+		case MODE_DN:
 			// toggle continuous scroll-down mode
 			if br.modeScrollDown {
 				br.modeScrollDown = false
@@ -193,48 +198,57 @@ func commands(br *browseObj) {
 			}
 			// modeTail is a faster version of modeScrollDown
 			br.modeTail = false
-			continue
 
-		case b[0] == CMD_PAGE_UP:
+		case CMD_PAGE_UP:
 			// page backward/up
 			if br.firstRow > 0 {
 				br.pageUp()
+			} else {
+				movecursor(2, 1, false)
 			}
-			movecursor(2, 1, false)
-			continue
 
-		case b[0] == CMD_SCROLL_UP:
+		case CMD_SCROLL_UP:
 			// scroll backward/up
 			br.scrollUp(1)
 			movecursor(2, 1, false)
-			continue
 
-		case b[0] == MODE_UP:
+		case MODE_UP:
 			// toggle continuous scroll-up mode
 			br.modeScrollUp = !br.modeScrollUp
 			br.modeScrollDown = false
-			continue
 
-		case b[0] == CMD_SOF, b[0] == CMD_SOF_1:
+		case CMD_SHIFT_LEFT:
+			// horizontal scroll left
+			if br.shiftWidth > 0 {
+				br.shiftWidth--
+				br.pageCurrent()
+			} else {
+				movecursor(2, 1, false)
+			}
+
+		case CMD_SHIFT_RIGHT:
+			// horizontal scroll right
+			if br.shiftWidth < READBUFSIZ {
+				br.shiftWidth++
+				br.pageCurrent()
+			} else {
+				movecursor(2, 1, false)
+			}
+
+		case CMD_SOF, CMD_SOF_1:
 			// beginning of file
 			br.printPage(0)
-			movecursor(2, 1, false)
-			continue
 
-		case b[0] == CMD_EOF, b[0] == CMD_EOF_1:
+		case CMD_EOF, CMD_EOF_1:
 			// end of file
 			br.pageLast()
-			movecursor(2, 1, false)
-			continue
 
-		case b[0] == CMD_NUMBERS, b[0] == CMD_NUMBERS_1:
+		case CMD_NUMBERS, CMD_NUMBERS_1:
 			// show line numbers
 			br.modeNumbers = !br.modeNumbers
 			br.pageCurrent()
-			movecursor(2, 1, false)
-			continue
 
-		case b[0] == MODE_TAIL:
+		case MODE_TAIL:
 			// tail file
 			if br.modeTail {
 				br.modeTail = false
@@ -248,9 +262,8 @@ func commands(br *browseObj) {
 			}
 			// modeScrollDown is a slower version of modeTail
 			br.modeScrollDown = false
-			continue
 
-		case b[0] == CMD_JUMP:
+		case CMD_JUMP:
 			// jump to line
 			lbuf := br.userInput("Junp: ")
 
@@ -261,42 +274,44 @@ func commands(br *browseObj) {
 				fmt.Sscanf(lbuf, "%d", &n)
 				br.printPage(n)
 			}
-			movecursor(2, 1, false)
-			continue
 
-		case b[0] == CMD_SEARCH_FWD:
+		case CMD_SEARCH_FWD:
 			// search forward/down
-			patbuf = br.userInput("/")
+			// fixme: distinguish between change direction and cancel
+			patbuf := br.userInput("/")
 			searchDir = SEARCH_FWD
 			// null -- just changing direction -- don't reset
-			if patbuf != "" {
+			if patbuf == "" {
+				br.printMessage("Searching forward")
+			} else {
 				br.lastMatch = SEARCH_RESET
+				br.searchFile(patbuf, searchDir, false)
 			}
-			br.searchFile(patbuf, searchDir, false)
-			continue
 
-		case b[0] == CMD_SEARCH_REV:
+		case CMD_SEARCH_REV:
 			// search backward/up
-			patbuf = br.userInput("?")
+			// fixme: distinguish between change direction and cancel
+			patbuf := br.userInput("?")
 			searchDir = SEARCH_REV
 			// null -- just changing direction -- don't reset
-			if patbuf != "" {
+			if patbuf == "" {
+				// br.pageCurrent()
+				br.printMessage("Searching reverse")
+			} else {
 				br.lastMatch = SEARCH_RESET
+				br.searchFile(patbuf, searchDir, false)
 			}
-			br.searchFile(patbuf, searchDir, false)
-			continue
 
-		case b[0] == CMD_SEARCH_NEXT:
+		case CMD_SEARCH_NEXT:
 			br.searchFile(br.pattern, searchDir, true)
-			continue
 
-		case b[0] == CMD_SEARCH_CLEAR:
+		case CMD_SEARCH_CLEAR:
+			// clear the search pattern
 			br.re = nil
 			br.pattern = ""
 			br.printMessage("OK")
-			continue
 
-		case b[0] == CMD_MARK:
+		case CMD_MARK:
 			// mark page
 			lbuf := br.userInput("Mark: ")
 			if m := getMark(lbuf); m != 0 {
@@ -304,37 +319,32 @@ func commands(br *browseObj) {
 				br.printMessage("OK")
 			}
 			movecursor(2, 1, false)
-			continue
 
-		case b[0] == CMD_BASH:
-			// bash command
+		case CMD_BASH:
 			br.bashCommand()
 			br.pageHeader()
 			br.pageCurrent()
-			continue
 
-		case b[0] == CMD_QUIT:
+		case CMD_QUIT:
 			// quit -- this is the only way to save an rc file
 			br.saveRC = true
 			return
 
-		case b[0] == CMD_QUIT_NO_SAVE:
+		case CMD_QUIT_NO_SAVE:
 			// Quit -- do not save an rc file
 			br.saveRC = false
 			return
 
-		case b[0] == CMD_HELP:
+		case CMD_HELP:
 			// help
 			br.printHelp()
-			continue
 
 		default:
 			// if digit, go to marked page
-			if m := getMark(bbuf); m != 0 {
+			if m := getMark(string(b)); m != 0 {
 				br.pageMarked(m)
 			}
 			movecursor(2, 1, false) // no modes active
-			continue
 		}
 	}
 }

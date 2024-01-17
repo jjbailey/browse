@@ -12,6 +12,7 @@ A simple, unconventional file browser.
 - Forward and reverse paging
 - Forward and reverse scrolling
 - Continuous forward and reverse scrolling
+- Horizontal scrolling
 - Jump to lines
 - Mark pages
 - Forward and reverse searches by regular expression

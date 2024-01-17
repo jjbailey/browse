@@ -11,7 +11,7 @@ import (
 )
 
 func (x *browseObj) scrollDown(count int) {
-	// scroll down, toward EOF
+	// scroll down, toward EOF, stop at EOF
 	// there's more hand-waving here than meets the eye
 
 	if x.shownMsg {
@@ -24,7 +24,7 @@ func (x *browseObj) scrollDown(count int) {
 		return
 	}
 
-	for i := 0; i < count; i++ {
+	for i := 0; i < count && x.lastRow <= x.mapSiz; i++ {
 		// printLine finds EOF, sets hitEOF
 
 		if x.hitEOF {
@@ -44,11 +44,6 @@ func (x *browseObj) scrollDown(count int) {
 
 		x.firstRow++
 		x.lastRow++
-
-		if x.lastRow == x.mapSiz {
-			// caught up to the reader
-			break
-		}
 	}
 
 	if (x.modeScrollDown && x.hitEOF) || x.modeTail {
@@ -61,13 +56,13 @@ func (x *browseObj) scrollDown(count int) {
 }
 
 func (x *browseObj) scrollUp(count int) {
-	// scroll up, toward SOF
+	// scroll up, toward SOF, stop at EOF
 
 	if x.firstRow <= 0 {
 		return
 	}
 
-	for i := 0; i < count; i++ {
+	for i := 0; i < count && x.firstRow > 0; i++ {
 		x.firstRow--
 		x.lastRow--
 
@@ -78,11 +73,6 @@ func (x *browseObj) scrollUp(count int) {
 		// add line
 		movecursor(1, 1, false)
 		x.printLine(x.firstRow)
-
-		if x.firstRow == 0 {
-			// at SOF
-			break
-		}
 	}
 }
 

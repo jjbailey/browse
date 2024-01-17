@@ -79,7 +79,11 @@ func (x *browseObj) userInput(prompt string) string {
 		}
 
 		if inputbuf == BACKSPACE {
-			if len(linebuf) > 0 {
+			if len(linebuf) == 0 {
+				// cancel
+				linebuf = ""
+				break
+			} else {
 				nbuf = strings.TrimSuffix(linebuf, string(linebuf[len(linebuf)-1]))
 			}
 

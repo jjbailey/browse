@@ -1,5 +1,5 @@
 // util.go
-// verious uncategorized functions
+// various uncategorized functions
 //
 // Copyright (c) 2024 jjb
 // All rights reserved.
@@ -8,6 +8,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 )
 
@@ -74,11 +75,7 @@ func windowAtEOF(lineno int, mapsiz int) bool {
 }
 
 func minimum(a int, b int) int {
-	if a < b {
-		return a
-	}
-
-	return b
+	return int(math.Min(float64(a), float64(b)))
 }
 
 func setScrRegion(top int, bot int) {
@@ -102,18 +99,15 @@ func getMark(buf string) int {
 	// valid marks are 1 - 9
 
 	var d int
+	var err error
 
-	if _, err := fmt.Sscanf(buf, "%d", &d); err != nil {
+	d, err = fmt.Sscanf(buf, "%d", &d)
+
+	if err != nil {
 		return 0
 	}
 
-	if d < 1 {
-		d = 1
-	} else if d > 9 {
-		d = 9
-	}
-
-	return d
+	return int(math.Min(math.Max(float64(d), 1), 9))
 }
 
 // vim: set ts=4 sw=4 noet:

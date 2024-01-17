@@ -115,11 +115,17 @@ func readStdin(fin, fout *os.File) {
 
 func (x *browseObj) readFromMap(lineno int) ([]byte, int) {
 	// use the maps to read a line from the file
+	// don't read more than we can display
 
-	data := make([]byte, x.sizeMap[lineno])
-	x.fp.Seek(x.seekMap[lineno], io.SeekStart)
-	x.fp.Read(data)
-	return expandTabs(data)
+	readFrom := x.seekMap[lineno] + x.shiftWidth
+
+	if lineSize := x.sizeMap[lineno] - x.shiftWidth; lineSize > 0 {
+		data := make([]byte, minimum(int(lineSize), x.dispWidth))
+		x.fp.ReadAt(data, readFrom)
+		return expandTabs(data)
+	}
+
+	return nil, 0
 }
 
 // vim: set ts=4 sw=4 noet:

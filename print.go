@@ -25,10 +25,8 @@ func (x *browseObj) printLine(lineno int) {
 	// replaceMatch adds line numbers if applicable
 	output := x.replaceMatch(lineno, input)
 
-	// line length after string replacements
-	n := (len(VIDBOLDGREEN)+len(VIDOFF))*matches + len(output)
-
-	fmt.Printf("\r\n%.*s%s%s\r", minimum(n, x.dispWidth), output, VIDOFF, CLEARLINE)
+	// depends on linewrap=false
+	fmt.Printf("\r\n%s%s%s\r", output, VIDOFF, CLEARLINE)
 
 	if matches > 0 {
 		x.lastMatch = lineno
