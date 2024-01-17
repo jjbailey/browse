@@ -215,7 +215,6 @@ func commands(br *browseObj) {
 		case MODE_UP:
 			// toggle continuous scroll-up mode
 			br.modeScrollUp = !br.modeScrollUp
-			br.modeScrollDown = false
 
 		case CMD_SHIFT_LEFT:
 			// horizontal scroll left
