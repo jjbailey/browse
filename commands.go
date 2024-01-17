@@ -10,6 +10,7 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"time"
 	"unicode"
 )
 
@@ -277,28 +278,29 @@ func commands(br *browseObj) {
 
 		case CMD_SEARCH_FWD:
 			// search forward/down
-			// fixme: distinguish between change direction and cancel
 			patbuf := br.userInput("/")
 			searchDir = SEARCH_FWD
-			// null -- just changing direction -- don't reset
+			// null -- change direction
 			if patbuf == "" {
 				br.printMessage("Searching forward")
+				time.Sleep(1500 * time.Millisecond)
+				// next
+				br.searchFile(br.pattern, searchDir, true)
 			} else {
-				br.lastMatch = SEARCH_RESET
 				br.searchFile(patbuf, searchDir, false)
 			}
 
 		case CMD_SEARCH_REV:
 			// search backward/up
-			// fixme: distinguish between change direction and cancel
 			patbuf := br.userInput("?")
 			searchDir = SEARCH_REV
-			// null -- just changing direction -- don't reset
+			// null -- change direction
 			if patbuf == "" {
-				// br.pageCurrent()
 				br.printMessage("Searching reverse")
+				time.Sleep(1500 * time.Millisecond)
+				// next
+				br.searchFile(br.pattern, searchDir, true)
 			} else {
-				br.lastMatch = SEARCH_RESET
 				br.searchFile(patbuf, searchDir, false)
 			}
 
