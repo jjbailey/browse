@@ -8,6 +8,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
 func (x *browseObj) printHelp() {
@@ -15,7 +16,7 @@ func (x *browseObj) printHelp() {
 
 	lines := []string{
 		"                                                               ",
-		"   Browse                       Version 0.10                   ",
+		"   Browse                       Version 0.11                   ",
 		"                                                               ",
 		"   Command                      Function                       ",
 		"   f b [PAGE UP] [PAGE DOWN]    Page forward/back (down/up)    ",
@@ -50,16 +51,13 @@ func (x *browseObj) printHelp() {
 		return
 	}
 
-	col := int((x.dispWidth - helpWidth) / 2)
-
 	// top line
 
+	col := int((x.dispWidth - helpWidth) / 2)
 	fmt.Printf("%s", WHITEBLUE)
 	movecursor(3, col, false)
 	fmt.Printf(ENTERGRAPHICS + UPPERLEFT)
-	for j := 0; j < len(lines[0]); j++ {
-		fmt.Printf("%s", HORIZLINE)
-	}
+	fmt.Printf("%s", strings.Repeat(HORIZLINE, len(lines[0])))
 	fmt.Printf(UPPERRIGHT + EXITGRAPHICS)
 
 	// body
@@ -67,7 +65,8 @@ func (x *browseObj) printHelp() {
 	for i = 0; i < len(lines); i++ {
 		movecursor(i+4, col, false)
 
-		fmt.Printf("%s%s%s%s%s%s%s", ENTERGRAPHICS, VERTLINE, EXITGRAPHICS,
+		fmt.Printf("%s%s%s%s%s%s%s",
+			ENTERGRAPHICS, VERTLINE, EXITGRAPHICS,
 			lines[i],
 			ENTERGRAPHICS, VERTLINE, EXITGRAPHICS)
 	}
@@ -76,9 +75,7 @@ func (x *browseObj) printHelp() {
 
 	movecursor(i+4, col, false)
 	fmt.Printf(ENTERGRAPHICS + LOWERLEFT)
-	for j := 0; j < len(lines[0]); j++ {
-		fmt.Printf("%s", HORIZLINE)
-	}
+	fmt.Printf("%s", strings.Repeat(HORIZLINE, len(lines[0])))
 	fmt.Printf(LOWERRIGHT + EXITGRAPHICS)
 	fmt.Printf("%s", VIDOFF)
 
