@@ -10,6 +10,7 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"unicode"
 )
 
 func commands(br *browseObj) {
@@ -340,10 +341,11 @@ func commands(br *browseObj) {
 
 		default:
 			// if digit, go to marked page
-			if m := getMark(string(b)); m != 0 {
-				br.pageMarked(m)
+			if unicode.IsDigit(rune(b[0])) {
+				br.pageMarked(getMark(string(b)))
 			}
-			movecursor(2, 1, false) // no modes active
+			// no modes active
+			movecursor(2, 1, false)
 		}
 	}
 }
