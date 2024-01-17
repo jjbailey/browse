@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 	"syscall"
 )
@@ -49,24 +50,16 @@ func (x *browseObj) bashCommand() {
 		if err != nil {
 			fmt.Printf("%v\n", err)
 		} else {
-			bashArgs := []string{"bash", "-c", rbuf}
-			bashEnv := os.Environ()
-			bashFiles := []uintptr{0, 1, 2}
-			bashAttr := &syscall.ProcAttr{
+			cmdArgs := []string{path.Base(bashPath), "-c", rbuf}
+			cmdEnv := os.Environ()
+			cmdFiles := []uintptr{0, 1, 2}
+			cmdAttr := &syscall.ProcAttr{
 				Dir:   ".",
-				Env:   bashEnv,
-				Files: bashFiles,
-				Sys: &syscall.SysProcAttr{
-					// fixme
-					// Setsid: true,
-					// Setpgid: true,
-					// Setctty: true,
-					Ctty: int(x.tty.Fd()),
-					// Pgid: 0,
-				},
+				Env:   cmdEnv,
+				Files: cmdFiles,
 			}
 
-			pid, err := syscall.ForkExec(bashPath, bashArgs, bashAttr)
+			pid, err := syscall.ForkExec(bashPath, cmdArgs, cmdAttr)
 
 			if err != nil {
 				fmt.Printf("%v\n", err)
