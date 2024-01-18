@@ -22,15 +22,16 @@ func (x *browseObj) printLine(lineno int) {
 	// lineIsMatch reads lines from the map
 	matches, input := x.lineIsMatch(lineno)
 
+	if matches > 0 {
+		// where to start search
+		x.lastMatch = lineno
+	}
+
 	// replaceMatch adds line numbers if applicable
 	output := x.replaceMatch(lineno, input)
 
 	// depends on linewrap=false
 	fmt.Printf("\r\n%s%s%s\r", output, VIDOFF, CLEARLINE)
-
-	if matches > 0 {
-		x.lastMatch = lineno
-	}
 
 	if windowAtEOF(lineno, x.mapSiz) {
 		printSEOF("EOF")
