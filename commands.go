@@ -280,13 +280,15 @@ func commands(br *browseObj) {
 			// search forward/down
 			patbuf := br.userInput("/")
 			searchDir = SEARCH_FWD
-			// null -- change direction
 			if patbuf == "" {
+				// null -- change direction
 				br.printMessage("Searching forward")
 				time.Sleep(1500 * time.Millisecond)
 				// next
 				br.searchFile(br.pattern, searchDir, true)
 			} else {
+				// search this page
+				br.lastMatch = SEARCH_RESET
 				br.searchFile(patbuf, searchDir, false)
 			}
 
@@ -294,13 +296,15 @@ func commands(br *browseObj) {
 			// search backward/up
 			patbuf := br.userInput("?")
 			searchDir = SEARCH_REV
-			// null -- change direction
 			if patbuf == "" {
+				// null -- change direction
 				br.printMessage("Searching reverse")
 				time.Sleep(1500 * time.Millisecond)
 				// next
 				br.searchFile(br.pattern, searchDir, true)
 			} else {
+				// search this page
+				br.lastMatch = SEARCH_RESET
 				br.searchFile(patbuf, searchDir, false)
 			}
 
