@@ -12,6 +12,9 @@ import (
 	"time"
 )
 
+// %6d + one space
+const NUMCOLWIDTH = 7
+
 func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 	var sop, eop int
 	var wrapped, warned bool
@@ -115,8 +118,8 @@ func (x *browseObj) lineIsMatch(lineno int) (int, string) {
 	if !x.modeNumbers {
 		n = minimum(nbytes, x.dispWidth)
 	} else {
-		// line numbers -- uses 7 columns
-		n = minimum(nbytes, x.dispWidth-7)
+		// line numbers -- uses NUMCOLWIDTH columns
+		n = minimum(nbytes, x.dispWidth-NUMCOLWIDTH)
 	}
 
 	input := string(data[0:n])
@@ -181,7 +184,7 @@ func (x *browseObj) replaceMatch(lineno int, input string) string {
 		// no line numbers
 		output = line
 	} else {
-		// 7 columns for line numbers
+		// line numbers -- uses NUMCOLWIDTH columns
 		output = fmt.Sprintf("%6d %s", lineno, line)
 	}
 
