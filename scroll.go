@@ -46,10 +46,12 @@ func (x *browseObj) scrollDown(count int) {
 		x.lastRow++
 	}
 
-	if (x.modeScrollDown && x.hitEOF) || x.modeTail {
-		// in tail mode
+	if x.modeScrollDown || x.modeTail {
+		// in one of the follow modes
 		fmt.Printf("%s", CURRESTORE)
-	} else {
+	}
+
+	if !(x.modeScrollDown || x.modeTail) {
 		// idle
 		movecursor(2, 1, false)
 	}
