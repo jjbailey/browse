@@ -315,14 +315,14 @@ func commands(br *browseObj) {
 			// clear the search pattern
 			br.re = nil
 			br.pattern = ""
-			br.printMessage("OK")
+			br.printMessage("Search cleared")
 
 		case CMD_MARK:
 			// mark page
 			lbuf := br.userInput("Mark: ")
 			if m := getMark(lbuf); m != 0 {
 				br.marks[m] = br.firstRow
-				br.printMessage("OK")
+				br.printMessage(fmt.Sprintf("Mark %d at line %d", m, br.marks[m]))
 			}
 			movecursor(2, 1, false)
 
