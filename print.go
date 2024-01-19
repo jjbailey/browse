@@ -44,17 +44,6 @@ func (x *browseObj) printLine(lineno int) {
 	x.shownEOF = x.hitEOF
 }
 
-func (x *browseObj) printMessage(msg string) {
-	// print a message on the bottom line of the display
-
-	movecursor(x.dispHeight, 1, true)
-	fmt.Printf("%s %s %s", VIDMESSAGE, msg, VIDOFF)
-	movecursor(2, 1, false)
-
-	// scrollDown needs this
-	x.shownMsg = true
-}
-
 func (x *browseObj) printPage(lineno int) {
 	// print a page -- full screen if possible
 
@@ -72,22 +61,33 @@ func (x *browseObj) printPage(lineno int) {
 		lineno = 0
 	}
 
-	// reset these
-	x.firstRow = lineno
-	x.hitEOF = false
-
 	// +1 for EOF
-	eop := minimum((x.firstRow + x.dispRows), x.mapSiz+1)
+	sop := lineno
+	eop := minimum((sop + x.dispRows), x.mapSiz+1)
 
 	fmt.Printf("%s", LINEWRAPOFF)
 	movecursor(2, 1, false)
 
-	for i = x.firstRow; i < eop; i++ {
+	for i = sop; i < eop; i++ {
 		x.printLine(i)
 	}
 
-	x.lastRow = i
 	movecursor(2, 1, false)
+
+	// reset these
+	x.firstRow = sop
+	x.lastRow = i
+}
+
+func (x *browseObj) printMessage(msg string) {
+	// print a message on the bottom line of the display
+
+	movecursor(x.dispHeight, 1, true)
+	fmt.Printf("%s %s %s", VIDMESSAGE, msg, VIDOFF)
+	movecursor(2, 1, false)
+
+	// scrollDown needs this
+	x.shownMsg = true
 }
 
 func (x *browseObj) restoreLast() {
