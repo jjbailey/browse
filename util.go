@@ -74,6 +74,10 @@ func windowAtEOF(lineno int, mapsiz int) bool {
 	return lineno == mapsiz
 }
 
+func maximum(a int, b int) int {
+	return int(math.Max(float64(a), float64(b)))
+}
+
 func minimum(a int, b int) int {
 	return int(math.Min(float64(a), float64(b)))
 }
@@ -99,15 +103,12 @@ func getMark(buf string) int {
 	// valid marks are 1 - 9
 
 	var d int
-	var err error
 
-	d, err = fmt.Sscanf(buf, "%d", &d)
-
-	if err != nil {
+	if _, err := fmt.Sscanf(buf, "%d", &d); err != nil {
 		return 0
 	}
 
-	return int(math.Min(math.Max(float64(d), 1), 9))
+	return int(minimum(maximum(d, 1), 9))
 }
 
 // vim: set ts=4 sw=4 noet:

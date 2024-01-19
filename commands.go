@@ -10,6 +10,8 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"time"
+	"unicode"
 )
 
 func commands(br *browseObj) {
@@ -215,7 +217,6 @@ func commands(br *browseObj) {
 		case MODE_UP:
 			// toggle continuous scroll-up mode
 			br.modeScrollUp = !br.modeScrollUp
-			br.modeScrollDown = false
 
 		case CMD_SHIFT_LEFT:
 			// horizontal scroll left
@@ -277,27 +278,32 @@ func commands(br *browseObj) {
 
 		case CMD_SEARCH_FWD:
 			// search forward/down
-			// fixme: distinguish between change direction and cancel
 			patbuf := br.userInput("/")
 			searchDir = SEARCH_FWD
-			// null -- just changing direction -- don't reset
 			if patbuf == "" {
+				// null -- change direction
 				br.printMessage("Searching forward")
+				time.Sleep(1500 * time.Millisecond)
+				// next
+				br.searchFile(br.pattern, searchDir, true)
 			} else {
+				// search this page
 				br.lastMatch = SEARCH_RESET
 				br.searchFile(patbuf, searchDir, false)
 			}
 
 		case CMD_SEARCH_REV:
 			// search backward/up
-			// fixme: distinguish between change direction and cancel
 			patbuf := br.userInput("?")
 			searchDir = SEARCH_REV
-			// null -- just changing direction -- don't reset
 			if patbuf == "" {
-				// br.pageCurrent()
+				// null -- change direction
 				br.printMessage("Searching reverse")
+				time.Sleep(1500 * time.Millisecond)
+				// next
+				br.searchFile(br.pattern, searchDir, true)
 			} else {
+				// search this page
 				br.lastMatch = SEARCH_RESET
 				br.searchFile(patbuf, searchDir, false)
 			}
@@ -309,14 +315,14 @@ func commands(br *browseObj) {
 			// clear the search pattern
 			br.re = nil
 			br.pattern = ""
-			br.printMessage("OK")
+			br.printMessage("Search cleared")
 
 		case CMD_MARK:
 			// mark page
 			lbuf := br.userInput("Mark: ")
 			if m := getMark(lbuf); m != 0 {
 				br.marks[m] = br.firstRow
-				br.printMessage("OK")
+				br.printMessage(fmt.Sprintf("Mark %d at line %d", m, br.marks[m]))
 			}
 			movecursor(2, 1, false)
 
@@ -341,10 +347,11 @@ func commands(br *browseObj) {
 
 		default:
 			// if digit, go to marked page
-			if m := getMark(string(b)); m != 0 {
-				br.pageMarked(m)
+			if unicode.IsDigit(rune(b[0])) {
+				br.pageMarked(getMark(string(b)))
 			}
-			movecursor(2, 1, false) // no modes active
+			// no modes active
+			movecursor(2, 1, false)
 		}
 	}
 }
