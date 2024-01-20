@@ -152,10 +152,10 @@ func (x *browseObj) setNextPage(searchDir bool, sop int) (int, int, bool) {
 		sop -= x.dispRows
 
 		if sop < 0 {
-			sop = x.mapSiz - x.dispRows
 			wrapped = true
-			// +1 for EOF
-			sop++
+
+			// +1 for SOF
+			sop = (x.mapSiz - x.dispRows) + 1
 
 			if sop < 0 {
 				sop = 0
