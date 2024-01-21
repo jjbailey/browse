@@ -11,7 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"strings"
+	"regexp"
 	"syscall"
 )
 
@@ -21,51 +21,54 @@ func (x *browseObj) bashCommand() {
 	// run a command with bash
 
 	fmt.Printf("%s", LINEWRAPON)
-	lbuf := x.userInput("!")
+	input := x.userInput("!")
 
-	if len(lbuf) > 0 {
-		var err error
+	if len(input) > 0 {
 		var wstat syscall.WaitStatus
 
 		ttyRestore()
 		resetScrRegion()
 
 		// substitute ! with the previous command
-		sbuf := strings.Replace(lbuf, "!", prevCommand, -1)
-		prevCommand = sbuf
+		bangbuf := subCommandChars(input, "!", prevCommand)
+
+		// save
+		prevCommand = bangbuf
 
 		// substitute % with the current file name
-		rbuf := strings.Replace(sbuf, "%", x.fileName, -1)
+		cmdbuf := subCommandChars(bangbuf, "%", x.fileName)
 
-		// feedback
-		movecursor(x.dispHeight, 1, true)
-		fmt.Print("---\n")
-		fmt.Printf("$ %s\n", rbuf)
+		if len(cmdbuf) > 0 {
+			// feedback
+			movecursor(x.dispHeight, 1, true)
+			fmt.Print("---\n")
+			fmt.Printf("$ %s\n", cmdbuf)
 
-		// set up env, run
-		bashPath, err := exec.LookPath("bash")
-		x.resetSignals()
-		fmt.Printf("%s", LINEWRAPON) // again
-
-		if err != nil {
-			fmt.Printf("%v\n", err)
-		} else {
-			cmdArgs := []string{path.Base(bashPath), "-c", rbuf}
-			cmdEnv := os.Environ()
-			cmdFiles := []uintptr{0, 1, 2}
-			cmdAttr := &syscall.ProcAttr{
-				Dir:   ".",
-				Env:   cmdEnv,
-				Files: cmdFiles,
-			}
-
-			pid, err := syscall.ForkExec(bashPath, cmdArgs, cmdAttr)
+			// set up env, run
+			bashPath, err := exec.LookPath("bash")
+			x.resetSignals()
+			fmt.Printf("%s", LINEWRAPON) // again
 
 			if err != nil {
 				fmt.Printf("%v\n", err)
-			}
+			} else {
+				cmdArgs := []string{path.Base(bashPath), "-c", cmdbuf}
+				cmdEnv := os.Environ()
+				cmdFiles := []uintptr{0, 1, 2}
+				cmdAttr := &syscall.ProcAttr{
+					Dir:   ".",
+					Env:   cmdEnv,
+					Files: cmdFiles,
+				}
 
-			syscall.Wait4(pid, &wstat, 0, nil)
+				pid, err := syscall.ForkExec(bashPath, cmdArgs, cmdAttr)
+
+				if err != nil {
+					fmt.Printf("%v\n", err)
+				}
+
+				syscall.Wait4(pid, &wstat, 0, nil)
+			}
 		}
 	}
 
@@ -73,6 +76,36 @@ func (x *browseObj) bashCommand() {
 	x.catchSignals()
 	x.userAnyKey(VIDMESSAGE + " Press any key to continue... " + VIDOFF)
 	x.resizeWindow()
+}
+
+func subCommandChars(input, char, repl string) string {
+	var rbuf1 string
+
+	// negative lookbehind doesn't compile, e.g.
+	// pattern := `(?<!\\)%`
+
+	pattern := `(^|[^\\])` + char
+	replstr := "${1}" + repl
+
+	re, err := regexp.Compile(pattern)
+
+	if err != nil {
+		return ""
+	}
+
+	rbuf1 = input
+
+	for {
+		rbuf2 := re.ReplaceAllString(rbuf1, replstr)
+
+		if rbuf2 == rbuf1 {
+			break
+		}
+
+		rbuf1 = rbuf2
+	}
+
+	return rbuf1
 }
 
 // vim: set ts=4 sw=4 noet:
