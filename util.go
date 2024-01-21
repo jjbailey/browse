@@ -29,10 +29,6 @@ func expandTabs(data []byte) ([]byte, int) {
 		case '\t':
 			k := TABWIDTH - (j % TABWIDTH)
 
-			if k < 0 {
-				k += TABWIDTH
-			}
-
 			for k > 0 {
 				newdata[j] = ' '
 				j++
