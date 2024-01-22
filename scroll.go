@@ -24,7 +24,7 @@ func (x *browseObj) scrollDown(count int) {
 		return
 	}
 
-	for i := 0; i < count && x.lastRow <= x.mapSiz; i++ {
+	for i := 0; i < count; i++ {
 		// printLine finds EOF, sets hitEOF
 
 		if x.hitEOF {
@@ -35,7 +35,7 @@ func (x *browseObj) scrollDown(count int) {
 		movecursor(x.lastRow+1, 1, false)
 
 		if x.shownEOF {
-			// print previous line before printing current line
+			// print previous line before printing the current line
 			fmt.Printf("%s%s", CURRESTORE, CURUP)
 			x.printLine(x.lastRow - 1)
 		}
@@ -46,8 +46,8 @@ func (x *browseObj) scrollDown(count int) {
 		x.lastRow++
 	}
 
-	if (x.modeScrollDown && x.hitEOF) || x.modeTail {
-		// in tail mode
+	if x.modeScrollDown || x.modeTail {
+		// in one of the follow modes
 		fmt.Printf("%s", CURRESTORE)
 	} else {
 		// idle
@@ -56,7 +56,7 @@ func (x *browseObj) scrollDown(count int) {
 }
 
 func (x *browseObj) scrollUp(count int) {
-	// scroll up, toward SOF, stop at EOF
+	// scroll up, toward SOF, stop at SOF
 
 	if x.firstRow <= 0 {
 		return

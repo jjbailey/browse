@@ -1,5 +1,5 @@
 // signals.go
-// paging and some support functions
+// signal handling functions
 //
 // Copyright (c) 2024 jjb
 // All rights reserved.
