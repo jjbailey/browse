@@ -180,12 +180,12 @@ func (x *browseObj) replaceMatch(lineno int, input string) string {
 		line = x.re.ReplaceAllString(input, x.replstr)
 	}
 
-	if !x.modeNumbers || windowAtEOF(lineno, x.mapSiz) {
-		// no line numbers
-		output = line
-	} else {
+	if x.modeNumbers && !windowAtEOF(lineno, x.mapSiz) {
 		// line numbers -- uses NUMCOLWIDTH columns
 		output = fmt.Sprintf("%6d %s", lineno, line)
+	} else {
+		// no line numbers
+		output = line
 	}
 
 	return output
