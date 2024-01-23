@@ -17,11 +17,11 @@ import (
 
 var prevCommand string
 
-func (x *browseObj) bashCommand() {
+func (x *browseObj) bashCommand() bool {
 	// run a command with bash
 
 	fmt.Printf("%s", LINEWRAPON)
-	input := x.userInput("!")
+	input, cancel := x.userInput("!")
 
 	if len(input) > 0 {
 		var wstat syscall.WaitStatus
@@ -74,8 +74,16 @@ func (x *browseObj) bashCommand() {
 
 	// cleanup
 	x.catchSignals()
-	x.userAnyKey(VIDMESSAGE + " Press any key to continue... " + VIDOFF)
-	x.resizeWindow()
+
+	if cancel {
+		x.restoreLast()
+		movecursor(2, 1, false)
+	} else {
+		x.userAnyKey(VIDMESSAGE + " Press any key to continue... " + VIDOFF)
+		x.resizeWindow()
+	}
+
+	return cancel
 }
 
 func subCommandChars(input, char, repl string) string {

@@ -48,7 +48,7 @@ func (x *browseObj) userAnyKey(prompt string) {
 	x.restoreLast()
 }
 
-func (x *browseObj) userInput(prompt string) string {
+func (x *browseObj) userInput(prompt string) (string, bool) {
 	const (
 		NEWLINE   = "\n"
 		CARRETURN = "\r"
@@ -81,8 +81,7 @@ func (x *browseObj) userInput(prompt string) string {
 		if inputbuf == BACKSPACE {
 			if len(linebuf) == 0 {
 				// cancel
-				linebuf = ""
-				break
+				return "", true
 			} else {
 				nbuf = strings.TrimSuffix(linebuf, string(linebuf[len(linebuf)-1]))
 			}
@@ -123,7 +122,7 @@ func (x *browseObj) userInput(prompt string) string {
 	ttyBrowser()
 	x.restoreLast()
 
-	return linebuf
+	return linebuf, false
 }
 
 // vim: set ts=4 sw=4 noet:
