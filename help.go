@@ -28,6 +28,7 @@ func (x *browseObj) printHelp() {
 		"   0 ^ [HOME]                   Jump to SOF                    ",
 		"   G $ [END]                    Jump to EOF                    ",
 		"   m                            Mark a page with number 1-9    ",
+		"   1-9                          Jump to mark                   ",
 		"   /                            Regex pattern search           ",
 		"   ?                            Regex pattern reverse search   ",
 		"   n                            Repeat search                  ",
