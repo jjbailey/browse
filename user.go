@@ -16,6 +16,8 @@ import (
 )
 
 func (x *browseObj) userAnyKey(prompt string) {
+	// wait for a key press
+
 	b := make([]byte, 1)
 
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT)
@@ -48,7 +50,7 @@ func (x *browseObj) userAnyKey(prompt string) {
 	x.restoreLast()
 }
 
-func (x *browseObj) userInput(prompt string) string {
+func (x *browseObj) userInput(prompt string) (string, bool) {
 	const (
 		NEWLINE   = "\n"
 		CARRETURN = "\r"
@@ -58,6 +60,7 @@ func (x *browseObj) userInput(prompt string) string {
 	)
 
 	var linebuf string
+	var cancel bool = false
 
 	b := make([]byte, 1)
 
@@ -82,6 +85,7 @@ func (x *browseObj) userInput(prompt string) string {
 			if len(linebuf) == 0 {
 				// cancel
 				linebuf = ""
+				cancel = true
 				break
 			} else {
 				nbuf = strings.TrimSuffix(linebuf, string(linebuf[len(linebuf)-1]))
@@ -123,7 +127,7 @@ func (x *browseObj) userInput(prompt string) string {
 	ttyBrowser()
 	x.restoreLast()
 
-	return linebuf
+	return linebuf, cancel
 }
 
 // vim: set ts=4 sw=4 noet:

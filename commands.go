@@ -266,21 +266,24 @@ func commands(br *browseObj) {
 
 		case CMD_JUMP:
 			// jump to line
-			lbuf := br.userInput("Junp: ")
-
-			if lbuf == "" {
-				br.pageCurrent()
+			lbuf, cancel := br.userInput("Junp: ")
+			if cancel {
+				br.restoreLast()
 			} else {
 				var n int
 				fmt.Sscanf(lbuf, "%d", &n)
 				br.printPage(n)
 			}
+			movecursor(2, 1, false)
 
 		case CMD_SEARCH_FWD:
 			// search forward/down
-			patbuf := br.userInput("/")
+			patbuf, cancel := br.userInput("/")
 			searchDir = SEARCH_FWD
-			if patbuf == "" {
+			if cancel {
+				br.restoreLast()
+				movecursor(2, 1, false)
+			} else if patbuf == "" {
 				// null -- change direction
 				br.printMessage("Searching forward")
 				time.Sleep(1500 * time.Millisecond)
@@ -294,9 +297,12 @@ func commands(br *browseObj) {
 
 		case CMD_SEARCH_REV:
 			// search backward/up
-			patbuf := br.userInput("?")
+			patbuf, cancel := br.userInput("?")
 			searchDir = SEARCH_REV
-			if patbuf == "" {
+			if cancel {
+				br.restoreLast()
+				movecursor(2, 1, false)
+			} else if patbuf == "" {
 				// null -- change direction
 				br.printMessage("Searching reverse")
 				time.Sleep(1500 * time.Millisecond)
@@ -319,17 +325,24 @@ func commands(br *browseObj) {
 
 		case CMD_MARK:
 			// mark page
-			lbuf := br.userInput("Mark: ")
-			if m := getMark(lbuf); m != 0 {
+			lbuf, cancel := br.userInput("Mark: ")
+			if cancel {
+				br.restoreLast()
+			} else if m := getMark(lbuf); m != 0 {
 				br.marks[m] = br.firstRow
 				br.printMessage(fmt.Sprintf("Mark %d at line %d", m, br.marks[m]))
 			}
 			movecursor(2, 1, false)
 
 		case CMD_BASH:
-			br.bashCommand()
-			br.pageHeader()
-			br.pageCurrent()
+			cancel := br.bashCommand()
+			if cancel {
+				br.restoreLast()
+				movecursor(2, 1, false)
+			} else {
+				br.pageHeader()
+				br.pageCurrent()
+			}
 
 		case CMD_QUIT:
 			// quit -- this is the only way to save an rc file
