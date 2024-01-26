@@ -8,6 +8,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 func (x *browseObj) printLine(lineno int) {
@@ -59,6 +60,8 @@ func (x *browseObj) printPage(lineno int) {
 
 	if lineno < 0 {
 		lineno = 0
+	} else if lineno > x.mapSiz {
+		lineno = x.mapSiz
 	}
 
 	// +1 for EOF
@@ -86,6 +89,11 @@ func (x *browseObj) printPage(lineno int) {
 	// reset these
 	x.firstRow = sop
 	x.lastRow = i
+}
+
+func (x *browseObj) timedMessage(msg string) {
+	x.printMessage(msg)
+	time.Sleep(1500 * time.Millisecond)
 }
 
 func (x *browseObj) printMessage(msg string) {

@@ -10,7 +10,6 @@ package main
 import (
 	"fmt"
 	"regexp"
-	"time"
 	"unicode"
 )
 
@@ -285,8 +284,7 @@ func commands(br *browseObj) {
 				movecursor(2, 1, false)
 			} else if patbuf == "" {
 				// null -- change direction
-				br.printMessage("Searching forward")
-				time.Sleep(1500 * time.Millisecond)
+				br.timedMessage("Searching forward")
 				// next
 				br.searchFile(br.pattern, searchDir, true)
 			} else {
@@ -304,8 +302,7 @@ func commands(br *browseObj) {
 				movecursor(2, 1, false)
 			} else if patbuf == "" {
 				// null -- change direction
-				br.printMessage("Searching reverse")
-				time.Sleep(1500 * time.Millisecond)
+				br.timedMessage("Searching reverse")
 				// next
 				br.searchFile(br.pattern, searchDir, true)
 			} else {
