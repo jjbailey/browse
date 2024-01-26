@@ -267,7 +267,7 @@ func commands(br *browseObj) {
 		case CMD_JUMP:
 			// jump to line
 			lbuf, cancel := br.userInput("Junp: ")
-			if cancel {
+			if cancel || lbuf == "" {
 				br.restoreLast()
 			} else {
 				var n int
