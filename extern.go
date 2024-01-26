@@ -16,6 +16,7 @@ const (
 	TABWIDTH     = 8
 	MAXMARKS     = 10
 	SEARCH_RESET = 0
+	PAGE_SEARCH  = false
 )
 
 const (
