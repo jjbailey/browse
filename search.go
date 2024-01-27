@@ -9,7 +9,6 @@ package main
 import (
 	"fmt"
 	"regexp"
-	"time"
 )
 
 // %6d + one space
@@ -17,8 +16,9 @@ const NUMCOLWIDTH = 7
 
 func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 	var sop, eop int
-	var wrapped, warned bool
 	var err error
+	var wrapped, warned bool
+	var firstMatch, lastMatch int
 
 	// to suppress S1002
 	var searchFwd = searchDir
@@ -62,7 +62,7 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 	warned = false
 
 	for {
-		matchLine := x.pageIsMatch(sop, eop)
+		firstMatch, lastMatch = x.pageIsMatch(sop, eop)
 
 		if wrapped {
 			if warned {
@@ -71,39 +71,56 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 			}
 
 			if searchFwd {
-				x.printMessage("Resuming search from SOF")
+				x.timedMessage("Resuming search from SOF")
 			} else {
-				x.printMessage("Resuming search from EOF")
+				x.timedMessage("Resuming search from EOF")
 			}
 
-			time.Sleep(1500 * time.Millisecond)
 			warned = true
 		}
 
-		if matchLine > 0 {
-			// sets firstRow, lastRow
+		if firstMatch == 0 || lastMatch == 0 {
+			sop, eop, wrapped = x.setNextPage(searchDir, sop)
+			continue
+		}
+
+		// display strategy: go to the page wherever the next match occurs
+
+		if PAGE_SEARCH || x.lastMatch == SEARCH_RESET {
 			x.printPage(sop)
 			return
 		}
 
-		if matchLine == 0 {
-			sop, eop, wrapped = x.setNextPage(searchDir, sop)
+		// display strategy: reposition the page to provide match context
+
+		if searchFwd {
+			x.printPage(firstMatch - (x.dispRows >> 3))
+		} else {
+			x.printPage(lastMatch - (x.dispRows - (x.dispRows >> 3)))
 		}
+
+		return
 	}
 }
 
-func (x *browseObj) pageIsMatch(sop, eop int) int {
-	// check if this page has a regex match
+func (x *browseObj) pageIsMatch(sop, eop int) (int, int) {
+	// return the first and last regex match on the page
+
+	var firstMatch, lastMatch int
 
 	for lineno := sop; lineno < eop; lineno++ {
 		matches, _ := x.lineIsMatch(lineno)
 
 		if matches > 0 {
-			return lineno
+			if firstMatch == 0 {
+				firstMatch = lineno
+			} else {
+				lastMatch = lineno
+			}
 		}
 	}
 
-	return 0
+	return firstMatch, lastMatch
 }
 
 func (x *browseObj) lineIsMatch(lineno int) (int, string) {
