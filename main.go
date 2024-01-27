@@ -18,12 +18,13 @@ import (
 func main() {
 	var br browseObj
 	var tty *os.File
-	var fileName string
-	var screenName string
+	var fileName, screenName string
 
-	followFlag := getopt.BoolLong("follow", 'f', "follow file")
-	numberFlag := getopt.BoolLong("numbers", 'n', "line numbers")
-	helpFlag := getopt.BoolLong("help", '?', "this message")
+	var (
+		followFlag = getopt.BoolLong("follow", 'f', "follow file")
+		numberFlag = getopt.BoolLong("numbers", 'n', "line numbers")
+		helpFlag   = getopt.BoolLong("help", '?', "this message")
+	)
 
 	getopt.SetUsage(usageMessage)
 	getopt.Parse()
@@ -79,15 +80,7 @@ func main() {
 	br.screenInit(tty, screenName)
 
 	// error recovery, graceful exit
-
-	defer func() {
-		if err := recover(); err != nil {
-			movecursor(br.dispHeight, 1, true)
-			fmt.Printf("panic occurred: %v", err)
-		}
-
-		br.saneExit()
-	}()
+	defer handlePanic(&br)
 
 	// signals
 	br.catchSignals()
@@ -108,6 +101,16 @@ func main() {
 	}
 
 	// done
+	br.saneExit()
+}
+
+func handlePanic(br *browseObj) {
+	movecursor(br.dispHeight, 1, true)
+
+	if err := recover(); err != nil {
+		fmt.Printf("panic occurred: %v", err)
+	}
+
 	br.saneExit()
 }
 
