@@ -10,6 +10,7 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"time"
 	"unicode"
 )
 
@@ -79,6 +80,23 @@ func commands(br *browseObj) {
 			br.pattern = br.re.String()
 			br.replstr = fmt.Sprintf("%s%s%s", VIDBOLDGREEN, "$0", VIDOFF)
 		}
+	}
+
+	// reasons for a delayed start
+
+	if br.fromStdin {
+		// wait a sec for more input
+		time.Sleep(1 * time.Second)
+	}
+
+	if br.modeScrollDown {
+		// another attempt to read more
+		time.Sleep(1 * time.Second)
+	}
+
+	if br.firstRow > br.mapSiz {
+		// one last attempt for big files
+		time.Sleep(1 * time.Second)
 	}
 
 	ttyBrowser()
