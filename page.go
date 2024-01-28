@@ -28,7 +28,7 @@ func (x *browseObj) pageHeader() {
 
 	// minus tees and spaces
 	linelen := x.dispWidth - 4
-	oneside := (linelen - len(x.screenName)) / 2
+	oneside := (linelen - len(x.title)) / 2
 
 	resetScrRegion()
 	movecursor(1, 1, true)
@@ -36,7 +36,7 @@ func (x *browseObj) pageHeader() {
 	fmt.Printf("%s", ENTERGRAPHICS)
 	fmt.Printf("%s", strings.Repeat(HORIZLINE, oneside))
 	fmt.Printf("%s%s", LEFTTEE, EXITGRAPHICS)
-	fmt.Printf("%s %s %s", VIDBOLDREV, x.screenName, VIDOFF)
+	fmt.Printf("%s %s %s", VIDBOLDREV, x.title, VIDOFF)
 	fmt.Printf("%s%s", ENTERGRAPHICS, RIGHTTEE)
 	fmt.Printf("%s", strings.Repeat(HORIZLINE, oneside+1))
 	fmt.Printf("%s", EXITGRAPHICS)

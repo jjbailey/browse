@@ -53,7 +53,7 @@ const (
 type browseObj struct {
 	// screen vars
 	tty        *os.File
-	screenName string
+	title      string
 	dispWidth  int
 	dispHeight int
 	dispRows   int

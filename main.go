@@ -18,12 +18,13 @@ import (
 func main() {
 	var br browseObj
 	var tty *os.File
-	var fileName, screenName string
+	var fileName, title string
 
 	var (
 		followFlag = getopt.BoolLong("follow", 'f', "follow file")
 		numberFlag = getopt.BoolLong("numbers", 'n', "line numbers")
 		helpFlag   = getopt.BoolLong("help", '?', "this message")
+		titleStr   = getopt.StringLong("title", 't', "", "page title")
 	)
 
 	getopt.SetUsage(usageMessage)
@@ -49,11 +50,11 @@ func main() {
 
 			// we have some defaults
 			fileName = br.fileName
-			screenName = br.fileName
+			title = br.fileName
 		} else {
 			// use file given
 			fileName = args[0]
-			screenName = args[0]
+			title = args[0]
 		}
 
 		// open file for reading
@@ -66,7 +67,7 @@ func main() {
 		errorExit(err)
 
 		// open temp file for reading
-		screenName = "          "
+		title = "          "
 		fileName = tmpfp.Name()
 		fp, err := os.Open(fileName)
 		errorExit(err)
@@ -77,7 +78,7 @@ func main() {
 	}
 
 	tty, _ = os.Open("/dev/tty")
-	br.screenInit(tty, screenName)
+	br.screenInit(tty, title)
 
 	// error recovery, graceful exit
 	defer handlePanic(&br)
@@ -88,6 +89,9 @@ func main() {
 	// set options from commandline
 	br.modeNumbers = *numberFlag
 	br.modeScrollDown = *followFlag
+	if *titleStr != "" {
+		br.title = *titleStr
+	}
 
 	// start a file reader
 	syncOK := make(chan bool)
@@ -115,9 +119,10 @@ func handlePanic(br *browseObj) {
 }
 
 func usageMessage() {
-	fmt.Print("Usage: browse [-fn] [filename]\n")
+	fmt.Print("Usage: browse [-fn] [-t title] [filename]\n")
 	fmt.Print(" -f, --follow   follow file\n")
 	fmt.Print(" -n, --numbers  line numbers\n")
+	fmt.Print(" -t, --title    page title\n")
 	fmt.Print(" -?, --help     this message\n")
 }
 
