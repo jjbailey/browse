@@ -15,12 +15,6 @@ import (
 	"golang.org/x/term"
 )
 
-func (x *browseObj) resetSignals() {
-	// signals
-
-	signal.Reset()
-}
-
 func (x *browseObj) catchSignals() {
 	// signals
 

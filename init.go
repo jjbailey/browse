@@ -37,7 +37,7 @@ func (x *browseObj) fileInit(fp *os.File, name string, fromStdin bool) {
 
 func (x *browseObj) screenInit(fp *os.File, name string) {
 	x.tty = fp
-	x.screenName = name
+	x.title = name
 
 	x.dispWidth, x.dispHeight, _ = term.GetSize(int(x.tty.Fd()))
 	x.dispRows = x.dispHeight - 1

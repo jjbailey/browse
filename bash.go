@@ -8,11 +8,15 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
-	"path"
+	"os/signal"
 	"regexp"
 	"syscall"
+
+	"github.com/creack/pty"
+	"golang.org/x/term"
 )
 
 var prevCommand string
@@ -24,11 +28,6 @@ func (x *browseObj) bashCommand() bool {
 	input, cancel := x.userInput("!")
 
 	if len(input) > 0 {
-		var wstat syscall.WaitStatus
-
-		ttyRestore()
-		resetScrRegion()
-
 		// substitute ! with the previous command
 		bangbuf := subCommandChars(input, "!", prevCommand)
 
@@ -45,45 +44,76 @@ func (x *browseObj) bashCommand() bool {
 			fmt.Printf("$ %s\n", cmdbuf)
 
 			// set up env, run
-			bashPath, err := exec.LookPath("bash")
-			x.resetSignals()
 			fmt.Printf("%s", LINEWRAPON) // again
+			resetScrRegion()
 
-			if err != nil {
-				fmt.Printf("%v\n", err)
-			} else {
-				cmdArgs := []string{path.Base(bashPath), "-c", cmdbuf}
-				cmdEnv := os.Environ()
-				cmdFiles := []uintptr{0, 1, 2}
-				cmdAttr := &syscall.ProcAttr{
-					Dir:   ".",
-					Env:   cmdEnv,
-					Files: cmdFiles,
-				}
-
-				pid, err := syscall.ForkExec(bashPath, cmdArgs, cmdAttr)
-
-				if err != nil {
-					fmt.Printf("%v\n", err)
-				}
-
-				syscall.Wait4(pid, &wstat, 0, nil)
-			}
+			movecursor(x.dispHeight, 1, true)
+			x.ptySignals()
+			x.runInPty(cmdbuf)
 		}
 	}
-
-	// cleanup
-	x.catchSignals()
 
 	if cancel {
 		x.restoreLast()
 		movecursor(2, 1, false)
 	} else {
-		x.userAnyKey(VIDMESSAGE + " Press any key to continue... " + VIDOFF)
 		x.resizeWindow()
 	}
 
 	return cancel
+}
+
+func (x *browseObj) runInPty(cmdbuf string) error {
+	cmd := exec.Command("bash", "-c", cmdbuf)
+
+	ptmx, err := pty.Start(cmd)
+
+	if err != nil {
+		return err
+	}
+
+	pty.InheritSize(os.Stdin, ptmx)
+	ptySave, err := term.MakeRaw(int(os.Stdin.Fd()))
+
+	if err != nil {
+		return err
+	}
+
+	execOK := make(chan bool)
+	go func(ch chan bool) {
+		io.Copy(ptmx, os.Stdin)
+		ch <- true
+	}(execOK)
+	io.Copy(os.Stdout, ptmx)
+
+	ptmx.Close()
+	term.Restore(int(os.Stdin.Fd()), ptySave)
+	movecursor(x.dispHeight, 1, true)
+	fmt.Printf(VIDMESSAGE + " Press any key to continue... " + VIDOFF)
+	<-execOK
+	return nil
+}
+
+func (x *browseObj) ptySignals() {
+	// signals
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan)
+	signal.Ignore(syscall.SIGCHLD)
+	signal.Ignore(syscall.SIGURG)
+
+	go func() {
+		for {
+			switch <-sigChan {
+
+			case syscall.SIGWINCH:
+				x.resizeWindow()
+
+			default:
+				x.saneExit()
+			}
+		}
+	}()
 }
 
 func subCommandChars(input, char, repl string) string {

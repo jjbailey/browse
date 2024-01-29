@@ -18,12 +18,15 @@ import (
 func main() {
 	var br browseObj
 	var tty *os.File
-	var fileName string
-	var screenName string
+	var fileName, title string
 
-	followFlag := getopt.BoolLong("follow", 'f', "follow file")
-	numberFlag := getopt.BoolLong("numbers", 'n', "line numbers")
-	helpFlag := getopt.BoolLong("help", '?', "this message")
+	var (
+		followFlag = getopt.BoolLong("follow", 'f', "follow file")
+		numberFlag = getopt.BoolLong("numbers", 'n', "line numbers")
+		helpFlag   = getopt.BoolLong("help", '?', "this message")
+		patternStr = getopt.StringLong("pattern", 'p', "", "search pattern")
+		titleStr   = getopt.StringLong("title", 't', "", "page title")
+	)
 
 	getopt.SetUsage(usageMessage)
 	getopt.Parse()
@@ -48,11 +51,11 @@ func main() {
 
 			// we have some defaults
 			fileName = br.fileName
-			screenName = br.fileName
+			title = br.fileName
 		} else {
 			// use file given
 			fileName = args[0]
-			screenName = args[0]
+			title = args[0]
 		}
 
 		// open file for reading
@@ -65,29 +68,21 @@ func main() {
 		errorExit(err)
 
 		// open temp file for reading
-		screenName = "          "
+		title = "          "
 		fileName = tmpfp.Name()
 		fp, err := os.Open(fileName)
 		errorExit(err)
 		br.fileInit(fp, fileName, true)
 
 		// copy stdin to temp file
-		go readStdin(os.Stdin, tmpfp)
+		go br.readStdin(os.Stdin, tmpfp)
 	}
 
 	tty, _ = os.Open("/dev/tty")
-	br.screenInit(tty, screenName)
+	br.screenInit(tty, title)
 
 	// error recovery, graceful exit
-
-	defer func() {
-		if err := recover(); err != nil {
-			movecursor(br.dispHeight, 1, true)
-			fmt.Printf("panic occurred: %v", err)
-		}
-
-		br.saneExit()
-	}()
+	defer handlePanic(&br)
 
 	// signals
 	br.catchSignals()
@@ -95,6 +90,12 @@ func main() {
 	// set options from commandline
 	br.modeNumbers = *numberFlag
 	br.modeScrollDown = *followFlag
+	if *patternStr != "" {
+		br.pattern = *patternStr
+	}
+	if *titleStr != "" {
+		br.title = *titleStr
+	}
 
 	// start a file reader
 	syncOK := make(chan bool)
@@ -111,10 +112,22 @@ func main() {
 	br.saneExit()
 }
 
+func handlePanic(br *browseObj) {
+	movecursor(br.dispHeight, 1, true)
+
+	if err := recover(); err != nil {
+		fmt.Printf("panic occurred: %v", err)
+	}
+
+	br.saneExit()
+}
+
 func usageMessage() {
-	fmt.Print("Usage: browse [-fn] [filename]\n")
+	fmt.Print("Usage: browse [-fn] [-p pattern] [-t title] [filename]\n")
 	fmt.Print(" -f, --follow   follow file\n")
 	fmt.Print(" -n, --numbers  line numbers\n")
+	fmt.Print(" -p, --pattern  search pattern\n")
+	fmt.Print(" -t, --title    page title\n")
 	fmt.Print(" -?, --help     this message\n")
 }
 

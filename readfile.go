@@ -8,8 +8,10 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"os"
+	"syscall"
 	"time"
 )
 
@@ -94,7 +96,7 @@ func readFile(br *browseObj, ch chan bool) {
 	}
 }
 
-func readStdin(fin, fout *os.File) {
+func (x *browseObj) readStdin(fin, fout *os.File) {
 	// read from stdin, write to temp file
 
 	r := bufio.NewReader(fin)
@@ -102,6 +104,10 @@ func readStdin(fin, fout *os.File) {
 
 	for {
 		line, err := r.ReadString('\n')
+
+		if errors.Is(err, syscall.EPIPE) {
+			x.saneExit()
+		}
 
 		if err == io.EOF {
 			break

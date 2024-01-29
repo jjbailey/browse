@@ -16,6 +16,7 @@ const (
 	TABWIDTH     = 8
 	MAXMARKS     = 10
 	SEARCH_RESET = 0
+	PAGE_SEARCH  = false
 )
 
 const (
@@ -52,7 +53,7 @@ const (
 type browseObj struct {
 	// screen vars
 	tty        *os.File
-	screenName string
+	title      string
 	dispWidth  int
 	dispHeight int
 	dispRows   int

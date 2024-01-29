@@ -82,6 +82,23 @@ func commands(br *browseObj) {
 		}
 	}
 
+	// reasons for a delayed start
+
+	if br.fromStdin {
+		// wait a sec for more input
+		time.Sleep(1 * time.Second)
+	}
+
+	if br.modeScrollDown {
+		// another attempt to read more
+		time.Sleep(1 * time.Second)
+	}
+
+	if br.firstRow > br.mapSiz {
+		// one last attempt for big files
+		time.Sleep(1 * time.Second)
+	}
+
 	ttyBrowser()
 	br.pageHeader()
 
@@ -267,7 +284,7 @@ func commands(br *browseObj) {
 		case CMD_JUMP:
 			// jump to line
 			lbuf, cancel := br.userInput("Junp: ")
-			if cancel {
+			if cancel || lbuf == "" {
 				br.restoreLast()
 			} else {
 				var n int
@@ -285,8 +302,7 @@ func commands(br *browseObj) {
 				movecursor(2, 1, false)
 			} else if patbuf == "" {
 				// null -- change direction
-				br.printMessage("Searching forward")
-				time.Sleep(1500 * time.Millisecond)
+				br.timedMessage("Searching forward")
 				// next
 				br.searchFile(br.pattern, searchDir, true)
 			} else {
@@ -304,8 +320,7 @@ func commands(br *browseObj) {
 				movecursor(2, 1, false)
 			} else if patbuf == "" {
 				// null -- change direction
-				br.printMessage("Searching reverse")
-				time.Sleep(1500 * time.Millisecond)
+				br.timedMessage("Searching reverse")
 				// next
 				br.searchFile(br.pattern, searchDir, true)
 			} else {
