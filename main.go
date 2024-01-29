@@ -74,7 +74,7 @@ func main() {
 		br.fileInit(fp, fileName, true)
 
 		// copy stdin to temp file
-		go readStdin(os.Stdin, tmpfp)
+		go br.readStdin(os.Stdin, tmpfp)
 	}
 
 	tty, _ = os.Open("/dev/tty")
