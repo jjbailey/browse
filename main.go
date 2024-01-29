@@ -24,6 +24,7 @@ func main() {
 		followFlag = getopt.BoolLong("follow", 'f', "follow file")
 		numberFlag = getopt.BoolLong("numbers", 'n', "line numbers")
 		helpFlag   = getopt.BoolLong("help", '?', "this message")
+		patternStr = getopt.StringLong("pattern", 'p', "", "search pattern")
 		titleStr   = getopt.StringLong("title", 't', "", "page title")
 	)
 
@@ -89,6 +90,9 @@ func main() {
 	// set options from commandline
 	br.modeNumbers = *numberFlag
 	br.modeScrollDown = *followFlag
+	if *patternStr != "" {
+		br.pattern = *patternStr
+	}
 	if *titleStr != "" {
 		br.title = *titleStr
 	}
@@ -119,9 +123,10 @@ func handlePanic(br *browseObj) {
 }
 
 func usageMessage() {
-	fmt.Print("Usage: browse [-fn] [-t title] [filename]\n")
+	fmt.Print("Usage: browse [-fn] [-p pattern] [-t title] [filename]\n")
 	fmt.Print(" -f, --follow   follow file\n")
 	fmt.Print(" -n, --numbers  line numbers\n")
+	fmt.Print(" -p, --pattern  search pattern\n")
 	fmt.Print(" -t, --title    page title\n")
 	fmt.Print(" -?, --help     this message\n")
 }
