@@ -120,6 +120,10 @@ func (x *browseObj) pageIsMatch(sop, eop int) (int, int) {
 		}
 	}
 
+	if lastMatch == 0 {
+		lastMatch = firstMatch
+	}
+
 	return firstMatch, lastMatch
 }
 
