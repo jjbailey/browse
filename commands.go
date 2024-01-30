@@ -33,16 +33,15 @@ func commands(br *browseObj) {
 		CMD_SCROLL_DN    = '+'
 		CMD_SCROLL_DN_1  = '\r'
 		CMD_SCROLL_UP    = '-'
+		CMD_MODE_DN      = 'd'
+		CMD_MODE_UP      = 'u'
+		CMD_MODE_TAIL    = 't'
 		CMD_SOF          = '^'
 		CMD_SOF_1        = '0'
 		CMD_SEARCH_FWD   = '/'
 		CMD_SEARCH_REV   = '?'
 		CMD_SEARCH_NEXT  = 'n'
 		CMD_SEARCH_CLEAR = 'C'
-
-		MODE_UP   = 'u'
-		MODE_DN   = 'd'
-		MODE_TAIL = 't'
 
 		VK_UP    = "\033[A\000"
 		VK_DOWN  = "\033[B\000"
@@ -142,11 +141,11 @@ func commands(br *browseObj) {
 
 		case VK_UP:
 			// up arrow -- lines move down
-			b[0] = MODE_UP
+			b[0] = CMD_MODE_UP
 
 		case VK_DOWN:
 			// down arrow -- lines move up
-			b[0] = MODE_DN
+			b[0] = CMD_MODE_DN
 
 		case VK_RIGHT:
 			// right arrow -- scroll up one
@@ -176,15 +175,15 @@ func commands(br *browseObj) {
 		// mode cancellations
 
 		if string(b) != "" {
-			if b[0] != MODE_TAIL {
+			if b[0] != CMD_MODE_TAIL {
 				br.modeTail = false
 			}
 
-			if b[0] != MODE_UP {
+			if b[0] != CMD_MODE_UP {
 				br.modeScrollUp = false
 			}
 
-			if b[0] != MODE_DN {
+			if b[0] != CMD_MODE_DN {
 				br.modeScrollDown = false
 			}
 		}
@@ -206,7 +205,7 @@ func commands(br *browseObj) {
 			br.scrollDown(1)
 			movecursor(2, 1, false)
 
-		case MODE_DN:
+		case CMD_MODE_DN:
 			// toggle continuous scroll-down mode
 			if br.modeScrollDown {
 				br.modeScrollDown = false
@@ -231,7 +230,7 @@ func commands(br *browseObj) {
 			br.scrollUp(1)
 			movecursor(2, 1, false)
 
-		case MODE_UP:
+		case CMD_MODE_UP:
 			// toggle continuous scroll-up mode
 			br.modeScrollUp = !br.modeScrollUp
 
@@ -266,7 +265,7 @@ func commands(br *browseObj) {
 			br.modeNumbers = !br.modeNumbers
 			br.pageCurrent()
 
-		case MODE_TAIL:
+		case CMD_MODE_TAIL:
 			// tail file
 			if br.modeTail {
 				br.modeTail = false
