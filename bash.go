@@ -48,7 +48,6 @@ func (x *browseObj) bashCommand() bool {
 			resetScrRegion()
 
 			movecursor(x.dispHeight, 1, true)
-			x.ptySignals()
 			x.runInPty(cmdbuf)
 		}
 	}
@@ -65,19 +64,21 @@ func (x *browseObj) bashCommand() bool {
 
 func (x *browseObj) runInPty(cmdbuf string) error {
 	cmd := exec.Command("bash", "-c", cmdbuf)
-
 	ptmx, err := pty.Start(cmd)
 
 	if err != nil {
 		return err
 	}
 
-	pty.InheritSize(os.Stdin, ptmx)
 	ptySave, err := term.MakeRaw(int(os.Stdin.Fd()))
 
 	if err != nil {
 		return err
 	}
+
+	// set signals and window size
+	pty.InheritSize(os.Stdin, ptmx)
+	x.ptySignals(ptmx)
 
 	execOK := make(chan bool)
 	go func(ch chan bool) {
@@ -88,16 +89,29 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 
 	ptmx.Close()
 	term.Restore(int(os.Stdin.Fd()), ptySave)
+
+	// reset window size
+	pty.InheritSize(os.Stdin, ptmx)
+	// pty.Getsize() returns zeros
+	// x.dispHeight, x.dispWidth, _ = pty.Getsize(ptmx)
+	x.dispWidth, x.dispHeight, _ = term.GetSize(int(x.tty.Fd()))
+	x.dispRows = x.dispHeight - 1
+
 	movecursor(x.dispHeight, 1, true)
 	fmt.Printf(VIDMESSAGE + " Press any key to continue... " + VIDOFF)
+
+	// reset signals
+	x.catchSignals()
+
 	<-execOK
 	return nil
 }
 
-func (x *browseObj) ptySignals() {
+func (x *browseObj) ptySignals(ptmx *os.File) {
 	// signals
 
 	sigChan := make(chan os.Signal, 1)
+	signal.Reset(syscall.SIGWINCH)
 	signal.Notify(sigChan)
 	signal.Ignore(syscall.SIGCHLD)
 	signal.Ignore(syscall.SIGURG)
@@ -107,7 +121,7 @@ func (x *browseObj) ptySignals() {
 			switch <-sigChan {
 
 			case syscall.SIGWINCH:
-				x.resizeWindow()
+				pty.InheritSize(os.Stdin, ptmx)
 
 			default:
 				x.saneExit()

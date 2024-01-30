@@ -16,7 +16,7 @@ func (x *browseObj) printHelp() {
 
 	lines := []string{
 		"                                                               ",
-		"   Browse                       Version 0.15                   ",
+		"   Browse                       Version 0.16                   ",
 		"                                                               ",
 		"   Command                      Function                       ",
 		"   f b [PAGE UP] [PAGE DOWN]    Page forward/back (down/up)    ",
