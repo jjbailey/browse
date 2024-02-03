@@ -86,7 +86,7 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 
 	execOK := make(chan bool)
 	go func(ch chan bool) {
-		io.Copy(ptmx, os.Stdin)
+		io.Copy(ptmx, x.tty)
 		ch <- true
 	}(execOK)
 	io.Copy(os.Stdout, ptmx)
