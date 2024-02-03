@@ -16,32 +16,32 @@ import (
 
 func commands(br *browseObj) {
 	const (
-		CMD_BASH         = '!'
-		CMD_EOF          = '$'
-		CMD_EOF_1        = 'G'
-		CMD_HELP         = 'h'
-		CMD_JUMP         = 'j'
-		CMD_MARK         = 'm'
-		CMD_NUMBERS      = '#'
-		CMD_NUMBERS_1    = 'N'
-		CMD_PAGE_DN      = 'f'
-		CMD_PAGE_UP      = 'b'
-		CMD_SHIFT_LEFT   = '<'
-		CMD_SHIFT_RIGHT  = '>'
-		CMD_QUIT         = 'q'
-		CMD_QUIT_NO_SAVE = 'Q'
-		CMD_SCROLL_DN    = '+'
-		CMD_SCROLL_DN_1  = '\r'
-		CMD_SCROLL_UP    = '-'
-		CMD_MODE_DN      = 'd'
-		CMD_MODE_UP      = 'u'
-		CMD_MODE_TAIL    = 't'
-		CMD_SOF          = '^'
-		CMD_SOF_1        = '0'
-		CMD_SEARCH_FWD   = '/'
-		CMD_SEARCH_REV   = '?'
-		CMD_SEARCH_NEXT  = 'n'
-		CMD_SEARCH_CLEAR = 'C'
+		CMD_BASH            = '!'
+		CMD_EOF             = '$'
+		CMD_EOF_1           = 'G'
+		CMD_HELP            = 'h'
+		CMD_JUMP            = 'j'
+		CMD_MARK            = 'm'
+		CMD_NUMBERS         = '#'
+		CMD_PAGE_DN         = 'f'
+		CMD_PAGE_UP         = 'b'
+		CMD_SHIFT_LEFT      = '<'
+		CMD_SHIFT_RIGHT     = '>'
+		CMD_QUIT            = 'q'
+		CMD_QUIT_NO_SAVE    = 'Q'
+		CMD_SCROLL_DN       = '+'
+		CMD_SCROLL_DN_1     = '\r'
+		CMD_SCROLL_UP       = '-'
+		CMD_MODE_DN         = 'd'
+		CMD_MODE_UP         = 'u'
+		CMD_MODE_TAIL       = 't'
+		CMD_SOF             = '^'
+		CMD_SOF_1           = '0'
+		CMD_SEARCH_FWD      = '/'
+		CMD_SEARCH_REV      = '?'
+		CMD_SEARCH_NEXT     = 'n'
+		CMD_SEARCH_NEXT_REV = 'N'
+		CMD_SEARCH_CLEAR    = 'C'
 
 		VK_UP    = "\033[A\000"
 		VK_DOWN  = "\033[B\000"
@@ -260,7 +260,7 @@ func commands(br *browseObj) {
 			// end of file
 			br.pageLast()
 
-		case CMD_NUMBERS, CMD_NUMBERS_1:
+		case CMD_NUMBERS:
 			// show line numbers
 			br.modeNumbers = !br.modeNumbers
 			br.pageCurrent()
@@ -330,6 +330,10 @@ func commands(br *browseObj) {
 
 		case CMD_SEARCH_NEXT:
 			br.searchFile(br.pattern, searchDir, true)
+
+		case CMD_SEARCH_NEXT_REV:
+			// vim compat
+			br.searchFile(br.pattern, !searchDir, true)
 
 		case CMD_SEARCH_CLEAR:
 			// clear the search pattern
