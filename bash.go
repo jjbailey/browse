@@ -62,23 +62,27 @@ func (x *browseObj) bashCommand() bool {
 	return cancel
 }
 
+// global to avoid race
+var ptmx *os.File
+
 func (x *browseObj) runInPty(cmdbuf string) error {
+	var err error
+
 	cmd := exec.Command("bash", "-c", cmdbuf)
-	ptmx, err := pty.Start(cmd)
+	x.ptySignals()
+	ptmx, err = pty.Start(cmd)
 
 	if err != nil {
 		return err
 	}
 
-	ptySave, err := term.MakeRaw(int(os.Stdin.Fd()))
+	defer ptmx.Close()
+	pty.InheritSize(os.Stdout, ptmx)
+	ptySave, err := term.MakeRaw(int(os.Stdout.Fd()))
 
 	if err != nil {
 		return err
 	}
-
-	// set signals and window size
-	pty.InheritSize(os.Stdin, ptmx)
-	x.ptySignals(ptmx)
 
 	execOK := make(chan bool)
 	go func(ch chan bool) {
@@ -87,14 +91,11 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 	}(execOK)
 	io.Copy(os.Stdout, ptmx)
 
-	ptmx.Close()
-	term.Restore(int(os.Stdin.Fd()), ptySave)
+	term.Restore(int(os.Stdout.Fd()), ptySave)
 
 	// reset window size
-	pty.InheritSize(os.Stdin, ptmx)
-	// pty.Getsize() returns zeros
-	// x.dispHeight, x.dispWidth, _ = pty.Getsize(ptmx)
-	x.dispWidth, x.dispHeight, _ = term.GetSize(int(x.tty.Fd()))
+	pty.InheritSize(os.Stdout, ptmx)
+	x.dispHeight, x.dispWidth, _ = pty.Getsize(ptmx)
 	x.dispRows = x.dispHeight - 1
 
 	movecursor(x.dispHeight, 1, true)
@@ -107,7 +108,7 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 	return nil
 }
 
-func (x *browseObj) ptySignals(ptmx *os.File) {
+func (x *browseObj) ptySignals() {
 	// signals
 
 	sigChan := make(chan os.Signal, 1)
@@ -121,7 +122,7 @@ func (x *browseObj) ptySignals(ptmx *os.File) {
 			switch <-sigChan {
 
 			case syscall.SIGWINCH:
-				pty.InheritSize(os.Stdin, ptmx)
+				pty.InheritSize(os.Stdout, ptmx)
 
 			default:
 				x.saneExit()
@@ -131,12 +132,10 @@ func (x *browseObj) ptySignals(ptmx *os.File) {
 }
 
 func subCommandChars(input, char, repl string) string {
-	var rbuf1 string
-
 	// negative lookbehind doesn't compile, e.g.
 	// pattern := `(?<!\\)%`
 
-	pattern := `(^|[^\\])` + char
+	pattern := `(^|[^\\])` + regexp.QuoteMeta(char)
 	replstr := "${1}" + repl
 
 	re, err := regexp.Compile(pattern)
@@ -145,16 +144,11 @@ func subCommandChars(input, char, repl string) string {
 		return ""
 	}
 
-	rbuf1 = input
+	rbuf1 := input
 
-	for {
-		rbuf2 := re.ReplaceAllString(rbuf1, replstr)
-
-		if rbuf2 == rbuf1 {
-			break
-		}
-
+	for rbuf2 := re.ReplaceAllString(rbuf1, replstr); rbuf2 != rbuf1; {
 		rbuf1 = rbuf2
+		rbuf2 = re.ReplaceAllString(rbuf1, replstr)
 	}
 
 	return rbuf1
