@@ -76,6 +76,7 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 		return err
 	}
 
+	movecursor(x.dispHeight, 1, true)
 	defer ptmx.Close()
 	pty.InheritSize(os.Stdout, ptmx)
 	ptySave, err := term.MakeRaw(int(os.Stdout.Fd()))

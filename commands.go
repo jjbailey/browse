@@ -41,6 +41,7 @@ func commands(br *browseObj) {
 		CMD_SEARCH_REV      = '?'
 		CMD_SEARCH_NEXT     = 'n'
 		CMD_SEARCH_NEXT_REV = 'N'
+		CMD_GREP            = '&'
 		CMD_SEARCH_CLEAR    = 'C'
 
 		VK_UP    = "\033[A\000"
@@ -334,6 +335,10 @@ func commands(br *browseObj) {
 		case CMD_SEARCH_NEXT_REV:
 			// vim compat
 			br.searchFile(br.pattern, !searchDir, true)
+
+		case CMD_GREP:
+			// grep -nP pattern
+			br.grep()
 
 		case CMD_SEARCH_CLEAR:
 			// clear the search pattern
