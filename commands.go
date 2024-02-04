@@ -16,33 +16,34 @@ import (
 
 func commands(br *browseObj) {
 	const (
-		CMD_BASH         = '!'
-		CMD_EOF          = '$'
-		CMD_EOF_1        = 'G'
-		CMD_HELP         = 'h'
-		CMD_JUMP         = 'j'
-		CMD_MARK         = 'm'
-		CMD_NUMBERS      = '#'
-		CMD_NUMBERS_1    = 'N'
-		CMD_PAGE_DN      = 'f'
-		CMD_PAGE_UP      = 'b'
-		CMD_SHIFT_LEFT   = '<'
-		CMD_SHIFT_RIGHT  = '>'
-		CMD_QUIT         = 'q'
-		CMD_QUIT_NO_SAVE = 'Q'
-		CMD_SCROLL_DN    = '+'
-		CMD_SCROLL_DN_1  = '\r'
-		CMD_SCROLL_UP    = '-'
-		CMD_SOF          = '^'
-		CMD_SOF_1        = '0'
-		CMD_SEARCH_FWD   = '/'
-		CMD_SEARCH_REV   = '?'
-		CMD_SEARCH_NEXT  = 'n'
-		CMD_SEARCH_CLEAR = 'C'
-
-		MODE_UP   = 'u'
-		MODE_DN   = 'd'
-		MODE_TAIL = 't'
+		CMD_BASH            = '!'
+		CMD_EOF             = '$'
+		CMD_EOF_1           = 'G'
+		CMD_HELP            = 'h'
+		CMD_JUMP            = 'j'
+		CMD_MARK            = 'm'
+		CMD_NUMBERS         = '#'
+		CMD_PAGE_DN         = 'f'
+		CMD_PAGE_DN_1       = ' '
+		CMD_PAGE_UP         = 'b'
+		CMD_SHIFT_LEFT      = '<'
+		CMD_SHIFT_RIGHT     = '>'
+		CMD_QUIT            = 'q'
+		CMD_QUIT_NO_SAVE    = 'Q'
+		CMD_SCROLL_DN       = '+'
+		CMD_SCROLL_DN_1     = '\r'
+		CMD_SCROLL_UP       = '-'
+		CMD_MODE_DN         = 'd'
+		CMD_MODE_UP         = 'u'
+		CMD_MODE_TAIL       = 't'
+		CMD_SOF             = '^'
+		CMD_SOF_1           = '0'
+		CMD_SEARCH_FWD      = '/'
+		CMD_SEARCH_REV      = '?'
+		CMD_SEARCH_NEXT     = 'n'
+		CMD_SEARCH_NEXT_REV = 'N'
+		CMD_GREP            = '&'
+		CMD_SEARCH_CLEAR    = 'C'
 
 		VK_UP    = "\033[A\000"
 		VK_DOWN  = "\033[B\000"
@@ -142,11 +143,11 @@ func commands(br *browseObj) {
 
 		case VK_UP:
 			// up arrow -- lines move down
-			b[0] = MODE_UP
+			b[0] = CMD_MODE_UP
 
 		case VK_DOWN:
 			// down arrow -- lines move up
-			b[0] = MODE_DN
+			b[0] = CMD_MODE_DN
 
 		case VK_RIGHT:
 			// right arrow -- scroll up one
@@ -176,15 +177,15 @@ func commands(br *browseObj) {
 		// mode cancellations
 
 		if string(b) != "" {
-			if b[0] != MODE_TAIL {
+			if b[0] != CMD_MODE_TAIL {
 				br.modeTail = false
 			}
 
-			if b[0] != MODE_UP {
+			if b[0] != CMD_MODE_UP {
 				br.modeScrollUp = false
 			}
 
-			if b[0] != MODE_DN {
+			if b[0] != CMD_MODE_DN {
 				br.modeScrollDown = false
 			}
 		}
@@ -193,7 +194,7 @@ func commands(br *browseObj) {
 
 		switch b[0] {
 
-		case CMD_PAGE_DN:
+		case CMD_PAGE_DN, CMD_PAGE_DN_1:
 			// page forward/down
 			if !br.hitEOF {
 				br.pageDown()
@@ -206,7 +207,7 @@ func commands(br *browseObj) {
 			br.scrollDown(1)
 			movecursor(2, 1, false)
 
-		case MODE_DN:
+		case CMD_MODE_DN:
 			// toggle continuous scroll-down mode
 			if br.modeScrollDown {
 				br.modeScrollDown = false
@@ -231,7 +232,7 @@ func commands(br *browseObj) {
 			br.scrollUp(1)
 			movecursor(2, 1, false)
 
-		case MODE_UP:
+		case CMD_MODE_UP:
 			// toggle continuous scroll-up mode
 			br.modeScrollUp = !br.modeScrollUp
 
@@ -261,12 +262,12 @@ func commands(br *browseObj) {
 			// end of file
 			br.pageLast()
 
-		case CMD_NUMBERS, CMD_NUMBERS_1:
+		case CMD_NUMBERS:
 			// show line numbers
 			br.modeNumbers = !br.modeNumbers
 			br.pageCurrent()
 
-		case MODE_TAIL:
+		case CMD_MODE_TAIL:
 			// tail file
 			if br.modeTail {
 				br.modeTail = false
@@ -284,7 +285,7 @@ func commands(br *browseObj) {
 		case CMD_JUMP:
 			// jump to line
 			lbuf, cancel := br.userInput("Junp: ")
-			if cancel || lbuf == "" {
+			if cancel || len(lbuf) == 0 {
 				br.restoreLast()
 			} else {
 				var n int
@@ -300,7 +301,7 @@ func commands(br *browseObj) {
 			if cancel {
 				br.restoreLast()
 				movecursor(2, 1, false)
-			} else if patbuf == "" {
+			} else if len(patbuf) == 0 {
 				// null -- change direction
 				br.timedMessage("Searching forward")
 				// next
@@ -318,7 +319,7 @@ func commands(br *browseObj) {
 			if cancel {
 				br.restoreLast()
 				movecursor(2, 1, false)
-			} else if patbuf == "" {
+			} else if len(patbuf) == 0 {
 				// null -- change direction
 				br.timedMessage("Searching reverse")
 				// next
@@ -331,6 +332,14 @@ func commands(br *browseObj) {
 
 		case CMD_SEARCH_NEXT:
 			br.searchFile(br.pattern, searchDir, true)
+
+		case CMD_SEARCH_NEXT_REV:
+			// vim compat
+			br.searchFile(br.pattern, !searchDir, true)
+
+		case CMD_GREP:
+			// grep -nP pattern
+			br.grep()
 
 		case CMD_SEARCH_CLEAR:
 			// clear the search pattern

@@ -123,12 +123,12 @@ func (x *browseObj) readFromMap(lineno int) ([]byte, int) {
 	// use the maps to read a line from the file
 	// don't read more than we can display
 
-	readFrom := x.seekMap[lineno] + x.shiftWidth
-
-	if lineSize := x.sizeMap[lineno] - x.shiftWidth; lineSize > 0 {
-		data := make([]byte, minimum(int(lineSize), x.dispWidth))
-		x.fp.ReadAt(data, readFrom)
-		return expandTabs(data)
+	if lineSize, ok := x.sizeMap[lineno]; ok && lineSize > 0 {
+		lineSize = int64(minimum(int(lineSize), x.dispWidth))
+		data := make([]byte, lineSize)
+		x.fp.ReadAt(data, x.seekMap[lineno])
+		newdata, n := expandTabs(data)
+		return newdata[x.shiftWidth:], n
 	}
 
 	return nil, 0

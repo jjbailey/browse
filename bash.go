@@ -48,7 +48,6 @@ func (x *browseObj) bashCommand() bool {
 			resetScrRegion()
 
 			movecursor(x.dispHeight, 1, true)
-			x.ptySignals()
 			x.runInPty(cmdbuf)
 		}
 	}
@@ -63,17 +62,24 @@ func (x *browseObj) bashCommand() bool {
 	return cancel
 }
 
-func (x *browseObj) runInPty(cmdbuf string) error {
-	cmd := exec.Command("bash", "-c", cmdbuf)
+// global to avoid race
+var ptmx *os.File
 
-	ptmx, err := pty.Start(cmd)
+func (x *browseObj) runInPty(cmdbuf string) error {
+	var err error
+
+	cmd := exec.Command("bash", "-c", cmdbuf)
+	x.ptySignals()
+	ptmx, err = pty.Start(cmd)
 
 	if err != nil {
 		return err
 	}
 
-	pty.InheritSize(os.Stdin, ptmx)
-	ptySave, err := term.MakeRaw(int(os.Stdin.Fd()))
+	movecursor(x.dispHeight, 1, true)
+	defer ptmx.Close()
+	pty.InheritSize(os.Stdout, ptmx)
+	ptySave, err := term.MakeRaw(int(os.Stdout.Fd()))
 
 	if err != nil {
 		return err
@@ -81,15 +87,24 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 
 	execOK := make(chan bool)
 	go func(ch chan bool) {
-		io.Copy(ptmx, os.Stdin)
+		io.Copy(ptmx, x.tty)
 		ch <- true
 	}(execOK)
 	io.Copy(os.Stdout, ptmx)
 
-	ptmx.Close()
-	term.Restore(int(os.Stdin.Fd()), ptySave)
+	term.Restore(int(os.Stdout.Fd()), ptySave)
+
+	// reset window size
+	pty.InheritSize(os.Stdout, ptmx)
+	x.dispHeight, x.dispWidth, _ = pty.Getsize(ptmx)
+	x.dispRows = x.dispHeight - 1
+
 	movecursor(x.dispHeight, 1, true)
 	fmt.Printf(VIDMESSAGE + " Press any key to continue... " + VIDOFF)
+
+	// reset signals
+	x.catchSignals()
+
 	<-execOK
 	return nil
 }
@@ -98,6 +113,7 @@ func (x *browseObj) ptySignals() {
 	// signals
 
 	sigChan := make(chan os.Signal, 1)
+	signal.Reset(syscall.SIGWINCH)
 	signal.Notify(sigChan)
 	signal.Ignore(syscall.SIGCHLD)
 	signal.Ignore(syscall.SIGURG)
@@ -107,7 +123,7 @@ func (x *browseObj) ptySignals() {
 			switch <-sigChan {
 
 			case syscall.SIGWINCH:
-				x.resizeWindow()
+				pty.InheritSize(os.Stdout, ptmx)
 
 			default:
 				x.saneExit()
@@ -117,12 +133,10 @@ func (x *browseObj) ptySignals() {
 }
 
 func subCommandChars(input, char, repl string) string {
-	var rbuf1 string
-
 	// negative lookbehind doesn't compile, e.g.
 	// pattern := `(?<!\\)%`
 
-	pattern := `(^|[^\\])` + char
+	pattern := `(^|[^\\])` + regexp.QuoteMeta(char)
 	replstr := "${1}" + repl
 
 	re, err := regexp.Compile(pattern)
@@ -131,16 +145,11 @@ func subCommandChars(input, char, repl string) string {
 		return ""
 	}
 
-	rbuf1 = input
+	rbuf1 := input
 
-	for {
-		rbuf2 := re.ReplaceAllString(rbuf1, replstr)
-
-		if rbuf2 == rbuf1 {
-			break
-		}
-
+	for rbuf2 := re.ReplaceAllString(rbuf1, replstr); rbuf2 != rbuf1; {
 		rbuf1 = rbuf2
+		rbuf2 = re.ReplaceAllString(rbuf1, replstr)
 	}
 
 	return rbuf1
