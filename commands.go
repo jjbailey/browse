@@ -199,6 +199,7 @@ func commands(br *browseObj) {
 			if !br.hitEOF {
 				br.pageDown()
 			} else {
+				br.restoreLast()
 				movecursor(2, 1, false)
 			}
 
