@@ -105,7 +105,7 @@ func commands(br *browseObj) {
 
 	if br.modeScrollDown {
 		br.pageLast()
-		fmt.Printf("%s", CURRESTORE)
+		fmt.Print(CURRESTORE)
 	} else {
 		br.pageCurrent()
 	}
@@ -214,7 +214,7 @@ func commands(br *browseObj) {
 				movecursor(2, 1, false)
 			} else {
 				br.modeScrollDown = true
-				fmt.Printf("%s", CURRESTORE)
+				fmt.Print(CURRESTORE)
 			}
 			// modeTail is a faster version of modeScrollDown
 			br.modeTail = false
@@ -277,7 +277,7 @@ func commands(br *browseObj) {
 				if !br.hitEOF {
 					br.pageLast()
 				}
-				fmt.Printf("%s", CURRESTORE)
+				fmt.Print(CURRESTORE)
 			}
 			// modeScrollDown is a slower version of modeTail
 			br.modeScrollDown = false

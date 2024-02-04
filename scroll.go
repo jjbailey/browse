@@ -48,7 +48,7 @@ func (x *browseObj) scrollDown(count int) {
 
 	if x.modeScrollDown || x.modeTail {
 		// in one of the follow modes
-		fmt.Printf("%s", CURRESTORE)
+		fmt.Print(CURRESTORE)
 	} else {
 		// idle
 		movecursor(2, 1, false)
@@ -68,7 +68,7 @@ func (x *browseObj) scrollUp(count int) {
 
 		// scroll
 		movecursor(2, 1, false)
-		fmt.Printf("%s", SCROLLREV)
+		fmt.Print(SCROLLREV)
 
 		// add line
 		movecursor(1, 1, false)

@@ -56,10 +56,10 @@ func (x *browseObj) printHelp() {
 	// top line
 
 	col := int((x.dispWidth - helpWidth) / 2)
-	fmt.Printf("%s", WHITEBLUE)
+	fmt.Print(WHITEBLUE)
 	movecursor(3, col, false)
 	fmt.Printf(ENTERGRAPHICS + UPPERLEFT)
-	fmt.Printf("%s", strings.Repeat(HORIZLINE, len(lines[0])))
+	fmt.Print(strings.Repeat(HORIZLINE, len(lines[0])))
 	fmt.Printf(UPPERRIGHT + EXITGRAPHICS)
 
 	// body
@@ -77,9 +77,9 @@ func (x *browseObj) printHelp() {
 
 	movecursor(i+4, col, false)
 	fmt.Printf(ENTERGRAPHICS + LOWERLEFT)
-	fmt.Printf("%s", strings.Repeat(HORIZLINE, len(lines[0])))
+	fmt.Print(strings.Repeat(HORIZLINE, len(lines[0])))
 	fmt.Printf(LOWERRIGHT + EXITGRAPHICS)
-	fmt.Printf("%s", VIDOFF)
+	fmt.Print(VIDOFF)
 
 	// prompt is in the body of the help screen
 	x.userAnyKey("")

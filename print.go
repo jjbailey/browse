@@ -77,7 +77,7 @@ func (x *browseObj) printPage(lineno int) {
 		return
 	}
 
-	fmt.Printf("%s", LINEWRAPOFF)
+	fmt.Print(LINEWRAPOFF)
 	movecursor(2, 1, false)
 
 	for i = sop; i < eop; i++ {
@@ -112,7 +112,7 @@ func (x *browseObj) restoreLast() {
 
 	movecursor(x.dispRows, 1, false)
 	x.printLine(x.lastRow - 1)
-	fmt.Printf("%s", CURRESTORE)
+	fmt.Print(CURRESTORE)
 	x.shownMsg = false
 }
 

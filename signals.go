@@ -51,7 +51,7 @@ func (x *browseObj) resizeWindow() {
 	x.pageCurrent()
 
 	if x.modeTail || x.modeScrollDown {
-		fmt.Printf("%s", CURRESTORE)
+		fmt.Print(CURRESTORE)
 	}
 }
 
@@ -60,7 +60,7 @@ func (x *browseObj) saneExit() {
 
 	ttyRestore()
 	resetScrRegion()
-	fmt.Printf("%s", LINEWRAPON)
+	fmt.Print(LINEWRAPON)
 	movecursor(x.dispHeight, 1, true)
 
 	if x.fromStdin {
