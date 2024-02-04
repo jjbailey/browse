@@ -24,6 +24,7 @@ func commands(br *browseObj) {
 		CMD_MARK            = 'm'
 		CMD_NUMBERS         = '#'
 		CMD_PAGE_DN         = 'f'
+		CMD_PAGE_DN_1       = ' '
 		CMD_PAGE_UP         = 'b'
 		CMD_SHIFT_LEFT      = '<'
 		CMD_SHIFT_RIGHT     = '>'
@@ -193,7 +194,7 @@ func commands(br *browseObj) {
 
 		switch b[0] {
 
-		case CMD_PAGE_DN:
+		case CMD_PAGE_DN, CMD_PAGE_DN_1:
 			// page forward/down
 			if !br.hitEOF {
 				br.pageDown()
@@ -284,7 +285,7 @@ func commands(br *browseObj) {
 		case CMD_JUMP:
 			// jump to line
 			lbuf, cancel := br.userInput("Junp: ")
-			if cancel || lbuf == "" {
+			if cancel || len(lbuf) == 0 {
 				br.restoreLast()
 			} else {
 				var n int
@@ -300,7 +301,7 @@ func commands(br *browseObj) {
 			if cancel {
 				br.restoreLast()
 				movecursor(2, 1, false)
-			} else if patbuf == "" {
+			} else if len(patbuf) == 0 {
 				// null -- change direction
 				br.timedMessage("Searching forward")
 				// next
@@ -318,7 +319,7 @@ func commands(br *browseObj) {
 			if cancel {
 				br.restoreLast()
 				movecursor(2, 1, false)
-			} else if patbuf == "" {
+			} else if len(patbuf) == 0 {
 				// null -- change direction
 				br.timedMessage("Searching reverse")
 				// next
