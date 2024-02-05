@@ -126,7 +126,7 @@ func (x *browseObj) readFromMap(lineno int) ([]byte, int) {
 	x.fp.ReadAt(data, x.seekMap[lineno])
 
 	if len(data) == 0 {
-		    return nil, 0
+		return nil, 0
 	}
 
 	newdata, n := expandTabs(data)
