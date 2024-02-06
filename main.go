@@ -51,7 +51,12 @@ func main() {
 
 			// we have some defaults
 			fileName = br.fileName
-			title = br.fileName
+
+			if len(br.title) > 0 {
+				title = br.title
+			} else {
+				title = br.fileName
+			}
 		} else {
 			// use file given
 			fileName = args[0]
