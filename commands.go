@@ -177,6 +177,8 @@ func commands(br *browseObj) {
 		// mode cancellations
 
 		if string(b) != "" {
+			inMotion := (br.modeTail || br.modeScrollUp || br.modeScrollDown)
+
 			if b[0] != CMD_MODE_TAIL {
 				br.modeTail = false
 			}
@@ -187,6 +189,12 @@ func commands(br *browseObj) {
 
 			if b[0] != CMD_MODE_DN {
 				br.modeScrollDown = false
+			}
+
+			if inMotion && b[0] == CMD_PAGE_DN_1 {
+				// this command doubles as mode cancel
+				movecursor(2, 1, false)
+				continue
 			}
 		}
 
