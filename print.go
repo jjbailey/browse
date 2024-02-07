@@ -47,8 +47,15 @@ func (x *browseObj) printLine(lineno int) {
 
 func (x *browseObj) printPage(lineno int) {
 	// print a page -- full screen if possible
+	// lineno is the top line
 
 	var i int
+
+	if lineno < 0 {
+		lineno = 0
+	} else if lineno > x.mapSiz {
+		lineno = x.mapSiz
+	}
 
 	if lineno+x.dispRows > x.mapSiz {
 		// beyond EOF
@@ -58,14 +65,8 @@ func (x *browseObj) printPage(lineno int) {
 		lineno++
 	}
 
-	if lineno < 0 {
-		lineno = 0
-	} else if lineno > x.mapSiz {
-		lineno = x.mapSiz
-	}
-
-	// +1 for EOF
 	sop := lineno
+	// +1 for EOF
 	eop := minimum((sop + x.dispRows), x.mapSiz+1)
 
 	// scroll if less than 1/4 page to target
@@ -77,7 +78,7 @@ func (x *browseObj) printPage(lineno int) {
 		return
 	}
 
-	fmt.Printf("%s", LINEWRAPOFF)
+	fmt.Print(LINEWRAPOFF)
 	movecursor(2, 1, false)
 
 	for i = sop; i < eop; i++ {
@@ -93,7 +94,8 @@ func (x *browseObj) printPage(lineno int) {
 
 func (x *browseObj) timedMessage(msg string) {
 	x.printMessage(msg)
-	time.Sleep(1500 * time.Millisecond)
+	// sleep time is arbitrary
+	time.Sleep(1250 * time.Millisecond)
 }
 
 func (x *browseObj) printMessage(msg string) {
@@ -110,10 +112,12 @@ func (x *browseObj) printMessage(msg string) {
 func (x *browseObj) restoreLast() {
 	// restore the last (prompt) line
 
-	movecursor(x.dispRows, 1, false)
-	x.printLine(x.lastRow - 1)
-	fmt.Printf("%s", CURRESTORE)
-	x.shownMsg = false
+	if x.shownMsg {
+		movecursor(x.dispRows, 1, false)
+		x.printLine(x.lastRow - 1)
+		fmt.Print(CURRESTORE)
+		x.shownMsg = false
+	}
 }
 
 // vim: set ts=4 sw=4 noet:

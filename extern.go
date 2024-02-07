@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	READBUFSIZ   = 256
+	READBUFSIZ   = 512
 	TABWIDTH     = 8
 	MAXMARKS     = 10
 	SEARCH_RESET = 0

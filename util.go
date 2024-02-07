@@ -53,7 +53,7 @@ func movecursor(row int, col int, clrflag bool) {
 	fmt.Printf(CURPOS, row, col)
 
 	if clrflag {
-		fmt.Printf("%s", CLEARLINE)
+		fmt.Print(CLEARLINE)
 	}
 }
 
@@ -83,7 +83,7 @@ func setScrRegion(top int, bot int) {
 }
 
 func resetScrRegion() {
-	fmt.Printf("%s", RESETREGION)
+	fmt.Print(RESETREGION)
 }
 
 func errorExit(err error) {

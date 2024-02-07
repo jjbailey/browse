@@ -8,7 +8,7 @@ package main
 
 import (
 	"bufio"
-	"bytes"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -19,16 +19,13 @@ import (
 const RCFILENAME = ".browserc"
 
 func writeRcFile(br *browseObj) bool {
+	var data strings.Builder
+
 	filePath := filepath.Join(os.Getenv("HOME"), RCFILENAME)
 
 	// fileName
 	absPath, _ := filepath.Abs(br.fileName)
-	fileName := absPath + "\n"
-
-	// data buffer to accumulate all the data
-	var data bytes.Buffer
-
-	data.WriteString(fileName)
+	data.WriteString(absPath + "\n")
 
 	// firstRow
 	data.WriteString(strconv.Itoa(br.firstRow) + "\n")
@@ -37,13 +34,16 @@ func writeRcFile(br *browseObj) bool {
 	data.WriteString(br.pattern + "\n")
 
 	// marks
-	for i := 1; i <= 9; i++ {
-		data.WriteString(strconv.Itoa(br.marks[i]) + " ")
+	for mark := 1; mark <= 9; mark++ {
+		data.WriteString(strconv.Itoa(br.marks[mark]) + " ")
 	}
 	data.WriteString("\n")
 
-	// write the buffer data to the file
-	err := os.WriteFile(filePath, data.Bytes(), 0644)
+	// title
+	data.WriteString(br.title + "\n")
+
+	// save
+	err := ioutil.WriteFile(filePath, []byte(data.String()), 0644)
 
 	return err == nil
 }
@@ -53,57 +53,59 @@ func readRcFile(br *browseObj) bool {
 	filePath = os.ExpandEnv(filePath)
 
 	fp, err := os.Open(filePath)
-
 	if err != nil {
 		return false
 	}
-
 	defer fp.Close()
 
 	scanner := bufio.NewScanner(fp)
 
-	if scanner.Scan() {
-		br.fileName = strings.TrimSpace(scanner.Text())
-	} else {
-		return false
-	}
-
-	if scanner.Scan() {
-		firstRow, err := strconv.Atoi(strings.TrimSpace(scanner.Text()))
-
-		if err != nil {
-			return false
+	for i := 0; i < 5; i++ {
+		if !scanner.Scan() {
+			// partial read ok
+			return true
 		}
 
-		br.firstRow = firstRow
-	} else {
-		return false
-	}
+		line := strings.TrimSpace(scanner.Text())
 
-	if scanner.Scan() {
-		br.pattern = strings.TrimSpace(scanner.Text())
-	} else {
-		return false
-	}
+		switch i {
 
-	if scanner.Scan() {
-		markStrings := strings.Fields(strings.TrimSpace(scanner.Text()))
+		case 0:
+			// fileName
+			br.fileName = line
 
-		if len(markStrings) != 9 {
-			return false
-		}
+		case 1:
+			// firstRow
+			if firstRow, err := strconv.Atoi(line); err != nil {
+				return false
+			} else {
+				br.firstRow = firstRow
+			}
 
-		for i, markString := range markStrings {
-			mark, err := strconv.Atoi(markString)
+		case 2:
+			// pattern
+			br.pattern = line
 
-			if err != nil {
+		case 3:
+			// marks
+			markStrings := strings.Fields(line)
+
+			if len(markStrings) != 9 {
 				return false
 			}
 
-			br.marks[i+1] = mark
+			for i, markString := range markStrings {
+				if mark, err := strconv.Atoi(markString); err != nil {
+					return false
+				} else {
+					br.marks[i+1] = mark
+				}
+			}
+
+		case 4:
+			// title
+			br.title = line
 		}
-	} else {
-		return false
 	}
 
 	return true

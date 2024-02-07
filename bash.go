@@ -24,7 +24,7 @@ var prevCommand string
 func (x *browseObj) bashCommand() bool {
 	// run a command with bash
 
-	fmt.Printf("%s", LINEWRAPON)
+	fmt.Print(LINEWRAPON)
 	input, cancel := x.userInput("!")
 
 	if len(input) > 0 {
@@ -44,7 +44,7 @@ func (x *browseObj) bashCommand() bool {
 			fmt.Printf("$ %s\n", cmdbuf)
 
 			// set up env, run
-			fmt.Printf("%s", LINEWRAPON) // again
+			fmt.Print(LINEWRAPON) // again
 			resetScrRegion()
 
 			movecursor(x.dispHeight, 1, true)

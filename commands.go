@@ -105,7 +105,7 @@ func commands(br *browseObj) {
 
 	if br.modeScrollDown {
 		br.pageLast()
-		fmt.Printf("%s", CURRESTORE)
+		fmt.Print(CURRESTORE)
 	} else {
 		br.pageCurrent()
 	}
@@ -177,6 +177,8 @@ func commands(br *browseObj) {
 		// mode cancellations
 
 		if string(b) != "" {
+			inMotion := (br.modeTail || br.modeScrollUp || br.modeScrollDown)
+
 			if b[0] != CMD_MODE_TAIL {
 				br.modeTail = false
 			}
@@ -187,6 +189,12 @@ func commands(br *browseObj) {
 
 			if b[0] != CMD_MODE_DN {
 				br.modeScrollDown = false
+			}
+
+			if inMotion && b[0] == CMD_PAGE_DN_1 {
+				// this command doubles as mode cancel
+				movecursor(2, 1, false)
+				continue
 			}
 		}
 
@@ -199,6 +207,7 @@ func commands(br *browseObj) {
 			if !br.hitEOF {
 				br.pageDown()
 			} else {
+				br.restoreLast()
 				movecursor(2, 1, false)
 			}
 
@@ -214,7 +223,7 @@ func commands(br *browseObj) {
 				movecursor(2, 1, false)
 			} else {
 				br.modeScrollDown = true
-				fmt.Printf("%s", CURRESTORE)
+				fmt.Print(CURRESTORE)
 			}
 			// modeTail is a faster version of modeScrollDown
 			br.modeTail = false
@@ -277,7 +286,7 @@ func commands(br *browseObj) {
 				if !br.hitEOF {
 					br.pageLast()
 				}
-				fmt.Printf("%s", CURRESTORE)
+				fmt.Print(CURRESTORE)
 			}
 			// modeScrollDown is a slower version of modeTail
 			br.modeScrollDown = false

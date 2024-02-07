@@ -32,14 +32,14 @@ func (x *browseObj) pageHeader() {
 
 	resetScrRegion()
 	movecursor(1, 1, true)
-	fmt.Printf("%s", CLEARSCREEN)
-	fmt.Printf("%s", ENTERGRAPHICS)
-	fmt.Printf("%s", strings.Repeat(HORIZLINE, oneside))
+	fmt.Print(CLEARSCREEN)
+	fmt.Print(ENTERGRAPHICS)
+	fmt.Print(strings.Repeat(HORIZLINE, oneside))
 	fmt.Printf("%s%s", LEFTTEE, EXITGRAPHICS)
 	fmt.Printf("%s %s %s", VIDBOLDREV, x.title, VIDOFF)
 	fmt.Printf("%s%s", ENTERGRAPHICS, RIGHTTEE)
-	fmt.Printf("%s", strings.Repeat(HORIZLINE, oneside+1))
-	fmt.Printf("%s", EXITGRAPHICS)
+	fmt.Print(strings.Repeat(HORIZLINE, oneside+1))
+	fmt.Print(EXITGRAPHICS)
 	setScrRegion(2, x.dispHeight)
 }
 
