@@ -24,16 +24,16 @@ func (x *browseObj) grep() {
 		return
 	}
 
-	title := fmt.Sprintf("grep -nP \"%s\"", x.pattern)
+	title := fmt.Sprintf("grep -nP -e \"%s\"", x.pattern)
 
 	// browse colors, pattern set
-	cmdbuf := fmt.Sprintf("grep -nP '%s' %s | %s -p '%s' -t '%s'",
+	cmdbuf := fmt.Sprintf("grep -nP -e '%s' %s | %s -p '%s' -t '%s'",
 		x.pattern, x.fileName,
 		brPath, x.pattern, title)
 
 	// grep colors, pattern not set
 	// cute, but browse gets the line lengths wrong
-	//	cmdbuf := fmt.Sprintf("grep --color=always -nP '%s' %s | %s -t '%s'",
+	//	cmdbuf := fmt.Sprintf("grep --color=always -nP -e '%s' %s | %s -t '%s'",
 	//		x.pattern, x.fileName,
 	//		brPath, title)
 
