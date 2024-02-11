@@ -38,7 +38,7 @@ func (x *browseObj) pageHeader() {
 	fmt.Printf("%s%s", LEFTTEE, EXITGRAPHICS)
 	fmt.Printf("%s %s %s", VIDBOLDREV, x.title, VIDOFF)
 	fmt.Printf("%s%s", ENTERGRAPHICS, RIGHTTEE)
-	fmt.Print(strings.Repeat(HORIZLINE, oneside+1))
+	fmt.Print(strings.Repeat(HORIZLINE, oneside))
 	fmt.Print(EXITGRAPHICS)
 	setScrRegion(2, x.dispHeight)
 }
