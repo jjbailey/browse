@@ -70,12 +70,14 @@ func (x *browseObj) printPage(lineno int) {
 	eop := minimum((sop + x.dispRows), x.mapSiz+1)
 
 	// scroll if less than 1/4 page to target
-	if sop > x.firstRow && sop-x.firstRow < (x.dispRows>>2) {
-		x.scrollDown(sop - x.firstRow)
-		return
-	} else if x.firstRow > sop && x.firstRow-sop < (x.dispRows>>2) {
-		x.scrollUp(x.firstRow - sop)
-		return
+	if sop > 0 {
+		if sop > x.firstRow && sop-x.firstRow < (x.dispRows>>2) {
+			x.scrollDown(sop - x.firstRow)
+			return
+		} else if x.firstRow > sop && x.firstRow-sop < (x.dispRows>>2) {
+			x.scrollUp(x.firstRow - sop)
+			return
+		}
 	}
 
 	fmt.Print(LINEWRAPOFF)
