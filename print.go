@@ -69,8 +69,10 @@ func (x *browseObj) printPage(lineno int) {
 	// +1 for EOF
 	eop := minimum((sop + x.dispRows), x.mapSiz+1)
 
-	// scroll if less than 1/4 page to target
-	if sop > 0 {
+	// scroll if
+	//   - more than one page of data
+	//   - less than 1/4 page to target
+	if x.mapSiz > x.dispRows {
 		if sop > x.firstRow && sop-x.firstRow < (x.dispRows>>2) {
 			x.scrollDown(sop - x.firstRow)
 			return
