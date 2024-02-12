@@ -305,17 +305,11 @@ func commands(br *browseObj) {
 
 		case CMD_SEARCH_FWD:
 			// search forward/down
-			cancel := br.doSearch(searchDir, SEARCH_FWD)
-			if !cancel {
-				searchDir = SEARCH_FWD
-			}
+			searchDir = br.doSearch(searchDir, SEARCH_FWD)
 
 		case CMD_SEARCH_REV:
 			// search backward/up
-			cancel := br.doSearch(searchDir, SEARCH_REV)
-			if !cancel {
-				searchDir = SEARCH_REV
-			}
+			searchDir = br.doSearch(searchDir, SEARCH_REV)
 
 		case CMD_SEARCH_NEXT:
 			br.searchFile(br.pattern, searchDir, true)

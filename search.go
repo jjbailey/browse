@@ -251,7 +251,11 @@ func (x *browseObj) doSearch(oldDir, searchDir bool) bool {
 		x.searchFile(patbuf, newDir, false)
 	}
 
-	return cancel
+	if cancel {
+		return oldDir
+	} else {
+		return newDir
+	}
 }
 
 // vim: set ts=4 sw=4 noet:
