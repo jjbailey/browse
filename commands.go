@@ -305,38 +305,16 @@ func commands(br *browseObj) {
 
 		case CMD_SEARCH_FWD:
 			// search forward/down
-			patbuf, cancel := br.userInput("/")
-			searchDir = SEARCH_FWD
-			if cancel {
-				br.restoreLast()
-				movecursor(2, 1, false)
-			} else if len(patbuf) == 0 {
-				// null -- change direction
-				br.timedMessage("Searching forward")
-				// next
-				br.searchFile(br.pattern, searchDir, true)
-			} else {
-				// search this page
-				br.lastMatch = SEARCH_RESET
-				br.searchFile(patbuf, searchDir, false)
+			cancel := br.doSearch(searchDir, SEARCH_FWD)
+			if !cancel {
+				searchDir = SEARCH_FWD
 			}
 
 		case CMD_SEARCH_REV:
 			// search backward/up
-			patbuf, cancel := br.userInput("?")
-			searchDir = SEARCH_REV
-			if cancel {
-				br.restoreLast()
-				movecursor(2, 1, false)
-			} else if len(patbuf) == 0 {
-				// null -- change direction
-				br.timedMessage("Searching reverse")
-				// next
-				br.searchFile(br.pattern, searchDir, true)
-			} else {
-				// search this page
-				br.lastMatch = SEARCH_RESET
-				br.searchFile(patbuf, searchDir, false)
+			cancel := br.doSearch(searchDir, SEARCH_REV)
+			if !cancel {
+				searchDir = SEARCH_REV
 			}
 
 		case CMD_SEARCH_NEXT:
