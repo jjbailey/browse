@@ -248,7 +248,7 @@ func commands(br *browseObj) {
 		case CMD_SHIFT_LEFT:
 			// horizontal scroll left
 			if br.shiftWidth > 0 {
-				br.shiftWidth--
+				br.shiftWidth -= TABWIDTH
 				br.pageCurrent()
 			} else {
 				movecursor(2, 1, false)
@@ -256,8 +256,8 @@ func commands(br *browseObj) {
 
 		case CMD_SHIFT_RIGHT:
 			// horizontal scroll right
-			if br.shiftWidth < READBUFSIZ {
-				br.shiftWidth++
+			if br.shiftWidth < (READBUFSIZ - (TABWIDTH * 2)) {
+				br.shiftWidth += TABWIDTH
 				br.pageCurrent()
 			} else {
 				movecursor(2, 1, false)
