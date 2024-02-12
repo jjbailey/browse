@@ -68,6 +68,7 @@ func (x *browseObj) userInput(prompt string) (string, bool) {
 	ttyPrompter()
 	movecursor(x.dispHeight, 1, true)
 	fmt.Printf("%s", prompt)
+	x.shownMsg = true
 
 	for {
 		var nbuf string
