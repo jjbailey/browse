@@ -51,18 +51,18 @@ func (x *browseObj) printPage(lineno int) {
 
 	var i int
 
-	if lineno < 0 {
-		lineno = 0
-	} else if lineno > x.mapSiz {
-		lineno = x.mapSiz
-	}
-
 	if lineno+x.dispRows > x.mapSiz {
 		// beyond EOF
 		lineno -= (lineno - x.mapSiz)
 		lineno -= x.dispRows
 		// +1 for EOF
 		lineno++
+	}
+
+	if lineno < 0 {
+		lineno = 0
+	} else if lineno > x.mapSiz {
+		lineno = x.mapSiz
 	}
 
 	sop := lineno
