@@ -28,11 +28,12 @@ func (x *browseObj) pageHeader() {
 
 	// minus tees and spaces
 	linelen := x.dispWidth - 4
-	oneside := (linelen - len(x.title)) / 2
+	oneside := int((linelen - len(x.title)) / 2)
 
 	resetScrRegion()
 	movecursor(1, 1, true)
 	fmt.Print(CLEARSCREEN)
+	fmt.Print(LINEWRAPOFF)
 	fmt.Print(ENTERGRAPHICS)
 	fmt.Print(strings.Repeat(HORIZLINE, oneside))
 	fmt.Printf("%s%s", LEFTTEE, EXITGRAPHICS)

@@ -248,7 +248,7 @@ func commands(br *browseObj) {
 		case CMD_SHIFT_LEFT:
 			// horizontal scroll left
 			if br.shiftWidth > 0 {
-				br.shiftWidth--
+				br.shiftWidth -= TABWIDTH
 				br.pageCurrent()
 			} else {
 				movecursor(2, 1, false)
@@ -256,8 +256,8 @@ func commands(br *browseObj) {
 
 		case CMD_SHIFT_RIGHT:
 			// horizontal scroll right
-			if br.shiftWidth < READBUFSIZ {
-				br.shiftWidth++
+			if br.shiftWidth < (READBUFSIZ - (TABWIDTH * 2)) {
+				br.shiftWidth += TABWIDTH
 				br.pageCurrent()
 			} else {
 				movecursor(2, 1, false)
@@ -305,39 +305,11 @@ func commands(br *browseObj) {
 
 		case CMD_SEARCH_FWD:
 			// search forward/down
-			patbuf, cancel := br.userInput("/")
-			searchDir = SEARCH_FWD
-			if cancel {
-				br.restoreLast()
-				movecursor(2, 1, false)
-			} else if len(patbuf) == 0 {
-				// null -- change direction
-				br.timedMessage("Searching forward")
-				// next
-				br.searchFile(br.pattern, searchDir, true)
-			} else {
-				// search this page
-				br.lastMatch = SEARCH_RESET
-				br.searchFile(patbuf, searchDir, false)
-			}
+			searchDir = br.doSearch(searchDir, SEARCH_FWD)
 
 		case CMD_SEARCH_REV:
 			// search backward/up
-			patbuf, cancel := br.userInput("?")
-			searchDir = SEARCH_REV
-			if cancel {
-				br.restoreLast()
-				movecursor(2, 1, false)
-			} else if len(patbuf) == 0 {
-				// null -- change direction
-				br.timedMessage("Searching reverse")
-				// next
-				br.searchFile(br.pattern, searchDir, true)
-			} else {
-				// search this page
-				br.lastMatch = SEARCH_RESET
-				br.searchFile(patbuf, searchDir, false)
-			}
+			searchDir = br.doSearch(searchDir, SEARCH_REV)
 
 		case CMD_SEARCH_NEXT:
 			br.searchFile(br.pattern, searchDir, true)

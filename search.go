@@ -21,7 +21,7 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 	var firstMatch, lastMatch int
 
 	// to suppress S1002
-	var searchFwd = searchDir
+	searchFwd := searchDir
 
 	if len(pattern) == 0 {
 		if len(x.pattern) == 0 {
@@ -160,7 +160,7 @@ func (x *browseObj) setNextPage(searchDir bool, sop int) (int, int, bool) {
 	var wrapped bool
 
 	// to suppress S1002
-	var searchFwd = searchDir
+	searchFwd := searchDir
 
 	if searchFwd {
 		sop += x.dispRows
@@ -214,6 +214,48 @@ func (x *browseObj) replaceMatch(lineno int, input string) string {
 
 func (x *browseObj) noSearchPattern() bool {
 	return x.re == nil || len(x.re.String()) == 0
+}
+
+func (x *browseObj) doSearch(oldDir, searchDir bool) bool {
+	// to reduce mostly duplicate code
+
+	var prompt string
+	var message string
+
+	// to suppress S1002
+	newDir := searchDir
+
+	if newDir {
+		prompt = "/"
+		message = "Searching forward"
+	} else {
+		prompt = "?"
+		message = "Searching reverse"
+	}
+
+	patbuf, cancel := x.userInput(prompt)
+
+	if cancel {
+		x.restoreLast()
+		movecursor(2, 1, false)
+	} else if len(patbuf) == 0 {
+		// null -- change direction
+		if oldDir != newDir {
+			x.timedMessage(message)
+		}
+		// next
+		x.searchFile(x.pattern, newDir, true)
+	} else {
+		// search this page
+		x.lastMatch = SEARCH_RESET
+		x.searchFile(patbuf, newDir, false)
+	}
+
+	if cancel {
+		return oldDir
+	} else {
+		return newDir
+	}
 }
 
 // vim: set ts=4 sw=4 noet:
