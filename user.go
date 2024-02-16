@@ -57,6 +57,7 @@ func (x *browseObj) userInput(prompt string) (string, bool) {
 		BACKSPACE = "\b"
 		ERASEWORD = "\025"
 		ERASELINE = "\027"
+		DELETE    = "\177"
 	)
 
 	var linebuf string
@@ -82,7 +83,7 @@ func (x *browseObj) userInput(prompt string) (string, bool) {
 			break
 		}
 
-		if inputbuf == BACKSPACE {
+		if inputbuf == BACKSPACE || inputbuf == DELETE {
 			if len(linebuf) == 0 {
 				// cancel
 				linebuf = ""
