@@ -26,8 +26,8 @@ func readFile(br *browseObj, ch chan bool) {
 	reader := bufio.NewReader(br.fp)
 
 	if br.fromStdin {
-		// wait a sec for input from stdin
-		time.Sleep(1 * time.Second)
+		// wait for some input from stdin
+		time.Sleep(500 * time.Millisecond)
 	}
 
 	for {

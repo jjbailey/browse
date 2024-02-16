@@ -86,18 +86,18 @@ func commands(br *browseObj) {
 	// reasons for a delayed start
 
 	if br.fromStdin {
-		// wait a sec for more input
-		time.Sleep(1 * time.Second)
+		// wait for some input
+		time.Sleep(500 * time.Millisecond)
 	}
 
 	if br.modeScrollDown {
 		// another attempt to read more
-		time.Sleep(1 * time.Second)
+		time.Sleep(500 * time.Millisecond)
 	}
 
 	if br.firstRow > br.mapSiz {
 		// one last attempt for big files
-		time.Sleep(1 * time.Second)
+		time.Sleep(500 * time.Millisecond)
 	}
 
 	ttyBrowser()
