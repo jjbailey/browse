@@ -50,10 +50,12 @@ func commands(br *browseObj) {
 		VK_LEFT  = "\033[D\000"
 		VK_RIGHT = "\033[C\000"
 
-		VK_HOME  = "\033[1~"
-		VK_END   = "\033[4~"
-		VK_PRIOR = "\033[5~"
-		VK_NEXT  = "\033[6~"
+		VK_HOME   = "\033[1~"
+		VK_HOME_1 = "\033[H\000"
+		VK_END    = "\033[4~"
+		VK_END_1  = "\033[F\000"
+		VK_PRIOR  = "\033[5~"
+		VK_NEXT   = "\033[6~"
 	)
 
 	const (
@@ -157,11 +159,11 @@ func commands(br *browseObj) {
 			// left arrow -- scroll down one
 			b[0] = CMD_SCROLL_UP
 
-		case VK_HOME:
+		case VK_HOME, VK_HOME_1:
 			// home/SOF
 			b[0] = CMD_SOF
 
-		case VK_END:
+		case VK_END, VK_END_1:
 			// end/EOF
 			b[0] = CMD_EOF
 
