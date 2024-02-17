@@ -23,12 +23,14 @@ A simple, unconventional file browser.
 
 ## Usage
 
+```text
     Usage: browse [-fn] [-p pattern] [-t title] [filename]
      -f, --follow   follow file
      -n, --numbers  line numbers
      -p, --pattern  search pattern
      -t, --title    page title
      -?, --help     this message
+```
 
 When filename is absent, browse attmpts to restore the session saved in ~/.browserc.
 
