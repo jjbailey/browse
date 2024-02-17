@@ -73,6 +73,7 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 	ptmx, err = pty.Start(cmd)
 
 	if err != nil {
+		x.catchSignals()
 		return err
 	}
 
@@ -82,6 +83,7 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 	ptySave, err := term.MakeRaw(int(os.Stdout.Fd()))
 
 	if err != nil {
+		x.catchSignals()
 		return err
 	}
 
