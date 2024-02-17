@@ -52,18 +52,17 @@ func (x *browseObj) userAnyKey(prompt string) {
 
 func (x *browseObj) userInput(prompt string) (string, bool) {
 	const (
-		NEWLINE   = "\n"
-		CARRETURN = "\r"
-		BACKSPACE = "\b"
-		ERASEWORD = "\025"
-		ERASELINE = "\027"
-		DELETE    = "\177"
+		NEWLINE   = '\n'
+		CARRETURN = '\r'
+		BACKSPACE = '\b'
+		ERASEWORD = '\025'
+		ERASELINE = '\027'
+		ESCAPE    = '\033'
+		DELETE    = '\177'
 	)
 
 	var linebuf string
 	var cancel bool = false
-
-	b := make([]byte, 1)
 
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT)
 	ttyPrompter()
@@ -74,16 +73,18 @@ func (x *browseObj) userInput(prompt string) (string, bool) {
 	for {
 		var nbuf string
 
+		b := make([]byte, 1)
 		_, err := x.tty.Read(b)
 		errorExit(err)
 
 		inputbuf := string(b)
 
-		if inputbuf == NEWLINE || inputbuf == CARRETURN {
-			break
-		}
+		switch inputbuf[0] {
 
-		if inputbuf == BACKSPACE || inputbuf == DELETE {
+		case NEWLINE, CARRETURN, ESCAPE:
+			// ignore for now
+
+		case BACKSPACE, DELETE:
 			if len(linebuf) == 0 {
 				// cancel
 				linebuf = ""
@@ -96,10 +97,8 @@ func (x *browseObj) userInput(prompt string) (string, bool) {
 			linebuf = nbuf
 			movecursor(x.dispHeight, 1, true)
 			fmt.Printf("%s%s", prompt, linebuf)
-			continue
-		}
 
-		if inputbuf == ERASEWORD {
+		case ERASEWORD:
 			n := strings.LastIndex(linebuf, " ")
 
 			if n > 0 {
@@ -111,18 +110,20 @@ func (x *browseObj) userInput(prompt string) (string, bool) {
 
 			movecursor(x.dispHeight, 1, true)
 			fmt.Printf("%s%s", prompt, linebuf)
-			continue
-		}
 
-		if inputbuf == ERASELINE {
+		case ERASELINE:
 			linebuf = ""
 			movecursor(x.dispHeight, 1, true)
 			fmt.Printf("%s%s", prompt, linebuf)
-			continue
+
+		default:
+			fmt.Printf("%s", inputbuf)
+			linebuf += inputbuf
 		}
 
-		fmt.Printf("%s", inputbuf)
-		linebuf += inputbuf
+		if cancel || inputbuf[0] == NEWLINE || inputbuf[0] == CARRETURN {
+			break
+		}
 	}
 
 	signal.Reset(syscall.SIGINT, syscall.SIGQUIT)
