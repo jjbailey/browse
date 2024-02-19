@@ -103,6 +103,12 @@ func (x *browseObj) timedMessage(msg string) {
 	time.Sleep(1250 * time.Millisecond)
 }
 
+// func (x *browseObj) debugMessage(msg string) {
+// 	x.printMessage(msg)
+// 	// sleep time is arbitrary
+// 	time.Sleep(5 * time.Second)
+// }
+
 func (x *browseObj) printMessage(msg string) {
 	// print a message on the bottom line of the display
 
