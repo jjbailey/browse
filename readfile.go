@@ -53,9 +53,10 @@ func readFile(br *browseObj, ch chan bool) {
 			bytesRead = 0
 
 			// need to show the user
-			br.modeScrollUp = false
 			br.modeScrollDown = false
+			br.modeScrollUp = false
 			br.modeTail = false
+			br.shownMsg = false
 		}
 
 		if savFileSiz == 0 || savFileSiz < newFileSiz {
