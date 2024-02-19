@@ -28,15 +28,16 @@ func (x *browseObj) printLine(lineno int) {
 		x.lastMatch = lineno
 	}
 
-	// replaceMatch adds line numbers if applicable
-	output := x.replaceMatch(lineno, input)
-
-	// depends on linewrap=false
-	fmt.Printf("\r\n%s%s%s\r", output, VIDOFF, CLEARLINE)
+	if lineno <= x.mapSiz {
+		// replaceMatch adds line numbers if applicable
+		output := x.replaceMatch(lineno, input)
+		// depends on linewrap=false
+		fmt.Printf("\r\n%s%s%s\r", output, VIDOFF, CLEARLINE)
+	}
 
 	if windowAtEOF(lineno, x.mapSiz) {
-		printSEOF("EOF")
 		x.hitEOF = true
+		printSEOF("EOF")
 	} else {
 		x.hitEOF = false
 	}
@@ -117,8 +118,13 @@ func (x *browseObj) restoreLast() {
 	// restore the last (prompt) line
 
 	if x.shownMsg {
-		movecursor(x.dispRows, 1, false)
-		x.printLine(x.lastRow - 1)
+		movecursor(x.dispHeight, 1, true)
+
+		if x.lastRow > x.dispHeight {
+			fmt.Print(CURUP)
+			x.printLine(x.lastRow - 1)
+		}
+
 		fmt.Print(CURRESTORE)
 		x.shownMsg = false
 	}
