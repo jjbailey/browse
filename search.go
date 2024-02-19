@@ -157,33 +157,26 @@ func (x *browseObj) setNextPage(searchDir bool, sop int) (int, int, bool) {
 	// figure out which page to search next
 
 	var eop int
-	var wrapped bool
+	var wrapped bool = false
 
 	// to suppress S1002
 	searchFwd := searchDir
 
 	if searchFwd {
 		sop += x.dispRows
-
 		if sop >= x.mapSiz {
-			wrapped = true
 			sop = 0
+			wrapped = true
 		}
 	} else {
 		sop -= x.dispRows
-
-		if sop < 0 {
+		if (sop + x.dispRows) < 0 {
+			sop = maximum(x.mapSiz-x.dispRows, 0)
 			wrapped = true
-
-			// +1 for SOF
-			sop = (x.mapSiz - x.dispRows) + 1
-
-			if sop < 0 {
-				sop = 0
-			}
 		}
 	}
 
+	// sop map be a negative number
 	eop = sop + x.dispRows
 	return sop, eop, wrapped
 }
