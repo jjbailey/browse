@@ -107,9 +107,4 @@ func getMark(buf string) int {
 	return int(minimum(maximum(d, 1), 9))
 }
 
-//func debugMessage(msg string) {
-//	movecursor(1, 1, false)
-//	fmt.Printf(" %s ", msg)
-//}
-
 // vim: set ts=4 sw=4 noet:
