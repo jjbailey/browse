@@ -4,6 +4,9 @@
 //
 // Copyright (c) 2024 jjb
 // All rights reserved.
+//
+// This source code is licensed under the MIT license found
+// in the root directory of this source tree.
 
 package main
 
