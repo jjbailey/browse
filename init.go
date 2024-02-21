@@ -16,10 +16,14 @@ import (
 )
 
 func (x *browseObj) fileInit(fp *os.File, name string, fromStdin bool) {
+	fileInitDefaults(x)
+
 	x.fp = fp
 	x.fileName = name
 	x.fromStdin = fromStdin
+}
 
+func fileInitDefaults(x *browseObj) {
 	x.seekMap = make(map[int]int64, 1)
 	x.sizeMap = make(map[int]int64, 1)
 	x.mapSiz = 1
@@ -39,10 +43,21 @@ func (x *browseObj) fileInit(fp *os.File, name string, fromStdin bool) {
 }
 
 func (x *browseObj) screenInit(fp *os.File, name string) {
+	setScreenValues(x, fp, name)
+}
+
+func setScreenValues(x *browseObj, fp *os.File, name string) {
 	x.tty = fp
 	x.title = name
 
-	x.dispWidth, x.dispHeight, _ = term.GetSize(int(x.tty.Fd()))
+	if width, height, err := term.GetSize(int(x.tty.Fd())); err == nil {
+		x.dispWidth = width
+		x.dispHeight = height
+	} else {
+		x.dispWidth = 80
+		x.dispHeight = 25
+	}
+
 	x.dispRows = x.dispHeight - 1
 }
 

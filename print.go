@@ -38,11 +38,10 @@ func (x *browseObj) printLine(lineno int) {
 		fmt.Printf("\r\n%s%s%s\r", output, VIDOFF, CLEARLINE)
 	}
 
-	if windowAtEOF(lineno, x.mapSiz) {
-		x.hitEOF = true
+	x.hitEOF = windowAtEOF(lineno, x.mapSiz)
+
+	if x.hitEOF {
 		printSEOF("EOF")
-	} else {
-		x.hitEOF = false
 	}
 
 	// scrollDown needs this
