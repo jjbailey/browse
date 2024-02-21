@@ -39,7 +39,7 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 	}
 
 	x.re, err = regexp.Compile(pattern)
-	// save in case regexp.Compile fails
+	// save in case regexp.Compile failed
 	x.pattern = pattern
 
 	if err != nil {
@@ -57,7 +57,6 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 		// new search
 		sop = x.firstRow
 		eop = sop + x.dispRows
-		wrapped = false
 	} else if next {
 		sop, eop, wrapped = x.setNextPage(searchDir, x.firstRow)
 	}
@@ -160,7 +159,7 @@ func (x *browseObj) setNextPage(searchDir bool, sop int) (int, int, bool) {
 	// figure out which page to search next
 
 	var eop int
-	var wrapped bool = false
+	var wrapped bool
 
 	// to suppress S1002
 	searchFwd := searchDir
