@@ -3,6 +3,9 @@
 //
 // Copyright (c) 2024 jjb
 // All rights reserved.
+//
+// This source code is licensed under the MIT license found
+// in the root directory of this source tree.
 
 package main
 
@@ -106,10 +109,5 @@ func getMark(buf string) int {
 
 	return int(minimum(maximum(d, 1), 9))
 }
-
-//func debugMessage(msg string) {
-//	movecursor(1, 1, false)
-//	fmt.Printf(" %s ", msg)
-//}
 
 // vim: set ts=4 sw=4 noet:

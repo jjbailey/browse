@@ -3,6 +3,9 @@
 //
 // Copyright (c) 2024 jjb
 // All rights reserved.
+//
+// This source code is licensed under the MIT license found
+// in the root directory of this source tree.
 
 package main
 
@@ -16,7 +19,7 @@ func (x *browseObj) printHelp() {
 
 	lines := []string{
 		"                                                               ",
-		"   Browse                       Version 0.18                   ",
+		"   Browse                       Version 0.19                   ",
 		"                                                               ",
 		"   Command                      Function                       ",
 		"   f b [PAGE UP] [PAGE DOWN]    Page down/up                   ",

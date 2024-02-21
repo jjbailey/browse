@@ -3,6 +3,9 @@
 //
 // Copyright (c) 2024 jjb
 // All rights reserved.
+//
+// This source code is licensed under the MIT license found
+// in the root directory of this source tree.
 
 package main
 
@@ -28,17 +31,17 @@ func (x *browseObj) printLine(lineno int) {
 		x.lastMatch = lineno
 	}
 
-	// replaceMatch adds line numbers if applicable
-	output := x.replaceMatch(lineno, input)
+	if lineno <= x.mapSiz {
+		// replaceMatch adds line numbers if applicable
+		output := x.replaceMatch(lineno, input)
+		// depends on linewrap=false
+		fmt.Printf("\r\n%s%s%s\r", output, VIDOFF, CLEARLINE)
+	}
 
-	// depends on linewrap=false
-	fmt.Printf("\r\n%s%s%s\r", output, VIDOFF, CLEARLINE)
+	x.hitEOF = windowAtEOF(lineno, x.mapSiz)
 
-	if windowAtEOF(lineno, x.mapSiz) {
+	if x.hitEOF {
 		printSEOF("EOF")
-		x.hitEOF = true
-	} else {
-		x.hitEOF = false
 	}
 
 	// scrollDown needs this
@@ -71,12 +74,12 @@ func (x *browseObj) printPage(lineno int) {
 
 	// scroll if
 	//   - more than one page of data
-	//   - less than 1/4 page to target
+	//   - current position is <= 1/4 page to target
 	if x.mapSiz > x.dispRows {
-		if sop > x.firstRow && sop-x.firstRow < (x.dispRows>>2) {
+		if sop > x.firstRow && sop-x.firstRow <= (x.dispRows>>2) {
 			x.scrollDown(sop - x.firstRow)
 			return
-		} else if x.firstRow > sop && x.firstRow-sop < (x.dispRows>>2) {
+		} else if x.firstRow > sop && x.firstRow-sop <= (x.dispRows>>2) {
 			x.scrollUp(x.firstRow - sop)
 			return
 		}
@@ -102,6 +105,12 @@ func (x *browseObj) timedMessage(msg string) {
 	time.Sleep(1250 * time.Millisecond)
 }
 
+// func (x *browseObj) debugMessage(msg string) {
+// 	x.printMessage(msg)
+// 	// sleep time is arbitrary
+// 	time.Sleep(5 * time.Second)
+// }
+
 func (x *browseObj) printMessage(msg string) {
 	// print a message on the bottom line of the display
 
@@ -117,8 +126,13 @@ func (x *browseObj) restoreLast() {
 	// restore the last (prompt) line
 
 	if x.shownMsg {
-		movecursor(x.dispRows, 1, false)
-		x.printLine(x.lastRow - 1)
+		movecursor(x.dispHeight, 1, true)
+
+		if x.lastRow > x.dispHeight {
+			fmt.Print(CURUP)
+			x.printLine(x.lastRow - 1)
+		}
+
 		fmt.Print(CURRESTORE)
 		x.shownMsg = false
 	}

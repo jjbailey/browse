@@ -3,6 +3,9 @@
 //
 // Copyright (c) 2024 jjb
 // All rights reserved.
+//
+// This source code is licensed under the MIT license found
+// in the root directory of this source tree.
 
 package main
 
@@ -12,7 +15,7 @@ import (
 )
 
 const (
-	READBUFSIZ   = 256
+	READBUFSIZ   = 512
 	TABWIDTH     = 4
 	MAXMARKS     = 10
 	SEARCH_RESET = 0

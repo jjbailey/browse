@@ -21,6 +21,19 @@ A simple, unconventional file browser.
 - Save session
 - Help screen
 
+## Usage
+
+```text
+    Usage: browse [-fn] [-p pattern] [-t title] [filename]
+     -f, --follow   follow file
+     -n, --numbers  line numbers
+     -p, --pattern  search pattern
+     -t, --title    page title
+     -?, --help     this message
+```
+
+When filename is absent, browse attmpts to restore the session saved in ~/.browserc.
+
 ## Scrolling/Following
 
 browse has several scrolling/following modes.
@@ -37,6 +50,26 @@ input file up to 256 lines at a time.
 - The cursor position indicates whether or not browse is following the file.  If the
 cursor is in the lower left-hand corner, browse is following.  If the cursor is in
 the upper left-hand corner, browse is idle.
+
+## Saved Sessions
+
+browse saves sessions in ~/.browserc.  The format of the file is plaintext containing the following lines:
+
+ 1. file name
+ 2. first row on page
+ 3. search pattern
+ 4. marks
+ 5. page title
+
+The session attributes not saved:
+
+- search direction
+- numbers
+- bash command
+- horizontal scroll
+- follow/tail mode
+
+browse does not save sessions when the input is standard in, or when browse exits with the Q command.
 
 ## Limitations
 

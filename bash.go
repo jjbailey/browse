@@ -3,6 +3,9 @@
 //
 // Copyright (c) 2024 jjb
 // All rights reserved.
+//
+// This source code is licensed under the MIT license found
+// in the root directory of this source tree.
 
 package main
 
@@ -73,6 +76,7 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 	ptmx, err = pty.Start(cmd)
 
 	if err != nil {
+		x.catchSignals()
 		return err
 	}
 
@@ -82,6 +86,7 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 	ptySave, err := term.MakeRaw(int(os.Stdout.Fd()))
 
 	if err != nil {
+		x.catchSignals()
 		return err
 	}
 
