@@ -84,7 +84,7 @@ func commands(br *browseObj) {
 		} else {
 			// save regexp.Compile source and replstr
 			br.pattern = br.re.String()
-			br.replstr = fmt.Sprintf("%s%s%s", VIDBOLDGREEN, "$0", VIDOFF)
+			br.replstr = fmt.Sprintf("%s%s%s", VIDPATTERN, "$0", VIDOFF)
 		}
 	}
 

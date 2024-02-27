@@ -27,7 +27,7 @@ func (x *browseObj) userAnyKey(prompt string) {
 
 	// prompt is optional
 
-	if prompt == "" {
+	if len(prompt) == 0 {
 		movecursor(2, 1, false)
 	} else {
 		movecursor(x.dispHeight, 1, true)
