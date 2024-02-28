@@ -29,6 +29,7 @@ A simple, unconventional file browser.
      -n, --numbers  line numbers
      -p, --pattern  search pattern
      -t, --title    page title
+     -v, --version  print version number
      -?, --help     this message
 ```
 

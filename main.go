@@ -24,11 +24,12 @@ func main() {
 	var fileName, title string
 
 	var (
-		followFlag = getopt.BoolLong("follow", 'f', "follow file")
-		numberFlag = getopt.BoolLong("numbers", 'n', "line numbers")
-		helpFlag   = getopt.BoolLong("help", '?', "this message")
-		patternStr = getopt.StringLong("pattern", 'p', "", "search pattern")
-		titleStr   = getopt.StringLong("title", 't', "", "page title")
+		followFlag  = getopt.BoolLong("follow", 'f', "follow file")
+		numberFlag  = getopt.BoolLong("numbers", 'n', "line numbers")
+		patternStr  = getopt.StringLong("pattern", 'p', "", "search pattern")
+		titleStr    = getopt.StringLong("title", 't', "", "page title")
+		versionFlag = getopt.BoolLong("version", 'v', "print version number")
+		helpFlag    = getopt.BoolLong("help", '?', "this message")
 	)
 
 	getopt.SetUsage(usageMessage)
@@ -38,6 +39,11 @@ func main() {
 
 	if *helpFlag {
 		usageMessage()
+		os.Exit(0)
+	}
+
+	if *versionFlag {
+		brVersion()
 		os.Exit(0)
 	}
 
@@ -130,12 +136,17 @@ func handlePanic(br *browseObj) {
 	br.saneExit()
 }
 
+func brVersion() {
+	fmt.Printf("browse: version %s\n", BR_VERSION)
+}
+
 func usageMessage() {
 	fmt.Print("Usage: browse [-fn] [-p pattern] [-t title] [filename]\n")
 	fmt.Print(" -f, --follow   follow file\n")
 	fmt.Print(" -n, --numbers  line numbers\n")
 	fmt.Print(" -p, --pattern  search pattern\n")
 	fmt.Print(" -t, --title    page title\n")
+	fmt.Print(" -v, --version  print version number\n")
 	fmt.Print(" -?, --help     this message\n")
 }
 
