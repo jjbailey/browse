@@ -141,7 +141,7 @@ func brVersion() {
 }
 
 func usageMessage() {
-	fmt.Print("Usage: browse [-fn] [-p pattern] [-t title] [filename]\n")
+	fmt.Print("Usage: browse [-fnv] [-p pattern] [-t title] [filename]\n")
 	fmt.Print(" -f, --follow   follow file\n")
 	fmt.Print(" -n, --numbers  line numbers\n")
 	fmt.Print(" -p, --pattern  search pattern\n")
