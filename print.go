@@ -35,7 +35,7 @@ func (x *browseObj) printLine(lineno int) {
 		// replaceMatch adds line numbers if applicable
 		output := x.replaceMatch(lineno, input)
 		// depends on linewrap=false
-		fmt.Printf("\r\n%s%s%s\r", output, VIDOFF, CLEARLINE)
+		fmt.Printf("\r\n%s%s%s", output, VIDOFF, CLEARLINE)
 	}
 
 	x.hitEOF = windowAtEOF(lineno, x.mapSiz)

@@ -49,7 +49,7 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 
 	// save regexp.Compile source and replstr
 	x.pattern = x.re.String()
-	x.replstr = fmt.Sprintf("%s%s%s", VIDBOLDGREEN, "$0", VIDOFF)
+	x.replstr = fmt.Sprintf("%s%s%s", VIDPATTERN, "$0", VIDOFF)
 
 	// where to start search
 
@@ -108,17 +108,16 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 func (x *browseObj) pageIsMatch(sop, eop int) (int, int) {
 	// return the first and last regex match on the page
 
-	var firstMatch, lastMatch int
+	firstMatch := 0
+	lastMatch := 0
 
 	for lineno := sop; lineno < eop; lineno++ {
-		matches, _ := x.lineIsMatch(lineno)
-
-		if matches > 0 {
+		if matches, _ := x.lineIsMatch(lineno); matches > 0 {
 			if firstMatch == 0 {
 				firstMatch = lineno
-			} else {
-				lastMatch = lineno
 			}
+
+			lastMatch = lineno
 		}
 	}
 

@@ -19,7 +19,7 @@ func (x *browseObj) printHelp() {
 
 	lines := []string{
 		"                                                               ",
-		"   Browse                       Version 0.19                   ",
+		"   Browse                       Version " + BR_VERSION + "                   ",
 		"                                                               ",
 		"   Command                      Function                       ",
 		"   f b [PAGE UP] [PAGE DOWN]    Page down/up                   ",
@@ -59,7 +59,7 @@ func (x *browseObj) printHelp() {
 	// top line
 
 	col := int((x.dispWidth - helpWidth) / 2)
-	fmt.Print(WHITEBLUE)
+	fmt.Print(VIDHELP)
 	movecursor(3, col, false)
 	fmt.Printf(ENTERGRAPHICS + UPPERLEFT)
 	fmt.Print(strings.Repeat(HORIZLINE, len(lines[0])))

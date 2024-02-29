@@ -77,6 +77,11 @@ func (x *browseObj) scrollUp(count int) {
 		movecursor(1, 1, false)
 		x.printLine(x.firstRow)
 	}
+
+	if !(x.modeScrollDown || x.modeTail) {
+		// idle
+		movecursor(2, 1, false)
+	}
 }
 
 // vim: set ts=4 sw=4 noet:
