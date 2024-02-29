@@ -24,7 +24,7 @@ A simple, unconventional file browser.
 ## Usage
 
 ```text
-    Usage: browse [-fn] [-p pattern] [-t title] [filename]
+    Usage: browse [-fnv] [-p pattern] [-t title] [filename]
      -f, --follow   follow file
      -n, --numbers  line numbers
      -p, --pattern  search pattern
