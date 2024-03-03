@@ -30,13 +30,11 @@ func (x *browseObj) pageHeader() {
 	// print the header line
 
 	// if title is too long, fit to size, include elipsis
+	var dispTitle = x.title
 	var lenDiff = (len(x.title) - x.dispWidth) + 6 + 3
-	var dispTitle string
 
 	if lenDiff > 0 {
 		dispTitle = "..." + x.title[lenDiff:]
-	} else {
-		dispTitle = x.title
 	}
 
 	// minus tees and spaces
