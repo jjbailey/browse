@@ -23,8 +23,8 @@ func readFile(br *browseObj, ch chan bool) {
 
 	var bytesRead int64
 	var notified bool
-	var savFileSiz int64 = 0
-	var newFileSiz int64 = 0
+	var newFileSiz, savFileSiz int64
+	var err error
 
 	reader := bufio.NewReader(br.fp)
 
@@ -34,7 +34,7 @@ func readFile(br *browseObj, ch chan bool) {
 	}
 
 	for {
-		fInfo, err := br.fp.Stat()
+		newFileSiz, err = getFileSize(br.fp)
 
 		if err != nil {
 			if !notified {
@@ -44,22 +44,25 @@ func readFile(br *browseObj, ch chan bool) {
 			return
 		}
 
-		newFileSiz = fInfo.Size()
+		if newFileSiz == savFileSiz {
+			// no change
+			time.Sleep(2 * time.Second)
+			continue
+		}
 
 		if newFileSiz < savFileSiz {
 			// file shrunk -- reinitialize
 			br.fileInit(br.fp, br.fileName, br.fromStdin)
 			br.printMessage("File truncated")
 
-			// reset and fall through
-			savFileSiz = 0
-			bytesRead = 0
-
 			// need to show the user
 			br.modeScrollDown = false
 			br.modeScrollUp = false
 			br.modeTail = false
 			br.shownMsg = false
+
+			// reset and fall through
+			savFileSiz, bytesRead = 0, 0
 		}
 
 		if savFileSiz == 0 || savFileSiz < newFileSiz {
@@ -94,10 +97,26 @@ func readFile(br *browseObj, ch chan bool) {
 			}
 		}
 
-		fInfo, _ = br.fp.Stat()
-		savFileSiz = fInfo.Size()
-		time.Sleep(2 * time.Second)
+		savFileSiz, err = getFileSize(br.fp)
+
+		if err != nil {
+			if !notified {
+				ch <- false
+			}
+
+			return
+		}
 	}
+}
+
+func getFileSize(fp *os.File) (int64, error) {
+	fInfo, err := fp.Stat()
+
+	if err != nil {
+		return 0, err
+	}
+
+	return fInfo.Size(), nil
 }
 
 func (x *browseObj) readStdin(fin, fout *os.File) {
