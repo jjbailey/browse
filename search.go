@@ -210,21 +210,14 @@ func (x *browseObj) noSearchPattern() bool {
 	return x.re == nil || len(x.re.String()) == 0
 }
 
-func (x *browseObj) doSearch(oldDir, searchDir bool) bool {
-	// to reduce mostly duplicate code
+func (x *browseObj) doSearch(oldDir, newDir bool) bool {
+	var prompt, message string
 
-	var prompt string
-	var message string
-
-	// to suppress S1002
-	newDir := searchDir
-
+	// search direction
 	if newDir {
-		prompt = "/"
-		message = "Searching forward"
+		prompt, message = "/", "Searching forward"
 	} else {
-		prompt = "?"
-		message = "Searching reverse"
+		prompt, message = "?", "Searching reverse"
 	}
 
 	patbuf, cancel := x.userInput(prompt)
@@ -232,12 +225,14 @@ func (x *browseObj) doSearch(oldDir, searchDir bool) bool {
 	if cancel {
 		x.restoreLast()
 		movecursor(2, 1, false)
-	} else if len(patbuf) == 0 {
+		return oldDir
+	}
+
+	if len(patbuf) == 0 {
 		// null -- change direction
 		if oldDir != newDir {
 			x.timedMessage(message)
 		}
-		// next
 		x.searchFile(x.pattern, newDir, true)
 	} else {
 		// search this page
@@ -245,11 +240,7 @@ func (x *browseObj) doSearch(oldDir, searchDir bool) bool {
 		x.searchFile(patbuf, newDir, false)
 	}
 
-	if cancel {
-		return oldDir
-	} else {
-		return newDir
-	}
+	return newDir
 }
 
 // vim: set ts=4 sw=4 noet:
