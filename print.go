@@ -18,7 +18,7 @@ func (x *browseObj) printLine(lineno int) {
 	// print a line from the map, finds EOF, sets hitEOF
 
 	if lineno == 0 {
-		movecursor(2, 1, true)
+		moveCursor(2, 1, true)
 		printSEOF("SOF")
 		return
 	}
@@ -86,13 +86,13 @@ func (x *browseObj) printPage(lineno int) {
 	}
 
 	fmt.Print(LINEWRAPOFF)
-	movecursor(2, 1, false)
+	moveCursor(2, 1, false)
 
 	for i = sop; i < eop; i++ {
 		x.printLine(i)
 	}
 
-	movecursor(2, 1, false)
+	moveCursor(2, 1, false)
 
 	// reset these
 	x.firstRow = sop
@@ -114,9 +114,9 @@ func (x *browseObj) timedMessage(msg string) {
 func (x *browseObj) printMessage(msg string) {
 	// print a message on the bottom line of the display
 
-	movecursor(x.dispHeight, 1, true)
+	moveCursor(x.dispHeight, 1, true)
 	fmt.Printf("%s %s %s", VIDMESSAGE, msg, VIDOFF)
-	movecursor(2, 1, false)
+	moveCursor(2, 1, false)
 
 	// scrollDown needs this
 	x.shownMsg = true
@@ -126,7 +126,7 @@ func (x *browseObj) restoreLast() {
 	// restore the last (prompt) line
 
 	if x.shownMsg {
-		movecursor(x.dispHeight, 1, true)
+		moveCursor(x.dispHeight, 1, true)
 
 		if x.lastRow > x.dispHeight {
 			fmt.Print(CURUP)

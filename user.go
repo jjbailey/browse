@@ -28,9 +28,9 @@ func (x *browseObj) userAnyKey(prompt string) {
 	// prompt is optional
 
 	if len(prompt) == 0 {
-		movecursor(2, 1, false)
+		moveCursor(2, 1, false)
 	} else {
-		movecursor(x.dispHeight, 1, true)
+		moveCursor(x.dispHeight, 1, true)
 		ttyBrowser()
 		fmt.Printf("%s", prompt)
 	}
@@ -69,7 +69,7 @@ func (x *browseObj) userInput(prompt string) (string, bool) {
 
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT)
 	ttyPrompter()
-	movecursor(x.dispHeight, 1, true)
+	moveCursor(x.dispHeight, 1, true)
 	fmt.Printf("%s", prompt)
 	x.shownMsg = true
 
@@ -98,7 +98,7 @@ func (x *browseObj) userInput(prompt string) (string, bool) {
 			}
 
 			linebuf = nbuf
-			movecursor(x.dispHeight, 1, true)
+			moveCursor(x.dispHeight, 1, true)
 			fmt.Printf("%s%s", prompt, linebuf)
 
 		case ERASEWORD:
@@ -111,12 +111,12 @@ func (x *browseObj) userInput(prompt string) (string, bool) {
 				linebuf = ""
 			}
 
-			movecursor(x.dispHeight, 1, true)
+			moveCursor(x.dispHeight, 1, true)
 			fmt.Printf("%s%s", prompt, linebuf)
 
 		case ERASELINE:
 			linebuf = ""
-			movecursor(x.dispHeight, 1, true)
+			moveCursor(x.dispHeight, 1, true)
 			fmt.Printf("%s%s", prompt, linebuf)
 
 		default:

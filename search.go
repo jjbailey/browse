@@ -224,7 +224,7 @@ func (x *browseObj) doSearch(oldDir, newDir bool) bool {
 
 	if cancel {
 		x.restoreLast()
-		movecursor(2, 1, false)
+		moveCursor(2, 1, false)
 		return oldDir
 	}
 

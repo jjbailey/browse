@@ -52,7 +52,7 @@ func expandTabs(data []byte) ([]byte, int) {
 	return newdata, j
 }
 
-func movecursor(row int, col int, clrflag bool) {
+func moveCursor(row int, col int, clrflag bool) {
 	fmt.Printf(CURPOS, row, col)
 
 	if clrflag {

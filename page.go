@@ -42,7 +42,7 @@ func (x *browseObj) pageHeader() {
 	oneside := int((lineLen - len(dispTitle)) / 2)
 
 	resetScrRegion()
-	movecursor(1, 1, true)
+	moveCursor(1, 1, true)
 	fmt.Print(CLEARSCREEN)
 	fmt.Print(LINEWRAPOFF)
 	fmt.Print(ENTERGRAPHICS)

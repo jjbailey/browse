@@ -127,7 +127,7 @@ func main() {
 }
 
 func handlePanic(br *browseObj) {
-	movecursor(br.dispHeight, 1, true)
+	moveCursor(br.dispHeight, 1, true)
 
 	if err := recover(); err != nil {
 		fmt.Printf("panic occurred: %v", err)
