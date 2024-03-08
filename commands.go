@@ -198,7 +198,7 @@ func commands(br *browseObj) {
 
 			if inMotion && b[0] == CMD_PAGE_DN_1 {
 				// this command doubles as mode cancel
-				movecursor(2, 1, false)
+				moveCursor(2, 1, false)
 				continue
 			}
 		}
@@ -213,19 +213,19 @@ func commands(br *browseObj) {
 				br.pageDown()
 			} else {
 				br.restoreLast()
-				movecursor(2, 1, false)
+				moveCursor(2, 1, false)
 			}
 
 		case CMD_SCROLL_DN, CMD_SCROLL_DN_1:
 			// scroll forward/down
 			br.scrollDown(1)
-			movecursor(2, 1, false)
+			moveCursor(2, 1, false)
 
 		case CMD_MODE_DN:
 			// toggle continuous scroll-down mode
 			if br.modeScrollDown {
 				br.modeScrollDown = false
-				movecursor(2, 1, false)
+				moveCursor(2, 1, false)
 			} else {
 				br.modeScrollDown = true
 				fmt.Print(CURRESTORE)
@@ -238,13 +238,13 @@ func commands(br *browseObj) {
 			if br.firstRow > 0 {
 				br.pageUp()
 			} else {
-				movecursor(2, 1, false)
+				moveCursor(2, 1, false)
 			}
 
 		case CMD_SCROLL_UP:
 			// scroll backward/up
 			br.scrollUp(1)
-			movecursor(2, 1, false)
+			moveCursor(2, 1, false)
 
 		case CMD_MODE_UP:
 			// toggle continuous scroll-up mode
@@ -256,7 +256,7 @@ func commands(br *browseObj) {
 				br.shiftWidth -= TABWIDTH
 				br.pageCurrent()
 			} else {
-				movecursor(2, 1, false)
+				moveCursor(2, 1, false)
 			}
 
 		case CMD_SHIFT_RIGHT:
@@ -265,7 +265,7 @@ func commands(br *browseObj) {
 				br.shiftWidth += TABWIDTH
 				br.pageCurrent()
 			} else {
-				movecursor(2, 1, false)
+				moveCursor(2, 1, false)
 			}
 
 		case CMD_SOF, CMD_SOF_1:
@@ -285,7 +285,7 @@ func commands(br *browseObj) {
 			// tail file
 			if br.modeTail {
 				br.modeTail = false
-				movecursor(2, 1, false)
+				moveCursor(2, 1, false)
 			} else {
 				br.modeTail = true
 				if !br.hitEOF {
@@ -306,7 +306,7 @@ func commands(br *browseObj) {
 				fmt.Sscanf(lbuf, "%d", &n)
 				br.printPage(n)
 			}
-			movecursor(2, 1, false)
+			moveCursor(2, 1, false)
 
 		case CMD_SEARCH_FWD:
 			// search forward/down
@@ -342,13 +342,13 @@ func commands(br *browseObj) {
 				br.marks[m] = br.firstRow
 				br.printMessage(fmt.Sprintf("Mark %d at line %d", m, br.marks[m]))
 			}
-			movecursor(2, 1, false)
+			moveCursor(2, 1, false)
 
 		case CMD_BASH:
 			cancel := br.bashCommand()
 			if cancel {
 				br.restoreLast()
-				movecursor(2, 1, false)
+				moveCursor(2, 1, false)
 			} else {
 				br.pageHeader()
 				br.pageCurrent()
@@ -374,7 +374,7 @@ func commands(br *browseObj) {
 				br.pageMarked(getMark(string(b)))
 			}
 			// no modes active
-			movecursor(2, 1, false)
+			moveCursor(2, 1, false)
 		}
 	}
 }

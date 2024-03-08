@@ -35,7 +35,7 @@ func (x *browseObj) scrollDown(count int) {
 		}
 
 		// add line -- +1 for header
-		movecursor(x.lastRow+1, 1, false)
+		moveCursor(x.lastRow+1, 1, false)
 
 		if x.shownEOF {
 			// print previous line before printing the current line
@@ -54,7 +54,7 @@ func (x *browseObj) scrollDown(count int) {
 		fmt.Print(CURRESTORE)
 	} else {
 		// idle
-		movecursor(2, 1, false)
+		moveCursor(2, 1, false)
 	}
 }
 
@@ -70,17 +70,17 @@ func (x *browseObj) scrollUp(count int) {
 		x.lastRow--
 
 		// scroll
-		movecursor(2, 1, false)
+		moveCursor(2, 1, false)
 		fmt.Print(SCROLLREV)
 
 		// add line
-		movecursor(1, 1, false)
+		moveCursor(1, 1, false)
 		x.printLine(x.firstRow)
 	}
 
 	if !(x.modeScrollDown || x.modeTail) {
 		// idle
-		movecursor(2, 1, false)
+		moveCursor(2, 1, false)
 	}
 }
 

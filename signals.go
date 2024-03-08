@@ -64,7 +64,7 @@ func (x *browseObj) saneExit() {
 	ttyRestore()
 	resetScrRegion()
 	fmt.Print(LINEWRAPON)
-	movecursor(x.dispHeight, 1, true)
+	moveCursor(x.dispHeight, 1, true)
 
 	if x.fromStdin {
 		os.Remove(x.fileName)

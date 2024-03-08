@@ -42,7 +42,7 @@ func (x *browseObj) bashCommand() bool {
 
 		if len(cmdbuf) > 0 {
 			// feedback
-			movecursor(x.dispHeight, 1, true)
+			moveCursor(x.dispHeight, 1, true)
 			fmt.Print("---\n")
 			fmt.Printf("$ %s\n", cmdbuf)
 
@@ -50,14 +50,14 @@ func (x *browseObj) bashCommand() bool {
 			fmt.Print(LINEWRAPON) // again
 			resetScrRegion()
 
-			movecursor(x.dispHeight, 1, true)
+			moveCursor(x.dispHeight, 1, true)
 			x.runInPty(cmdbuf)
 		}
 	}
 
 	if cancel {
 		x.restoreLast()
-		movecursor(2, 1, false)
+		moveCursor(2, 1, false)
 	} else {
 		x.resizeWindow()
 	}
@@ -80,7 +80,7 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 		return err
 	}
 
-	movecursor(x.dispHeight, 1, true)
+	moveCursor(x.dispHeight, 1, true)
 	defer ptmx.Close()
 	pty.InheritSize(os.Stdout, ptmx)
 	ptySave, err := term.MakeRaw(int(os.Stdout.Fd()))
@@ -104,7 +104,7 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 	x.dispHeight, x.dispWidth, _ = pty.Getsize(ptmx)
 	x.dispRows = x.dispHeight - 1
 
-	movecursor(x.dispHeight, 1, true)
+	moveCursor(x.dispHeight, 1, true)
 	fmt.Printf(VIDMESSAGE + " Press any key to continue... " + VIDOFF)
 
 	// reset signals

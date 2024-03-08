@@ -16,11 +16,11 @@ import (
 )
 
 func expandTabs(data []byte) ([]byte, int) {
-	// replace tabs with the appropriate amount of spaces
-	// assume the standard 8-character tab stops
+	// replace tabs with spaces (TABWIDTH)
 
 	var newdata = make([]byte, READBUFSIZ*2)
-	var j int = 0
+
+	j := 0
 
 	for i := 0; i < len(data); i++ {
 		switch data[i] {
@@ -52,7 +52,7 @@ func expandTabs(data []byte) ([]byte, int) {
 	return newdata, j
 }
 
-func movecursor(row int, col int, clrflag bool) {
+func moveCursor(row int, col int, clrflag bool) {
 	fmt.Printf(CURPOS, row, col)
 
 	if clrflag {

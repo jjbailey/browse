@@ -60,7 +60,7 @@ func (x *browseObj) printHelp() {
 
 	col := int((x.dispWidth - helpWidth) / 2)
 	fmt.Print(VIDHELP)
-	movecursor(3, col, false)
+	moveCursor(3, col, false)
 	fmt.Printf(ENTERGRAPHICS + UPPERLEFT)
 	fmt.Print(strings.Repeat(HORIZLINE, len(lines[0])))
 	fmt.Printf(UPPERRIGHT + EXITGRAPHICS)
@@ -68,7 +68,7 @@ func (x *browseObj) printHelp() {
 	// body
 
 	for i = 0; i < len(lines); i++ {
-		movecursor(i+4, col, false)
+		moveCursor(i+4, col, false)
 
 		fmt.Printf("%s%s%s%s%s%s%s",
 			ENTERGRAPHICS, VERTLINE, EXITGRAPHICS,
@@ -78,7 +78,7 @@ func (x *browseObj) printHelp() {
 
 	// bottom line
 
-	movecursor(i+4, col, false)
+	moveCursor(i+4, col, false)
 	fmt.Printf(ENTERGRAPHICS + LOWERLEFT)
 	fmt.Print(strings.Repeat(HORIZLINE, len(lines[0])))
 	fmt.Printf(LOWERRIGHT + EXITGRAPHICS)

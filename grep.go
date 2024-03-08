@@ -43,7 +43,7 @@ func (x *browseObj) grep() {
 	fmt.Print(LINEWRAPON)
 
 	// feedback
-	movecursor(x.dispHeight, 1, true)
+	moveCursor(x.dispHeight, 1, true)
 	fmt.Print("---\n")
 	fmt.Printf("$ %s\n", cmdbuf)
 
