@@ -12,7 +12,6 @@ package main
 
 import (
 	"fmt"
-	"regexp"
 	"time"
 	"unicode"
 )
@@ -45,6 +44,7 @@ func commands(br *browseObj) {
 		CMD_SEARCH_REV      = '?'
 		CMD_SEARCH_NEXT     = 'n'
 		CMD_SEARCH_NEXT_REV = 'N'
+		CMD_SEARCH_IGN_CASE = 'i'
 		CMD_GREP            = '&'
 		CMD_SEARCH_CLEAR    = 'C'
 
@@ -71,22 +71,7 @@ func commands(br *browseObj) {
 	var searchDir bool = SEARCH_FWD
 
 	// seed the saved search pattern
-
-	if len(br.pattern) > 0 {
-		var err error
-
-		br.re, err = regexp.Compile(br.pattern)
-
-		if err != nil {
-			// silently throw away bad pattern
-			br.re = nil
-			br.pattern = ""
-		} else {
-			// save regexp.Compile source and replstr
-			br.pattern = br.re.String()
-			br.replstr = fmt.Sprintf("%s%s%s", VIDPATTERN, "$0", VIDOFF)
-		}
-	}
+	br.reCompile(br.pattern)
 
 	// reasons for a delayed start
 
@@ -322,6 +307,15 @@ func commands(br *browseObj) {
 		case CMD_SEARCH_NEXT_REV:
 			// vim compat
 			br.searchFile(br.pattern, !searchDir, true)
+
+		case CMD_SEARCH_IGN_CASE:
+			br.ignoreCase = !br.ignoreCase
+			br.reCompile(br.pattern)
+			if br.ignoreCase {
+				br.printMessage("Search ignores case")
+			} else {
+				br.printMessage("Search considers case")
+			}
 
 		case CMD_GREP:
 			// grep -nP pattern

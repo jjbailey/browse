@@ -28,6 +28,7 @@ func fileInitDefaults(x *browseObj) {
 	x.sizeMap = make(map[int]int64, 1)
 	x.mapSiz = 1
 
+	x.ignoreCase = false
 	x.lastMatch = SEARCH_RESET
 	x.hitEOF = false
 	x.shownEOF = false

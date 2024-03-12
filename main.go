@@ -25,6 +25,7 @@ func main() {
 
 	var (
 		followFlag  = getopt.BoolLong("follow", 'f', "follow file")
+		caseFlag    = getopt.BoolLong("ignore-case", 'i', "searches ignore case")
 		numberFlag  = getopt.BoolLong("numbers", 'n', "line numbers")
 		patternStr  = getopt.StringLong("pattern", 'p', "", "search pattern")
 		titleStr    = getopt.StringLong("title", 't', "", "page title")
@@ -102,8 +103,10 @@ func main() {
 	br.catchSignals()
 
 	// set options from commandline
-	br.modeNumbers = *numberFlag
 	br.modeScrollDown = *followFlag
+	br.ignoreCase = *caseFlag
+	br.modeNumbers = *numberFlag
+
 	if *patternStr != "" {
 		br.pattern = *patternStr
 	}
@@ -141,13 +144,14 @@ func brVersion() {
 }
 
 func usageMessage() {
-	fmt.Print("Usage: browse [-fnv] [-p pattern] [-t title] [filename]\n")
-	fmt.Print(" -f, --follow   follow file\n")
-	fmt.Print(" -n, --numbers  line numbers\n")
-	fmt.Print(" -p, --pattern  search pattern\n")
-	fmt.Print(" -t, --title    page title\n")
-	fmt.Print(" -v, --version  print version number\n")
-	fmt.Print(" -?, --help     this message\n")
+	fmt.Print("Usage: browse [-finv] [-p pattern] [-t title] [filename]\n")
+	fmt.Print(" -f, --follow       follow file\n")
+	fmt.Print(" -i, --ignore-case  searches ignore case\n")
+	fmt.Print(" -n, --numbers      line numbers\n")
+	fmt.Print(" -p, --pattern      search pattern\n")
+	fmt.Print(" -t, --title        page title\n")
+	fmt.Print(" -v, --version      print version number\n")
+	fmt.Print(" -?, --help         this message\n")
 }
 
 // vim: set ts=4 sw=4 noet:

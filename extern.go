@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	BR_VERSION   = "0.22"
+	BR_VERSION   = "0.23"
 	READBUFSIZ   = 512
 	TABWIDTH     = 4
 	MAXMARKS     = 10
@@ -90,6 +90,7 @@ type browseObj struct {
 	pattern    string
 	re         *regexp.Regexp
 	replstr    string
+	ignoreCase bool
 	lastMatch  int
 	hitEOF     bool
 	shownEOF   bool
