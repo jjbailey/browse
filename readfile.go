@@ -145,8 +145,17 @@ func (x *browseObj) readStdin(fin, fout *os.File) {
 func (x *browseObj) readFromMap(lineno int) ([]byte, int) {
 	// use the maps to read a line from the file
 
+	if lineno >= x.mapSiz {
+		// should not happen
+		return nil, 0
+	}
+
 	data := make([]byte, x.sizeMap[lineno])
-	x.fp.ReadAt(data, x.seekMap[lineno])
+	_, err := x.fp.ReadAt(data, x.seekMap[lineno])
+
+	if err != nil {
+		return nil, 0
+	}
 
 	if len(data) == 0 {
 		return nil, 0
