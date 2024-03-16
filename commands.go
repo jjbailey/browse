@@ -19,6 +19,7 @@ import (
 func commands(br *browseObj) {
 	const (
 		CMD_BASH            = '!'
+		CMD_CENTER          = 'z'
 		CMD_EOF             = '$'
 		CMD_EOF_1           = 'G'
 		CMD_HELP            = 'h'
@@ -347,6 +348,10 @@ func commands(br *browseObj) {
 				br.pageHeader()
 				br.pageCurrent()
 			}
+
+		case CMD_CENTER:
+			// center on the top line
+			br.printPage(br.firstRow - (br.dispRows>>1))
 
 		case CMD_QUIT:
 			// quit -- this is the only way to save an rc file

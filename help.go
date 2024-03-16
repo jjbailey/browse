@@ -30,6 +30,7 @@ func (x *browseObj) printHelp() {
 		"   j                            Jump to line number            ",
 		"   0 ^ [HOME]                   Jump to SOF                    ",
 		"   G $ [END]                    Jump to EOF                    ",
+		"   z                            Center page on top line        ",
 		"   m                            Mark a page with number 1-9    ",
 		"   1-9                          Jump to mark                   ",
 		"   / ?                          Regex search forward/reverse   ",
