@@ -351,7 +351,15 @@ func commands(br *browseObj) {
 
 		case CMD_CENTER:
 			// center on the top line
-			br.printPage(br.firstRow - (br.dispRows>>1))
+			diff := br.firstRow - (br.dispRows >> 1)
+			saveRow := br.firstRow
+			br.printPage(diff)
+			cursorPos := (br.dispRows >> 1)
+			if diff <= 0 {
+				cursorPos = saveRow
+			}
+			// go to the line (off by two)
+			moveCursor(cursorPos+2, 1, false)
 
 		case CMD_QUIT:
 			// quit -- this is the only way to save an rc file
