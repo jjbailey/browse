@@ -36,7 +36,8 @@ func readFile(br *browseObj, ch chan bool) {
 	for {
 		newFileSiz, err = getFileSize(br.fp)
 
-		if err != nil {
+		if err != nil || (br.stdinEOF && newFileSiz == 0) {
+			// error or nothing to read
 			if !notified {
 				ch <- false
 			}
@@ -133,13 +134,13 @@ func (x *browseObj) readStdin(fin, fout *os.File) {
 		}
 
 		if err == io.EOF {
-			break
+			x.stdinEOF = true
+			return
 		}
 
 		w.WriteString(line)
+		w.Flush()
 	}
-
-	w.Flush()
 }
 
 func (x *browseObj) readFromMap(lineno int) ([]byte, int) {
