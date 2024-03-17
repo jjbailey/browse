@@ -45,12 +45,6 @@ func readFile(br *browseObj, ch chan bool) {
 			return
 		}
 
-		if newFileSiz == savFileSiz {
-			// no change
-			time.Sleep(2 * time.Second)
-			continue
-		}
-
 		if newFileSiz < savFileSiz {
 			// file shrunk -- reinitialize
 			br.fileInit(br.fp, br.fileName, br.fromStdin)
@@ -96,6 +90,9 @@ func readFile(br *browseObj, ch chan bool) {
 				ch <- true
 				notified = true
 			}
+
+			// no hurry
+			time.Sleep(2 * time.Second)
 		}
 
 		savFileSiz, err = getFileSize(br.fp)
