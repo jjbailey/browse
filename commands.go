@@ -94,6 +94,10 @@ func commands(br *browseObj) {
 	ttyBrowser()
 	br.pageHeader()
 
+	// gratuitous save cursor
+	moveCursor(2, 1, false)
+	fmt.Print(CURSAVE)
+
 	if br.modeScrollDown {
 		br.pageLast()
 		fmt.Print(CURRESTORE)
