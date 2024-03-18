@@ -25,7 +25,7 @@ func main() {
 
 	var (
 		followFlag  = getopt.BoolLong("follow", 'f', "follow file")
-		caseFlag    = getopt.BoolLong("ignore-case", 'i', "searches ignore case")
+		caseFlag    = getopt.BoolLong("ignore-case", 'i', "search ignores case")
 		numberFlag  = getopt.BoolLong("numbers", 'n', "line numbers")
 		patternStr  = getopt.StringLong("pattern", 'p', "", "search pattern")
 		titleStr    = getopt.StringLong("title", 't', "", "page title")
@@ -146,7 +146,7 @@ func brVersion() {
 func usageMessage() {
 	fmt.Print("Usage: browse [-finv] [-p pattern] [-t title] [filename]\n")
 	fmt.Print(" -f, --follow       follow file\n")
-	fmt.Print(" -i, --ignore-case  searches ignore case\n")
+	fmt.Print(" -i, --ignore-case  search ignores case\n")
 	fmt.Print(" -n, --numbers      line numbers\n")
 	fmt.Print(" -p, --pattern      search pattern\n")
 	fmt.Print(" -t, --title        page title\n")
