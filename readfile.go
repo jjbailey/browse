@@ -36,8 +36,7 @@ func readFile(br *browseObj, ch chan bool) {
 	for {
 		newFileSiz, err = getFileSize(br.fp)
 
-		if err != nil || (br.stdinEOF && newFileSiz == 0) {
-			// error or nothing to read
+		if err != nil {
 			if !notified {
 				ch <- false
 			}
@@ -90,9 +89,6 @@ func readFile(br *browseObj, ch chan bool) {
 				ch <- true
 				notified = true
 			}
-
-			// no hurry
-			time.Sleep(2 * time.Second)
 		}
 
 		savFileSiz, err = getFileSize(br.fp)
@@ -104,6 +100,9 @@ func readFile(br *browseObj, ch chan bool) {
 
 			return
 		}
+
+		// no hurry
+		time.Sleep(2 * time.Second)
 	}
 }
 
@@ -131,8 +130,7 @@ func (x *browseObj) readStdin(fin, fout *os.File) {
 		}
 
 		if err == io.EOF {
-			x.stdinEOF = true
-			return
+			break
 		}
 
 		w.WriteString(line)

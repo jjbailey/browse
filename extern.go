@@ -92,7 +92,6 @@ type browseObj struct {
 	replstr    string
 	ignoreCase bool
 	lastMatch  int
-	stdinEOF   bool
 	hitEOF     bool
 	shownEOF   bool
 	shownMsg   bool
