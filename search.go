@@ -12,6 +12,7 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 // %6d + one space
@@ -19,37 +20,29 @@ const NUMCOLWIDTH = 7
 
 func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 	var sop, eop int
-	var err error
 	var wrapped, warned bool
 	var firstMatch, lastMatch int
 
 	// to suppress S1002
 	searchFwd := searchDir
 
-	if len(pattern) == 0 {
-		if len(x.pattern) == 0 {
-			x.printMessage("No search pattern")
-			return
-		}
-
-		pattern = x.pattern
+	if pattern != x.pattern {
 		// reset on first search
 		x.lastMatch = SEARCH_RESET
 		next = false
 	}
 
-	x.re, err = regexp.Compile(pattern)
-	// save in case regexp.Compile failed
-	x.pattern = pattern
+	patternLen, err := x.reCompile(pattern)
 
 	if err != nil {
 		x.printMessage(fmt.Sprintf("%v", err))
 		return
 	}
 
-	// save regexp.Compile source and replstr
-	x.pattern = x.re.String()
-	x.replstr = fmt.Sprintf("%s%s%s", VIDPATTERN, "$0", VIDOFF)
+	if patternLen == 0 {
+		x.printMessage("No search pattern")
+		return
+	}
 
 	// where to start search
 
@@ -241,6 +234,41 @@ func (x *browseObj) doSearch(oldDir, newDir bool) bool {
 	}
 
 	return newDir
+}
+
+func (x *browseObj) reCompile(pattern string) (int, error) {
+	var cp string
+
+	if len(pattern) == 0 {
+		if len(x.pattern) == 0 {
+			return 0, nil
+		}
+
+		pattern = x.pattern
+	}
+
+	if strings.HasPrefix(pattern, "(?i)") {
+		x.ignoreCase = true
+		pattern = strings.TrimPrefix(pattern, "(?i)")
+	}
+
+	if x.ignoreCase {
+		cp = "(?i)" + pattern
+	} else {
+		cp = pattern
+	}
+
+	re, err := regexp.Compile(cp)
+
+	if err != nil {
+		return 0, err
+	}
+
+	x.pattern = pattern
+	x.re = re
+	x.replstr = fmt.Sprintf("%s%s%s", VIDPATTERN, "$0", VIDOFF)
+
+	return len(pattern), nil
 }
 
 // vim: set ts=4 sw=4 noet:

@@ -44,12 +44,6 @@ func readFile(br *browseObj, ch chan bool) {
 			return
 		}
 
-		if newFileSiz == savFileSiz {
-			// no change
-			time.Sleep(2 * time.Second)
-			continue
-		}
-
 		if newFileSiz < savFileSiz {
 			// file shrunk -- reinitialize
 			br.fileInit(br.fp, br.fileName, br.fromStdin)
@@ -106,6 +100,9 @@ func readFile(br *browseObj, ch chan bool) {
 
 			return
 		}
+
+		// no hurry
+		time.Sleep(2 * time.Second)
 	}
 }
 
@@ -137,16 +134,24 @@ func (x *browseObj) readStdin(fin, fout *os.File) {
 		}
 
 		w.WriteString(line)
+		w.Flush()
 	}
-
-	w.Flush()
 }
 
 func (x *browseObj) readFromMap(lineno int) ([]byte, int) {
 	// use the maps to read a line from the file
 
+	if lineno >= x.mapSiz {
+		// should not happen
+		return nil, 0
+	}
+
 	data := make([]byte, x.sizeMap[lineno])
-	x.fp.ReadAt(data, x.seekMap[lineno])
+	_, err := x.fp.ReadAt(data, x.seekMap[lineno])
+
+	if err != nil {
+		return nil, 0
+	}
 
 	if len(data) == 0 {
 		return nil, 0

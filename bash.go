@@ -40,6 +40,11 @@ func (x *browseObj) bashCommand() bool {
 		// substitute % with the current file name
 		cmdbuf := subCommandChars(bangbuf, "%", x.fileName)
 
+		// substitute & with the current search pattern
+		if len(x.pattern) > 0 {
+			cmdbuf = subCommandChars(cmdbuf, "&", `'`+x.pattern+`'`)
+		}
+
 		if len(cmdbuf) > 0 {
 			// feedback
 			moveCursor(x.dispHeight, 1, true)

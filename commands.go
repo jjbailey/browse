@@ -12,7 +12,6 @@ package main
 
 import (
 	"fmt"
-	"regexp"
 	"time"
 	"unicode"
 )
@@ -20,6 +19,7 @@ import (
 func commands(br *browseObj) {
 	const (
 		CMD_BASH            = '!'
+		CMD_CENTER          = 'z'
 		CMD_EOF             = '$'
 		CMD_EOF_1           = 'G'
 		CMD_HELP            = 'h'
@@ -45,6 +45,7 @@ func commands(br *browseObj) {
 		CMD_SEARCH_REV      = '?'
 		CMD_SEARCH_NEXT     = 'n'
 		CMD_SEARCH_NEXT_REV = 'N'
+		CMD_SEARCH_IGN_CASE = 'i'
 		CMD_GREP            = '&'
 		CMD_SEARCH_CLEAR    = 'C'
 
@@ -71,22 +72,7 @@ func commands(br *browseObj) {
 	var searchDir bool = SEARCH_FWD
 
 	// seed the saved search pattern
-
-	if len(br.pattern) > 0 {
-		var err error
-
-		br.re, err = regexp.Compile(br.pattern)
-
-		if err != nil {
-			// silently throw away bad pattern
-			br.re = nil
-			br.pattern = ""
-		} else {
-			// save regexp.Compile source and replstr
-			br.pattern = br.re.String()
-			br.replstr = fmt.Sprintf("%s%s%s", VIDPATTERN, "$0", VIDOFF)
-		}
-	}
+	br.reCompile(br.pattern)
 
 	// reasons for a delayed start
 
@@ -107,6 +93,10 @@ func commands(br *browseObj) {
 
 	ttyBrowser()
 	br.pageHeader()
+
+	// gratuitous save cursor
+	moveCursor(2, 1, false)
+	fmt.Print(CURSAVE)
 
 	if br.modeScrollDown {
 		br.pageLast()
@@ -323,6 +313,15 @@ func commands(br *browseObj) {
 			// vim compat
 			br.searchFile(br.pattern, !searchDir, true)
 
+		case CMD_SEARCH_IGN_CASE:
+			br.ignoreCase = !br.ignoreCase
+			br.reCompile(br.pattern)
+			if br.ignoreCase {
+				br.printMessage("Search ignores case")
+			} else {
+				br.printMessage("Search considers case")
+			}
+
 		case CMD_GREP:
 			// grep -nP pattern
 			br.grep()
@@ -353,6 +352,18 @@ func commands(br *browseObj) {
 				br.pageHeader()
 				br.pageCurrent()
 			}
+
+		case CMD_CENTER:
+			// center on the top line
+			diff := br.firstRow - (br.dispRows >> 1)
+			saveRow := br.firstRow
+			br.printPage(diff)
+			cursorPos := (br.dispRows >> 1)
+			if diff <= 0 {
+				cursorPos = saveRow
+			}
+			// go to the line (off by two)
+			moveCursor(cursorPos+2, 1, false)
 
 		case CMD_QUIT:
 			// quit -- this is the only way to save an rc file
