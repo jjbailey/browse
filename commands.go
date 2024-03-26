@@ -330,7 +330,7 @@ func commands(br *browseObj) {
 			// clear the search pattern
 			br.re = nil
 			br.pattern = ""
-			br.printMessage("Search cleared")
+			br.printMessage("Search pattern cleared")
 
 		case CMD_MARK:
 			// mark page
