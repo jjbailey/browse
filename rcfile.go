@@ -11,6 +11,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -56,9 +57,12 @@ func readRcFile(br *browseObj) bool {
 	filePath = os.ExpandEnv(filePath)
 
 	fp, err := os.Open(filePath)
+
 	if err != nil {
+		fmt.Println(err)
 		return false
 	}
+
 	defer fp.Close()
 
 	scanner := bufio.NewScanner(fp)
