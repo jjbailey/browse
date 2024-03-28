@@ -115,7 +115,18 @@ func (x *browseObj) printMessage(msg string) {
 	// print a message on the bottom line of the display
 
 	moveCursor(x.dispHeight, 1, true)
-	fmt.Printf("%s %s %s", VIDMESSAGE, msg, VIDOFF)
+	fmt.Printf("%s %s %s", MSG_GREEN, msg, VIDOFF)
+	moveCursor(2, 1, false)
+
+	// scrollDown needs this
+	x.shownMsg = true
+}
+
+func (x *browseObj) warnMessage(msg string) {
+	// print a warning on the bottom line of the display
+
+	moveCursor(x.dispHeight, 1, true)
+	fmt.Printf("%s %s %s", MSG_ORANGE, msg, VIDOFF)
 	moveCursor(2, 1, false)
 
 	// scrollDown needs this

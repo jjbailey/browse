@@ -61,7 +61,7 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 
 		if wrapped {
 			if warned {
-				x.printMessage("Pattern not found: " + x.pattern)
+				x.warnMessage("Pattern not found: " + x.pattern)
 				return
 			}
 
