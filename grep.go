@@ -16,14 +16,14 @@ import (
 
 func (x *browseObj) grep() {
 	if len(x.pattern) == 0 {
-		x.printMessage("No search pattern")
+		x.warnMessage("No search pattern")
 		return
 	}
 
 	brPath, err := exec.LookPath("browse")
 
 	if len(brPath) == 0 || err != nil {
-		x.printMessage("Cannot find browse")
+		x.warnMessage("Cannot find browse in $PATH")
 		return
 	}
 
