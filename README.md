@@ -23,15 +23,14 @@ A simple, unconventional file browser.
 
 ## Usage
 
-```text
-    Usage: browse [-fnv] [-p pattern] [-t title] [filename]
-     -f, --follow   follow file
-     -n, --numbers  line numbers
-     -p, --pattern  search pattern
-     -t, --title    page title
-     -v, --version  print version number
-     -?, --help     this message
-```
+    Usage: browse [-finv] [-p pattern] [-t title] [filename]
+     -f, --follow       follow file
+     -i, --ignore-case  search ignores case
+     -n, --numbers      line numbers
+     -p, --pattern      search pattern
+     -t, --title        page title
+     -v, --version      print version number
+     -?, --help         this message
 
 When filename is absent, browse attmpts to restore the session saved in ~/.browserc.
 
@@ -39,18 +38,13 @@ When filename is absent, browse attmpts to restore the session saved in ~/.brows
 
 browse has several scrolling/following modes.
 
-- Scrolling up and down is continuous, meaning once started, scrolling continues until
-it is instructed to stop.  Think of the scroll and tail commands as toggle switches.
+- Scrolling up and down in browse is a continuous process, providing a seamless browsing experience. Once initiated, it persists until you decide to halt it. Consider the scroll and tail commands as toggle switches.
 
-- When scrolling down hits EOF, browse enters follow mode, reading and displaying
-the input file two lines at a time.
+- When scrolling down hits EOF, browse enters follow mode, reading and displaying two lines per read of the input file.
 
-- The tail command jumps to and follows EOF, reading and displaying the
-input file up to 256 lines at a time.
+- The tail command jumps to and follows EOF, reading and displaying the input file as fast as browse can read it.
 
-- The cursor position indicates whether or not browse is following the file.  If the
-cursor is in the lower left-hand corner, browse is following.  If the cursor is in
-the upper left-hand corner, browse is idle.
+- The cursor position indicates whether or not browse is following the file. If the cursor is in the lower left-hand corner, browse is following. If the cursor is in the upper left-hand corner, browse is idle.
 
 ## Saved Sessions
 
@@ -78,3 +72,28 @@ browse does not save sessions when the input is standard in, or when browse exit
 - Logical lines chopped to the screen width
 - Probably US-centric
 - Can be confused by lines with non-printable characters
+
+## Help Screen
+
+    Command                      Function
+    f b [PAGE UP] [PAGE DOWN]    Page down/up
+    + - [LEFT] [RIGHT] [ENTER]   Scroll one line
+    u d [UP] [DOWN]              Continuous scroll mode
+    < >                          Horizontal scroll left/right
+    #                            Line numbers
+    j                            Jump to line number
+    0 ^ [HOME]                   Jump to SOF
+    G $ [END]                    Jump to EOF
+    z                            Center page on top line
+    m                            Mark a page with number 1-9
+    1-9                          Jump to mark
+    / ?                          Regex search forward/reverse
+    n N                          Repeat search forward/reverse
+    i                            Case-sensitive search
+    &                            Pipe search to grep -nP
+    C                            Clear search
+    t                            Tail mode
+    !                            bash command
+    q                            Quit
+    Q                            Quit, don't save ~/.browserc    
+
