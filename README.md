@@ -64,7 +64,7 @@ The session attributes not saved:
      -v, --version      print version number
      -?, --help         this message
 
-| Command Line Option | Function |
+| <h4>Command Line Option</h4> | <h4>Function</h4> |
 | :-- | :-- |
 | -f, --follow | follow file changes |
 | -i, --ignore-case | search ignores case |
@@ -75,42 +75,36 @@ The session attributes not saved:
 | -?, --help | print browse command line options |
 <br>
 
-| Page/Line Command | Alias | Function |
-| :-- | :-- | :-- |
-| f | [PAGE DOWN]<br> [SPACE] | Page down toward EOF |
-| b | [PAGE UP] | Page up toward SOF |
-| + | [RIGHT]<br> [ENTER] | Scroll one line toward EOF |
-| - | [LEFT] | Scroll one line toward SOF |
-| u | [UP] | Toggle continuous scroll toward SOF, stop at SOF |
-| d | [DOWN] | Toggle continuous scroll toward EOF, follow at EOF |
-| > | | Scroll four characters right |
-| < | | Scroll four characters left |
-| ^ | [HOME] | Jump to SOF |
-| $ | [END] | Jump to EOF |
-| t | | Jump to EOF, tail at EOF |
-<br>
-
-| Mark/Jump Command | Function |
+| <h4>Pages/Lines</h4> | <h4>Function</h4> |
 | :-- | :-- |
+| f<br> [PAGE DOWN]<br> [SPACE] | Page down toward EOF |
+| b<br> [PAGE UP] | Page up toward SOF |
+| +<br> [RIGHT]<br> [ENTER] | Scroll one line toward EOF |
+| -<br> [LEFT] | Scroll one line toward SOF |
+| u<br> [UP] | Toggle continuous scroll toward SOF, stop at SOF |
+| d<br> [DOWN] | Toggle continuous scroll toward EOF, follow at EOF |
+| ><br> | Scroll four characters right |
+| <<br> | Scroll four characters left |
+| ^<br> [HOME] | Jump to SOF |
+| $<br> [END] | Jump to EOF |
+| t<br> | Jump to EOF, tail at EOF |
+| &nbsp; | &nbsp; |
+| <h4>Marks/Jumps</h4> | <h4>Function</h4> |
 | j | Jump to a line |
 | m | Assign top line to mark 1 to 9 |
 | 1 - 9 | Jump to marked line, default to SOF |
 | z | Center (zero in) in on top line, cursor on line |
-<br>
-
-| Search Command | Function |
-| :-- | :-- |
+| &nbsp; | &nbsp; |
+| <h4>Searches</h4> | <h4>Function</h4> |
 | / | Regex search forward, empty pattern repeats search or changes search direction |
 | ? | Regex search reverse, empty pattern repeats search or changes search direction |
 | n | Repeat search in the current search direction |
 | N | Repeat search in the opposite search direction |
 | i | Toggle between case-sensitive and case-insensitive searches |
 | C | Clear the search pattern |
-| & | Run "grep -nP" on input file for search pattern |
-<br>
-
-| Miscellaneous | Function |
-| :-- | :-- |
+| & | Run 'grep -nP' on input file for search pattern |
+| &nbsp; | &nbsp; |
+| <h4>Miscellaneous</h4> | <h4>Function</h4> |
 | # | Toggle line numbers on and off |
 | ! | Run a bash command |
 | q | quit browse, save session in ~/.browserc |
