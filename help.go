@@ -36,7 +36,7 @@ func (x *browseObj) printHelp() {
 		"   / ?                          Regex search forward/reverse    ",
 		"   n N                          Repeat search forward/reverse   ",
 		"   i                            Case-sensitive search           ",
-		"   &                            Pipe search to grep -nP         ",
+		"   &                            Run "grep -nP" for pattern      ",
 		"   C                            Clear search                    ",
 		"   t                            Tail mode                       ",
 		"   !                            bash command                    ",
