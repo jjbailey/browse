@@ -110,7 +110,7 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 	x.dispRows = x.dispHeight - 1
 
 	moveCursor(x.dispHeight, 1, true)
-	fmt.Printf(VIDMESSAGE + " Press any key to continue... " + VIDOFF)
+	fmt.Printf(MSG_GREEN + " Press any key to continue... " + VIDOFF)
 
 	// reset signals
 	x.catchSignals()

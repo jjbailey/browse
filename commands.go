@@ -171,9 +171,9 @@ func commands(br *browseObj) {
 
 		// mode cancellations
 
-		if string(b) != "" {
-			inMotion := (br.modeTail || br.modeScrollUp || br.modeScrollDown)
+		inMotion := (br.modeTail || br.modeScrollUp || br.modeScrollDown)
 
+		if string(b) != "" {
 			if b[0] != CMD_MODE_TAIL {
 				br.modeTail = false
 			}
@@ -187,7 +187,7 @@ func commands(br *browseObj) {
 			}
 
 			if inMotion && b[0] == CMD_PAGE_DN_1 {
-				// this command doubles as mode cancel
+				// CMD_PAGE_DN_1 doubles as mode cancel
 				moveCursor(2, 1, false)
 				continue
 			}
@@ -212,15 +212,15 @@ func commands(br *browseObj) {
 			moveCursor(2, 1, false)
 
 		case CMD_MODE_DN:
-			// toggle continuous scroll-down mode
-			if br.modeScrollDown {
+			// follow mode -- follow file leisurely
+			// toggle in either follow case
+			if inMotion {
 				br.modeScrollDown = false
 				moveCursor(2, 1, false)
 			} else {
 				br.modeScrollDown = true
 				fmt.Print(CURRESTORE)
 			}
-			// modeTail is a faster version of modeScrollDown
 			br.modeTail = false
 
 		case CMD_PAGE_UP:
@@ -272,8 +272,9 @@ func commands(br *browseObj) {
 			br.pageCurrent()
 
 		case CMD_MODE_TAIL:
-			// tail file
-			if br.modeTail {
+			// tail mode -- follow file rapidly
+			// toggle in either follow case
+			if inMotion {
 				br.modeTail = false
 				moveCursor(2, 1, false)
 			} else {
@@ -330,7 +331,7 @@ func commands(br *browseObj) {
 			// clear the search pattern
 			br.re = nil
 			br.pattern = ""
-			br.printMessage("Search cleared")
+			br.printMessage("Search pattern cleared")
 
 		case CMD_MARK:
 			// mark page

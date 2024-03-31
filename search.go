@@ -35,12 +35,12 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 	patternLen, err := x.reCompile(pattern)
 
 	if err != nil {
-		x.printMessage(fmt.Sprintf("%v", err))
+		x.warnMessage(fmt.Sprintf("%v", err))
 		return
 	}
 
 	if patternLen == 0 {
-		x.printMessage("No search pattern")
+		x.warnMessage("No search pattern")
 		return
 	}
 
@@ -61,7 +61,7 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 
 		if wrapped {
 			if warned {
-				x.printMessage("Pattern not found: " + x.pattern)
+				x.warnMessage("Pattern not found: " + x.pattern)
 				return
 			}
 
