@@ -51,7 +51,7 @@ browse has several scrolling/following modes.
 browse saves sessions in ~/.browserc.  The format of the file is plaintext containing the following lines:
 
  1. file name
- 2. first row on page
+ 2. first line on page
  3. search pattern
  4. marks
  5. page title
@@ -75,6 +75,17 @@ browse does not save sessions when the input is standard in, or when browse exit
 
 
 ## Usage
+
+| Command Line Option | Function |
+| :-- | :-- |
+| -f, --follow | follow file changes |
+| -i, --ignore-case | search ignores case |
+| -n, --numbers | start with line numbers turned on |
+| -p, --pattern | initial search pattern |
+| -t, --title | page title, default is filename, blank for stdin |
+| -v, --version | print browse version number |
+| -?, --help | print browse command line options |
+<br>
 
 | Page/Line Command | Alias | Function |
 | :-- | :-- | :-- |
