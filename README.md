@@ -21,17 +21,6 @@ A simple, unconventional file browser.
 - Save session
 - Help screen
 
-## Usage
-
-    Usage: browse [-finv] [-p pattern] [-t title] [filename]
-     -f, --follow       follow file
-     -i, --ignore-case  search ignores case
-     -n, --numbers      line numbers
-     -p, --pattern      search pattern
-     -t, --title        page title
-     -v, --version      print version number
-     -?, --help         this message
-
 When filename is absent, browse attmpts to restore the session saved in ~/.browserc.
 
 ## Scrolling/Following
@@ -64,17 +53,16 @@ The session attributes not saved:
 - horizontal scroll
 - follow/tail mode
 
-browse does not save sessions when the input is standard in, or when browse exits with the Q command.
-
-## Limitations
-
-- Xterm specific
-- Logical lines chopped to the screen width
-- Probably US-centric
-- Can be confused by lines with non-printable characters
-
-
 ## Usage
+
+    Usage: browse [-finv] [-p pattern] [-t title] [filename]
+     -f, --follow       follow file
+     -i, --ignore-case  search ignores case
+     -n, --numbers      line numbers
+     -p, --pattern      search pattern
+     -t, --title        page title
+     -v, --version      print version number
+     -?, --help         this message
 
 | Command Line Option | Function |
 | :-- | :-- |
@@ -126,5 +114,13 @@ browse does not save sessions when the input is standard in, or when browse exit
 | # | Toggle line numbers on and off |
 | ! | Run a bash command |
 | q | quit browse, save session in ~/.browserc |
-| Q | quit browse, do not save session in ~/.browserc |
+| Q | quit browse, do not save session |
+<br>
 
+## Limitations
+
+- Xterm specific
+- Logical lines chopped to the screen width
+- Searches can find only visible content
+- Probably US-centric
+- Can be confused by lines with non-printable characters
