@@ -41,7 +41,6 @@ func (x *browseObj) grep() {
 
 	title := fmt.Sprintf("grep %s -e \"%s\"", grepOpts, x.pattern)
 
-	// browse colors, pattern set
 	cmdbuf := fmt.Sprintf("grep %s -e '%s' %s | %s %s -p '%s' -t '%s'",
 		grepOpts, x.pattern, x.fileName,
 		brPath, brOpts, x.pattern, title)
