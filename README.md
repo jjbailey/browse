@@ -4,7 +4,7 @@ A simple, unconventional file browser.
 
 ## Goals
 
-- Create a file browser with only the most common functions
+- Create a file browser with only the most common features
 - Keep it simple, keep it friendly
 
 ## Features
@@ -87,11 +87,11 @@ The session attributes not saved:
 | <<br> | Scroll four characters left |
 | ^<br> [HOME] | Jump to SOF |
 | $<br> [END] | Jump to EOF |
-| t<br> | Jump to EOF, tail at EOF |
+| t<br> | Jump to EOF and tail file |
 | &nbsp; | &nbsp; |
 | <h4>Marks/Jumps</h4> | <h4>Function</h4> |
 | j | Jump to a line |
-| m | Assign top line to mark 1 to 9 |
+| m | Assign top line to mark 1 through 9 |
 | 1 - 9 | Jump to marked line, default to SOF |
 | z | Center (zero in) in on top line, cursor on line |
 | &nbsp; | &nbsp; |
