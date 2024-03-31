@@ -15,6 +15,9 @@ import (
 )
 
 func (x *browseObj) grep() {
+	var grepOpts string
+	var brOpts string
+
 	if len(x.pattern) == 0 {
 		x.warnMessage("No search pattern")
 		return
@@ -27,18 +30,21 @@ func (x *browseObj) grep() {
 		return
 	}
 
-	title := fmt.Sprintf("grep -nP -e \"%s\"", x.pattern)
+	// run grep and browse in current search case mode
+	grepOpts = "-nP"
+	brOpts = ""
+
+	if x.ignoreCase {
+		grepOpts = "-inP"
+		brOpts = "-i"
+	}
+
+	title := fmt.Sprintf("grep %s -e \"%s\"", grepOpts, x.pattern)
 
 	// browse colors, pattern set
-	cmdbuf := fmt.Sprintf("grep -nP -e '%s' %s | %s -p '%s' -t '%s'",
-		x.pattern, x.fileName,
-		brPath, x.pattern, title)
-
-	// grep colors, pattern not set
-	// cute, but browse gets the line lengths wrong
-	//	cmdbuf := fmt.Sprintf("grep --color=always -nP -e '%s' %s | %s -t '%s'",
-	//		x.pattern, x.fileName,
-	//		brPath, title)
+	cmdbuf := fmt.Sprintf("grep %s -e '%s' %s | %s %s -p '%s' -t '%s'",
+		grepOpts, x.pattern, x.fileName,
+		brPath, brOpts, x.pattern, title)
 
 	fmt.Print(LINEWRAPON)
 
