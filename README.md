@@ -79,6 +79,8 @@ The session attributes not saved:
 | :-- | :-- |
 | f<br> [PAGE DOWN]<br> [SPACE] | Page down toward EOF |
 | b<br> [PAGE UP] | Page up toward SOF |
+| ^F<br> ^D<br> z | Half page down toward EOF |
+| ^B<br> ^U<br> Z | Half page up toward SOF |
 | +<br> [RIGHT]<br> [ENTER] | Scroll one line toward EOF |
 | -<br> [LEFT] | Scroll one line toward SOF |
 | u<br> [UP] | Toggle continuous scroll toward SOF, stop at SOF |
@@ -93,14 +95,13 @@ The session attributes not saved:
 | j | Jump to a line |
 | m | Assign top line to mark 1 through 9 |
 | 1 - 9 | Jump to marked line, default to SOF |
-| z | Center (zero in) in on top line, cursor on line |
 | &nbsp; | &nbsp; |
 | <h4>Searches</h4> | <h4>Function</h4> |
 | / | Regex search forward, empty pattern repeats search or changes search direction |
 | ? | Regex search reverse, empty pattern repeats search or changes search direction |
 | n | Repeat search in the current search direction |
 | N | Repeat search in the opposite search direction |
-| i | Toggle between case-sensitive and case-insensitive searches |
+| i | Toggle case-sensitive and case-insensitive searches |
 | C | Clear the search pattern |
 | & | Run 'grep -nP' on input file for search pattern |
 | &nbsp; | &nbsp; |

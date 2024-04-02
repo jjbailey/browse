@@ -19,7 +19,6 @@ import (
 func commands(br *browseObj) {
 	const (
 		CMD_BASH            = '!'
-		CMD_CENTER          = 'z'
 		CMD_EOF             = '$'
 		CMD_EOF_1           = 'G'
 		CMD_HELP            = 'h'
@@ -29,6 +28,12 @@ func commands(br *browseObj) {
 		CMD_PAGE_DN         = 'f'
 		CMD_PAGE_DN_1       = ' '
 		CMD_PAGE_UP         = 'b'
+		CMD_HALF_PAGE_DN    = '\006'
+		CMD_HALF_PAGE_DN_1  = '\004'
+		CMD_HALF_PAGE_DN_2  = 'z'
+		CMD_HALF_PAGE_UP    = '\002'
+		CMD_HALF_PAGE_UP_1  = '\025'
+		CMD_HALF_PAGE_UP_2  = 'Z'
 		CMD_SHIFT_LEFT      = '<'
 		CMD_SHIFT_RIGHT     = '>'
 		CMD_QUIT            = 'q'
@@ -354,17 +359,13 @@ func commands(br *browseObj) {
 				br.pageCurrent()
 			}
 
-		case CMD_CENTER:
-			// center on the top line
-			diff := br.firstRow - (br.dispRows >> 1)
-			saveRow := br.firstRow
-			br.printPage(diff)
-			cursorPos := (br.dispRows >> 1)
-			if diff <= 0 {
-				cursorPos = saveRow
-			}
-			// go to the line (off by two)
-			moveCursor(cursorPos+2, 1, false)
+		case CMD_HALF_PAGE_DN, CMD_HALF_PAGE_DN_1, CMD_HALF_PAGE_DN_2:
+			// half page forward/down
+			br.printPage(br.firstRow + (br.dispRows >> 1))
+
+		case CMD_HALF_PAGE_UP, CMD_HALF_PAGE_UP_1, CMD_HALF_PAGE_UP_2:
+			// half page backward/up
+			br.printPage(br.firstRow - (br.dispRows >> 1))
 
 		case CMD_QUIT:
 			// quit -- this is the only way to save an rc file
