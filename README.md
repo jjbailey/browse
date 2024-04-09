@@ -107,9 +107,9 @@ The session attributes not saved:
 | &nbsp; | &nbsp; |
 | <h4>Miscellaneous</h4> | <h4>Function</h4> |
 | # | Toggle line numbers on and off |
-| ! | Run a bash command |
-| q | quit browse, save session in ~/.browserc |
-| Q | quit browse, do not save session |
+| ! | Run a bash command (expands !, %, &) |
+| q | Quit browse, save session in ~/.browserc |
+| Q | Quit browse, do not save session |
 <br>
 
 ## Limitations
