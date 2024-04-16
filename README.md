@@ -85,11 +85,11 @@ The session attributes not saved:
 | -<br> [LEFT] | Scroll one line toward SOF |
 | u<br> [UP] | Toggle continuous scroll toward SOF, stop at SOF |
 | d<br> [DOWN] | Toggle continuous scroll toward EOF, follow at EOF |
-| ><br> | Scroll four characters right |
-| <<br> | Scroll four characters left |
+| ><br> [TAB] | Scroll four characters right |
+| <<br> [BACKSPACE] | Scroll four characters left |
 | ^<br> [HOME] | Jump to SOF |
 | $<br> [END] | Jump to EOF |
-| t<br> | Jump to EOF and tail file |
+| t | Jump to EOF and tail file |
 | &nbsp; | &nbsp; |
 | <h4>Marks/Jumps</h4> | <h4>Function</h4> |
 | j | Jump to a line |

@@ -26,7 +26,7 @@ func (x *browseObj) printHelp() {
 		"   ^F ^D z  ^B ^U Z              Half page down/up               ",
 		"   + [RIGHT] [ENTER]  - [LEFT]   Scroll one line down/up         ",
 		"   d [DOWN]  u [UP]              Continuous scroll mode          ",
-		"   < >                           Horizontal scroll left/right    ",
+		"   < [BACKSPACE]  > [TAB]        Horizontal scroll left/right    ",
 		"   #                             Line numbers                    ",
 		"   j                             Jump to line number             ",
 		"   0 ^ [HOME]  G $ [END]         Jump to SOF/EOF                 ",
