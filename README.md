@@ -25,7 +25,7 @@ When filename is absent, browse attmpts to restore the session saved in ~/.brows
 
 ## Scrolling/Following
 
-browse has several scrolling/following modes.
+browse has several scrolling/following modes:
 
 - Scrolling up and down in browse is a continuous process, providing a seamless browsing experience. Once initiated, scrolling persists until you decide to halt it. Consider the scroll and tail commands as toggle switches.
 
@@ -91,7 +91,7 @@ The session attributes not saved:
 | $<br> [END] | Jump to EOF |
 | t | Jump to EOF and tail file |
 | &nbsp; | &nbsp; |
-| <h4>Marks/Jumps</h4> | <h4>Function</h4> |
+| <h4>Jumps/Marks</h4> | <h4>Function</h4> |
 | j | Jump to a line |
 | m | Assign top line to mark 1 through 9 |
 | 1 - 9 | Jump to marked line, default to SOF |
