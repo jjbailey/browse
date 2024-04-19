@@ -125,17 +125,21 @@ func (x *browseObj) ptySignals() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Reset(syscall.SIGWINCH)
 	signal.Notify(sigChan)
+	signal.Ignore(syscall.SIGALRM)
 	signal.Ignore(syscall.SIGCHLD)
 	signal.Ignore(syscall.SIGURG)
 
 	go func() {
 		for {
-			switch <-sigChan {
+			sig := <-sigChan
+
+			switch sig {
 
 			case syscall.SIGWINCH:
 				pty.InheritSize(os.Stdout, ptmx)
 
 			default:
+				x.warnMessage(fmt.Sprintf("caught signal %v \n", sig))
 				x.saneExit()
 			}
 		}
