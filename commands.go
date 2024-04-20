@@ -54,6 +54,7 @@ func commands(br *browseObj) {
 		CMD_SEARCH_NEXT_REV = 'N'
 		CMD_SEARCH_IGN_CASE = 'i'
 		CMD_GREP            = '&'
+		CMD_PERCENT         = '%'
 		CMD_SEARCH_CLEAR    = 'C'
 
 		VK_UP    = "\033[A\000"
@@ -368,6 +369,13 @@ func commands(br *browseObj) {
 		case CMD_HALF_PAGE_UP, CMD_HALF_PAGE_UP_1, CMD_HALF_PAGE_UP_2:
 			// half page backward/up
 			br.printPage(br.firstRow - (br.dispRows >> 1))
+
+		case CMD_PERCENT:
+			// this page position in percentages
+			// +1 for EOF
+			t := float32(br.firstRow) / float32(br.mapSiz+1) * 100.0
+			b := float32(br.lastRow) / float32(br.mapSiz+1) * 100.0
+			br.printMessage(fmt.Sprintf("Position is %1.2f%% - %1.2f%%", t, b))
 
 		case CMD_QUIT:
 			// quit -- this is the only way to save an rc file

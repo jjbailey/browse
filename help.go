@@ -28,6 +28,7 @@ func (x *browseObj) printHelp() {
 		"   d [DOWN]  u [UP]              Continuous scroll mode          ",
 		"   < [BACKSPACE]  > [TAB]        Horizontal scroll left/right    ",
 		"   #                             Line numbers                    ",
+		"   %                             Page position in percentages    ",
 		"   j                             Jump to line number             ",
 		"   0 ^ [HOME]  G $ [END]         Jump to SOF/EOF                 ",
 		"   m                             Mark a page with number 1-9     ",
