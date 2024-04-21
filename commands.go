@@ -271,8 +271,18 @@ func commands(br *browseObj) {
 			br.printPage(0)
 
 		case CMD_EOF, CMD_EOF_1:
-			// end of file
-			br.pageLast()
+			// follow mode -- follow file leisurely
+			if inMotion {
+				br.modeScrollDown = false
+				moveCursor(2, 1, false)
+			} else {
+				br.modeScrollDown = true
+				if !br.hitEOF {
+					br.pageLast()
+				}
+				fmt.Print(CURRESTORE)
+			}
+			br.modeTail = false
 
 		case CMD_NUMBERS:
 			// show line numbers
@@ -281,7 +291,6 @@ func commands(br *browseObj) {
 
 		case CMD_MODE_TAIL:
 			// tail mode -- follow file rapidly
-			// toggle in either follow case
 			if inMotion {
 				br.modeTail = false
 				moveCursor(2, 1, false)
@@ -292,7 +301,6 @@ func commands(br *browseObj) {
 				}
 				fmt.Print(CURRESTORE)
 			}
-			// modeScrollDown is a slower version of modeTail
 			br.modeScrollDown = false
 
 		case CMD_JUMP:

@@ -88,8 +88,8 @@ The session attributes not saved:
 | ><br> [TAB] | Scroll four characters right |
 | <<br> [BACKSPACE] | Scroll four characters left |
 | ^<br> [HOME] | Jump to SOF |
-| $<br> [END] | Jump to EOF |
-| t | Jump to EOF and tail file |
+| $<br> [END] | Jump to EOF, follow at EOF |
+| t | Jump to EOF, tail at EOF |
 | &nbsp; | &nbsp; |
 | <h4>Jumps/Marks</h4> | <h4>Function</h4> |
 | j | Jump to a line |
