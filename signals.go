@@ -23,6 +23,7 @@ func (x *browseObj) catchSignals() {
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan)
+	signal.Ignore(syscall.SIGALRM)
 	signal.Ignore(syscall.SIGCHLD)
 	signal.Ignore(syscall.SIGURG)
 
@@ -36,7 +37,7 @@ func (x *browseObj) catchSignals() {
 				x.resizeWindow()
 
 			default:
-				fmt.Printf("caught signal: %v\n", sig)
+				x.warnMessage(fmt.Sprintf("caught signal %v \n", sig))
 				x.saneExit()
 			}
 		}

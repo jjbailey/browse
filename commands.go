@@ -35,7 +35,9 @@ func commands(br *browseObj) {
 		CMD_HALF_PAGE_UP_1  = '\025'
 		CMD_HALF_PAGE_UP_2  = 'Z'
 		CMD_SHIFT_LEFT      = '<'
+		CMD_SHIFT_LEFT_1    = '\010'
 		CMD_SHIFT_RIGHT     = '>'
+		CMD_SHIFT_RIGHT_1   = '\011'
 		CMD_QUIT            = 'q'
 		CMD_QUIT_NO_SAVE    = 'Q'
 		CMD_SCROLL_DN       = '+'
@@ -52,6 +54,7 @@ func commands(br *browseObj) {
 		CMD_SEARCH_NEXT_REV = 'N'
 		CMD_SEARCH_IGN_CASE = 'i'
 		CMD_GREP            = '&'
+		CMD_PERCENT         = '%'
 		CMD_SEARCH_CLEAR    = 'C'
 
 		VK_UP    = "\033[A\000"
@@ -245,7 +248,7 @@ func commands(br *browseObj) {
 			// toggle continuous scroll-up mode
 			br.modeScrollUp = !br.modeScrollUp
 
-		case CMD_SHIFT_LEFT:
+		case CMD_SHIFT_LEFT, CMD_SHIFT_LEFT_1:
 			// horizontal scroll left
 			if br.shiftWidth > 0 {
 				br.shiftWidth -= TABWIDTH
@@ -254,7 +257,7 @@ func commands(br *browseObj) {
 				moveCursor(2, 1, false)
 			}
 
-		case CMD_SHIFT_RIGHT:
+		case CMD_SHIFT_RIGHT, CMD_SHIFT_RIGHT_1:
 			// horizontal scroll right
 			if br.shiftWidth < (READBUFSIZ - (TABWIDTH * 2)) {
 				br.shiftWidth += TABWIDTH
@@ -268,8 +271,18 @@ func commands(br *browseObj) {
 			br.printPage(0)
 
 		case CMD_EOF, CMD_EOF_1:
-			// end of file
-			br.pageLast()
+			// follow mode -- follow file leisurely
+			if inMotion {
+				br.modeScrollDown = false
+				moveCursor(2, 1, false)
+			} else {
+				br.modeScrollDown = true
+				if !br.hitEOF {
+					br.pageLast()
+				}
+				fmt.Print(CURRESTORE)
+			}
+			br.modeTail = false
 
 		case CMD_NUMBERS:
 			// show line numbers
@@ -278,7 +291,6 @@ func commands(br *browseObj) {
 
 		case CMD_MODE_TAIL:
 			// tail mode -- follow file rapidly
-			// toggle in either follow case
 			if inMotion {
 				br.modeTail = false
 				moveCursor(2, 1, false)
@@ -289,7 +301,6 @@ func commands(br *browseObj) {
 				}
 				fmt.Print(CURRESTORE)
 			}
-			// modeScrollDown is a slower version of modeTail
 			br.modeScrollDown = false
 
 		case CMD_JUMP:
@@ -366,6 +377,13 @@ func commands(br *browseObj) {
 		case CMD_HALF_PAGE_UP, CMD_HALF_PAGE_UP_1, CMD_HALF_PAGE_UP_2:
 			// half page backward/up
 			br.printPage(br.firstRow - (br.dispRows >> 1))
+
+		case CMD_PERCENT:
+			// this page position in percentages
+			// +1 for EOF
+			t := float32(br.firstRow) / float32(br.mapSiz+1) * 100.0
+			b := float32(br.lastRow) / float32(br.mapSiz+1) * 100.0
+			br.printMessage(fmt.Sprintf("Position is %1.2f%% - %1.2f%%", t, b))
 
 		case CMD_QUIT:
 			// quit -- this is the only way to save an rc file

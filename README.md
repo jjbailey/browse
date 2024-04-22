@@ -25,7 +25,7 @@ When filename is absent, browse attmpts to restore the session saved in ~/.brows
 
 ## Scrolling/Following
 
-browse has several scrolling/following modes.
+browse has several scrolling/following modes:
 
 - Scrolling up and down in browse is a continuous process, providing a seamless browsing experience. Once initiated, scrolling persists until you decide to halt it. Consider the scroll and tail commands as toggle switches.
 
@@ -85,13 +85,13 @@ The session attributes not saved:
 | -<br> [LEFT] | Scroll one line toward SOF |
 | u<br> [UP] | Toggle continuous scroll toward SOF, stop at SOF |
 | d<br> [DOWN] | Toggle continuous scroll toward EOF, follow at EOF |
-| ><br> | Scroll four characters right |
-| <<br> | Scroll four characters left |
+| ><br> [TAB] | Scroll four characters right |
+| <<br> [BACKSPACE] | Scroll four characters left |
 | ^<br> [HOME] | Jump to SOF |
-| $<br> [END] | Jump to EOF |
-| t<br> | Jump to EOF and tail file |
+| $<br> [END] | Jump to EOF, follow at EOF |
+| t | Jump to EOF, tail at EOF |
 | &nbsp; | &nbsp; |
-| <h4>Marks/Jumps</h4> | <h4>Function</h4> |
+| <h4>Jumps/Marks</h4> | <h4>Function</h4> |
 | j | Jump to a line |
 | m | Assign top line to mark 1 through 9 |
 | 1 - 9 | Jump to marked line, default to SOF |
@@ -107,9 +107,10 @@ The session attributes not saved:
 | &nbsp; | &nbsp; |
 | <h4>Miscellaneous</h4> | <h4>Function</h4> |
 | # | Toggle line numbers on and off |
-| ! | Run a bash command |
-| q | quit browse, save session in ~/.browserc |
-| Q | quit browse, do not save session |
+| % | Page position in percentages |
+| ! | Run a bash command (expands !, %, &) |
+| q | Quit browse, save session in ~/.browserc |
+| Q | Quit browse, do not save session |
 <br>
 
 ## Limitations

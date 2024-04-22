@@ -204,12 +204,9 @@ func (x *browseObj) noSearchPattern() bool {
 }
 
 func (x *browseObj) doSearch(oldDir, newDir bool) bool {
-	var prompt, message string
+	prompt, message := "/", "Searching forward"
 
-	// search direction
-	if newDir {
-		prompt, message = "/", "Searching forward"
-	} else {
+	if !newDir {
 		prompt, message = "?", "Searching reverse"
 	}
 
@@ -221,11 +218,13 @@ func (x *browseObj) doSearch(oldDir, newDir bool) bool {
 		return oldDir
 	}
 
+	if oldDir != newDir && (len(patbuf) > 0 || len(x.pattern) > 0) {
+		// print direction
+		x.timedMessage(message)
+	}
+
 	if len(patbuf) == 0 {
 		// null -- change direction
-		if oldDir != newDir {
-			x.timedMessage(message)
-		}
 		x.searchFile(x.pattern, newDir, true)
 	} else {
 		// search this page

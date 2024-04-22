@@ -133,7 +133,8 @@ func (x *browseObj) restoreLast() {
 	if x.shownMsg {
 		moveCursor(x.dispHeight, 1, true)
 
-		if x.lastRow > x.dispHeight {
+		// -2 for SOF, EOF
+		if x.lastRow > (x.dispHeight - 2) {
 			fmt.Print(CURUP)
 			x.printLine(x.lastRow - 1)
 		}
