@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	BR_VERSION   = "0.26"
+	BR_VERSION   = "0.27"
 	READBUFSIZ   = 512
 	TABWIDTH     = 4
 	MAXMARKS     = 10
