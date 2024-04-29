@@ -16,24 +16,23 @@ A simple, unconventional file browser.
 - Jump to lines
 - Mark pages
 - Forward and reverse searches by regular expression
+- Shell escape
 - tail -f
 - Line numbers
 - Save session
 - Help screen
 
-When filename is absent, browse attmpts to restore the session saved in ~/.browserc.
-
 ## Scrolling/Following
 
 browse has several scrolling/following modes:
 
-- Scrolling up and down in browse is a continuous process, providing a seamless browsing experience. Once initiated, scrolling persists until you decide to halt it. Consider the scroll and tail commands as toggle switches.
+- Scrolling up and down in browse is a continuous process, providing a seamless browsing experience.  Once initiated, scrolling persists until you decide to halt it.  Consider the scroll and tail commands as toggle switches.
 
 - When scrolling down hits EOF, browse enters follow mode, reading and displaying two lines per read of the input file.
 
 - The tail command jumps to and follows EOF, reading and displaying the input file as fast as browse can read it.
 
-- The cursor position indicates whether or not browse is following the file. If the cursor is in the lower left-hand corner, browse is following. If the cursor is in the upper left-hand corner, browse is idle.
+- The cursor position indicates whether or not browse is following the file.  If the cursor is in the lower left-hand corner, browse follows.  If the cursor is in the upper left-hand corner, browse is idle.
 
 ## Saved Sessions
 
@@ -52,6 +51,8 @@ The session attributes not saved:
 - bash command
 - horizontal scroll
 - follow/tail mode
+
+When a filename is absent, browse attempts to restore the session saved in ~/.browserc.
 
 ## Usage
 
