@@ -38,7 +38,7 @@ func (x *browseObj) bashCommand() bool {
 		prevCommand = bangbuf
 
 		// substitute % with the current file name
-		cmdbuf := subCommandChars(bangbuf, "%", x.fileName)
+		cmdbuf := subCommandChars(bangbuf, "%", `'`+x.fileName+`'`)
 
 		// substitute & with the current search pattern
 		if len(x.pattern) > 0 {
