@@ -95,6 +95,7 @@ When a filename is absent, browse attempts to restore the session saved in ~/.br
 | <h4>Jumps/Marks</h4> | <h4>Function</h4> |
 | j | Jump to a line |
 | m | Assign top line to mark 1 through 9 |
+| 0 | Jump to line 1, column 1 |
 | 1 - 9 | Jump to marked line, default to SOF |
 | &nbsp; | &nbsp; |
 | <h4>Searches</h4> | <h4>Function</h4> |
@@ -107,7 +108,6 @@ When a filename is absent, browse attempts to restore the session saved in ~/.br
 | & | Run 'grep -nP' on input file for search pattern |
 | &nbsp; | &nbsp; |
 | <h4>Miscellaneous</h4> | <h4>Function</h4> |
-| 0 | Jump to line 1, column 1 |
 | # | Toggle line numbers on and off |
 | % | Page position in percentages |
 | ! | Run a bash command (expands !, %, &) |
