@@ -107,6 +107,7 @@ When a filename is absent, browse attempts to restore the session saved in ~/.br
 | & | Run 'grep -nP' on input file for search pattern |
 | &nbsp; | &nbsp; |
 | <h4>Miscellaneous</h4> | <h4>Function</h4> |
+| 0 | Jump to line 1, column 1 |
 | # | Toggle line numbers on and off |
 | % | Page position in percentages |
 | ! | Run a bash command (expands !, %, &) |
