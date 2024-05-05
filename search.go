@@ -124,20 +124,8 @@ func (x *browseObj) pageIsMatch(sop, eop int) (int, int) {
 func (x *browseObj) lineIsMatch(lineno int) (int, string) {
 	// check if this line has a regex match
 
-	var n int
-
-	data, nbytes := x.readFromMap(lineno)
-
-	// match on what's visible
-
-	if !x.modeNumbers {
-		n = minimum(nbytes, x.dispWidth)
-	} else {
-		// line numbers -- uses NUMCOLWIDTH columns
-		n = minimum(nbytes, x.dispWidth-NUMCOLWIDTH)
-	}
-
-	input := string(data[0:n])
+	data := x.readFromMap(lineno)
+	input := string(data)
 
 	if x.noSearchPattern() {
 		// no regex
@@ -170,33 +158,33 @@ func (x *browseObj) setNextPage(searchDir bool, sop int) (int, int, bool) {
 		}
 	}
 
-	// sop map be a negative number
+	// sop may be a negative number
 	eop = sop + x.dispRows
 	return sop, eop, wrapped
 }
 
 func (x *browseObj) replaceMatch(lineno int, input string) string {
-	// make the regex replacements, return the new line
+	// make the regex replacements and return the new line
 
 	var line string
-	var output string
+
+	sol := minimum(len(input), int(x.shiftWidth))
 
 	if x.noSearchPattern() {
 		// no regex
-		line = input
+		line = input[sol:]
 	} else {
-		line = x.re.ReplaceAllString(input, x.replstr)
+		// regex
+		line = x.re.ReplaceAllString(input[sol:], x.replstr)
 	}
 
 	if x.modeNumbers && !windowAtEOF(lineno, x.mapSiz) {
 		// line numbers -- uses NUMCOLWIDTH columns
-		output = fmt.Sprintf("%6d %s", lineno, line)
-	} else {
-		// no line numbers
-		output = line
+		return fmt.Sprintf("%6d %s", lineno, line)
 	}
 
-	return output
+	// no line numbers
+	return line
 }
 
 func (x *browseObj) noSearchPattern() bool {
