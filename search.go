@@ -114,7 +114,7 @@ func (x *browseObj) pageIsMatch(sop, eop int) (int, int) {
 		}
 	}
 
-	if lastMatch == 0 {
+	if lastMatch < firstMatch {
 		lastMatch = firstMatch
 	}
 
@@ -124,15 +124,15 @@ func (x *browseObj) pageIsMatch(sop, eop int) (int, int) {
 func (x *browseObj) lineIsMatch(lineno int) (int, string) {
 	// check if this line has a regex match
 
-	data := x.readFromMap(lineno)
-	input := string(data)
+	input := string(x.readFromMap(lineno))
 
 	if x.noSearchPattern() {
 		// no regex
 		return 0, input
 	}
 
-	return len(x.re.FindAllString(input, -1)), input
+	matches := x.re.FindAllStringIndex(input, -1)
+	return len(matches), input
 }
 
 func (x *browseObj) setNextPage(searchDir bool, sop int) (int, int, bool) {
