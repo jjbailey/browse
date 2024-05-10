@@ -89,7 +89,7 @@ type browseObj struct {
 	mapSiz     int
 	seekMap    map[int]int64
 	sizeMap    map[int]int64
-	shiftWidth int64
+	shiftWidth int
 	pattern    string
 	re         *regexp.Regexp
 	replstr    string
