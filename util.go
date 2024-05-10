@@ -20,7 +20,7 @@ func expandTabs(data []byte) []byte {
 	// replace tabs with spaces (TABWIDTH)
 	// silently map CR to space
 
-	if strings.IndexAny(string(data), "\t\r") == -1 {
+	if !strings.ContainsAny(string(data), "\t\r") {
 		return data
 	}
 
