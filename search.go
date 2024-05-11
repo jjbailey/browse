@@ -167,18 +167,31 @@ func (x *browseObj) replaceMatch(lineno int, input string) string {
 	// make the regex replacements and return the new line
 
 	var line string
+	var leftMatch, rightMatch bool
 
-	sol := minimum(len(input), int(x.shiftWidth))
+	sol := minimum(x.shiftWidth, len(input))
+	// NB: -2 from the end
+	eol := minimum((sol+x.dispWidth), len(input)) - 2
+
+	if x.modeNumbers {
+		eol -= NUMCOLWIDTH
+	}
 
 	if x.noSearchPattern() {
 		// no regex
 		line = input[sol:]
 	} else {
 		// regex
-		line = x.re.ReplaceAllString(input[sol:], x.replstr)
+		leftMatch, rightMatch = x.undisplayedMatches(input, sol, eol)
+
+		if leftMatch || rightMatch {
+			line = _VID_BOLD + x.re.ReplaceAllString(input[sol:], x.replstr)
+		} else {
+			line = x.re.ReplaceAllString(input[sol:], x.replstr)
+		}
 	}
 
-	if x.modeNumbers && !windowAtEOF(lineno, x.mapSiz) {
+	if x.modeNumbers {
 		// line numbers -- uses NUMCOLWIDTH columns
 		return fmt.Sprintf("%6d %s", lineno, line)
 	}
@@ -256,6 +269,26 @@ func (x *browseObj) reCompile(pattern string) (int, error) {
 	x.replstr = fmt.Sprintf("%s%s%s", VIDPATTERN, "$0", VIDOFF)
 
 	return len(pattern), nil
+}
+
+func (x *browseObj) undisplayedMatches(input string, sol, eol int) (bool, bool) {
+	// check for matches to the left and right of the line as displayed
+
+	var leftMatch, rightMatch bool
+
+	for _, index := range x.re.FindAllStringSubmatchIndex(input, -1) {
+		if index[0] < sol {
+			leftMatch = true
+		} else if index[0] > eol {
+			rightMatch = true
+		}
+
+		if leftMatch && rightMatch {
+			break
+		}
+	}
+
+	return leftMatch, rightMatch
 }
 
 // vim: set ts=4 sw=4 noet:

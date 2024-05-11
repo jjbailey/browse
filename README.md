@@ -103,7 +103,7 @@ When a filename is absent, browse attempts to restore the session saved in ~/.br
 | ? | Regex search reverse, empty pattern repeats search or changes search direction |
 | n | Repeat search in the current search direction |
 | N | Repeat search in the opposite search direction |
-| i | Toggle case-sensitive and case-insensitive searches |
+| i | Toggle between case-sensitive and case-insensitive searches |
 | C | Clear the search pattern |
 | & | Run 'grep -nP' on input file for search pattern |
 | &nbsp; | &nbsp; |
@@ -119,6 +119,5 @@ When a filename is absent, browse attempts to restore the session saved in ~/.br
 
 - Xterm specific
 - Logical lines chopped to the screen width
-- Searches can find only visible content
 - Probably US-centric
 - Can be confused by lines with non-printable characters
