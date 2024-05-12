@@ -15,12 +15,11 @@ import (
 )
 
 const (
-	BR_VERSION   = "0.27"
+	BR_VERSION   = "0.28"
 	READBUFSIZ   = 512
 	TABWIDTH     = 4
 	MAXMARKS     = 10
 	SEARCH_RESET = 0
-	PAGE_SEARCH  = false
 )
 
 const (
