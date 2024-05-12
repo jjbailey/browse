@@ -86,7 +86,8 @@ func (x *browseObj) printPage(lineno int) {
 	}
 
 	fmt.Print(LINEWRAPOFF)
-	moveCursor(2, 1, false)
+	// printLine starts with \r\n
+	moveCursor(1, 1, false)
 
 	for i = sop; i < eop; i++ {
 		x.printLine(i)

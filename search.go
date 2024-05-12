@@ -114,7 +114,7 @@ func (x *browseObj) pageIsMatch(sop, eop int) (int, int) {
 		}
 	}
 
-	if lastMatch == 0 {
+	if lastMatch < firstMatch {
 		lastMatch = firstMatch
 	}
 
@@ -124,27 +124,15 @@ func (x *browseObj) pageIsMatch(sop, eop int) (int, int) {
 func (x *browseObj) lineIsMatch(lineno int) (int, string) {
 	// check if this line has a regex match
 
-	var n int
-
-	data, nbytes := x.readFromMap(lineno)
-
-	// match on what's visible
-
-	if !x.modeNumbers {
-		n = minimum(nbytes, x.dispWidth)
-	} else {
-		// line numbers -- uses NUMCOLWIDTH columns
-		n = minimum(nbytes, x.dispWidth-NUMCOLWIDTH)
-	}
-
-	input := string(data[0:n])
+	input := string(x.readFromMap(lineno))
 
 	if x.noSearchPattern() {
 		// no regex
 		return 0, input
 	}
 
-	return len(x.re.FindAllString(input, -1)), input
+	matches := x.re.FindAllStringIndex(input, -1)
+	return len(matches), input
 }
 
 func (x *browseObj) setNextPage(searchDir bool, sop int) (int, int, bool) {
@@ -170,33 +158,46 @@ func (x *browseObj) setNextPage(searchDir bool, sop int) (int, int, bool) {
 		}
 	}
 
-	// sop map be a negative number
+	// sop may be a negative number
 	eop = sop + x.dispRows
 	return sop, eop, wrapped
 }
 
 func (x *browseObj) replaceMatch(lineno int, input string) string {
-	// make the regex replacements, return the new line
+	// make the regex replacements and return the new line
 
 	var line string
-	var output string
+	var leftMatch, rightMatch bool
+
+	sol := minimum(x.shiftWidth, len(input))
+	// NB: -2 from the end
+	eol := minimum((sol+x.dispWidth), len(input)) - 2
+
+	if x.modeNumbers {
+		eol -= NUMCOLWIDTH
+	}
 
 	if x.noSearchPattern() {
 		// no regex
-		line = input
+		line = input[sol:]
 	} else {
-		line = x.re.ReplaceAllString(input, x.replstr)
+		// regex
+		leftMatch, rightMatch = x.undisplayedMatches(input, sol, eol)
+
+		if leftMatch || rightMatch {
+			line = _VID_BOLD + x.re.ReplaceAllString(input[sol:], x.replstr)
+		} else {
+			line = x.re.ReplaceAllString(input[sol:], x.replstr)
+		}
 	}
 
-	if x.modeNumbers && !windowAtEOF(lineno, x.mapSiz) {
+	if x.modeNumbers {
 		// line numbers -- uses NUMCOLWIDTH columns
-		output = fmt.Sprintf("%6d %s", lineno, line)
-	} else {
-		// no line numbers
-		output = line
+		return fmt.Sprintf("%6d %s", lineno, line)
 	}
 
-	return output
+	// no line numbers
+	return line
 }
 
 func (x *browseObj) noSearchPattern() bool {
@@ -268,6 +269,26 @@ func (x *browseObj) reCompile(pattern string) (int, error) {
 	x.replstr = fmt.Sprintf("%s%s%s", VIDPATTERN, "$0", VIDOFF)
 
 	return len(pattern), nil
+}
+
+func (x *browseObj) undisplayedMatches(input string, sol, eol int) (bool, bool) {
+	// check for matches to the left and right of the line as displayed
+
+	var leftMatch, rightMatch bool
+
+	for _, index := range x.re.FindAllStringSubmatchIndex(input, -1) {
+		if index[0] < sol {
+			leftMatch = true
+		} else if index[0] > eol {
+			rightMatch = true
+		}
+
+		if leftMatch && rightMatch {
+			break
+		}
+	}
+
+	return leftMatch, rightMatch
 }
 
 // vim: set ts=4 sw=4 noet:

@@ -267,7 +267,8 @@ func commands(br *browseObj) {
 			}
 
 		case CMD_SOF, CMD_SOF_1:
-			// beginning of file
+			// beginning of file at column 1
+			br.shiftWidth = 0
 			br.printPage(0)
 
 		case CMD_EOF, CMD_EOF_1:

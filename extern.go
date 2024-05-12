@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	BR_VERSION   = "0.26"
+	BR_VERSION   = "0.27"
 	READBUFSIZ   = 512
 	TABWIDTH     = 4
 	MAXMARKS     = 10
@@ -89,7 +89,7 @@ type browseObj struct {
 	mapSiz     int
 	seekMap    map[int]int64
 	sizeMap    map[int]int64
-	shiftWidth int64
+	shiftWidth int
 	pattern    string
 	re         *regexp.Regexp
 	replstr    string

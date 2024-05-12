@@ -13,20 +13,24 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"strings"
 )
 
-func expandTabs(data []byte) ([]byte, int) {
+func expandTabs(data []byte) []byte {
 	// replace tabs with spaces (TABWIDTH)
+	// silently map CR to space
+
+	if !strings.ContainsAny(string(data), "\t\r") {
+		return data
+	}
 
 	var newdata = make([]byte, READBUFSIZ*2)
-
 	j := 0
 
 	for i := 0; i < len(data); i++ {
 		switch data[i] {
 
 		case '\r':
-			// silently map CR to space
 			newdata[j] = ' '
 
 		case '\t':
@@ -49,7 +53,7 @@ func expandTabs(data []byte) ([]byte, int) {
 		}
 	}
 
-	return newdata, j
+	return newdata
 }
 
 func moveCursor(row int, col int, clrflag bool) {
