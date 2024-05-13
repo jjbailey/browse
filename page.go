@@ -29,7 +29,7 @@ func (x *browseObj) pageDown() {
 func (x *browseObj) pageHeader() {
 	// print the header line
 
-	// if title is too long, fit to size, include elipsis
+	// if the title is too long, fit to size, include elipsis
 	dispTitle := x.title
 	lenDiff := (len(x.title) - x.dispWidth) + 6 + 3
 
@@ -39,19 +39,19 @@ func (x *browseObj) pageHeader() {
 
 	// minus tees and spaces
 	lineLen := x.dispWidth - 4
-	oneside := int((lineLen - len(dispTitle)) / 2)
+	oneSide := (lineLen - len(dispTitle)) >> 1
+
+	// -----| title |-----
+	header := fmt.Sprintf("%s%s%s%s%s %s %s%s%s%s%s",
+		ENTERGRAPHICS, strings.Repeat(HORIZLINE, oneSide), LEFTTEE, EXITGRAPHICS,
+		VIDBOLDREV, dispTitle, VIDOFF,
+		ENTERGRAPHICS, RIGHTTEE, strings.Repeat(HORIZLINE, oneSide+1), EXITGRAPHICS)
 
 	resetScrRegion()
 	moveCursor(1, 1, true)
 	fmt.Print(CLEARSCREEN)
 	fmt.Print(LINEWRAPOFF)
-	fmt.Print(ENTERGRAPHICS)
-	fmt.Print(strings.Repeat(HORIZLINE, oneside))
-	fmt.Printf("%s%s", LEFTTEE, EXITGRAPHICS)
-	fmt.Printf("%s %s %s", VIDBOLDREV, dispTitle, VIDOFF)
-	fmt.Printf("%s%s", ENTERGRAPHICS, RIGHTTEE)
-	fmt.Print(strings.Repeat(HORIZLINE, oneside+1))
-	fmt.Print(EXITGRAPHICS)
+	fmt.Print(header)
 	setScrRegion(2, x.dispHeight)
 }
 
