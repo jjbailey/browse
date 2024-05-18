@@ -222,11 +222,10 @@ func commands(br *browseObj) {
 		case CMD_MODE_DN:
 			// follow mode -- follow file leisurely
 			// toggle in either follow case
+			br.modeScrollDown = !br.modeScrollDown
 			if inMotion {
-				br.modeScrollDown = false
 				moveCursor(2, 1, false)
 			} else {
-				br.modeScrollDown = true
 				fmt.Print(CURRESTORE)
 			}
 			br.modeTail = false
