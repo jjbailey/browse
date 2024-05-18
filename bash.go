@@ -163,7 +163,6 @@ func subCommandChars(input, char, repl string) string {
 
 	for rbuf2 := re.ReplaceAllString(rbuf1, replstr); rbuf2 != rbuf1; {
 		rbuf1 = rbuf2
-		rbuf2 = re.ReplaceAllString(rbuf1, replstr)
 	}
 
 	return rbuf1
