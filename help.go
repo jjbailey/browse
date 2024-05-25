@@ -23,7 +23,7 @@ func (x *browseObj) printHelp() {
 		"                                                                 ",
 		"   Command                       Function                        ",
 		"   f [PAGE DOWN]  b [PAGE UP]    Page down/up                    ",
-		"   ^F ^D z  ^B ^U Z              Half page down/up               ",
+		"   ^F ^D z  ^B ^U Z              Scroll half page down/up        ",
 		"   + [RIGHT] [ENTER]  - [LEFT]   Scroll one line down/up         ",
 		"   d [DOWN]  u [UP]              Continuous scroll mode          ",
 		"   < [BACKSPACE]  > [TAB]        Horizontal scroll left/right    ",
