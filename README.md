@@ -80,8 +80,8 @@ When a filename is absent, browse attempts to restore the session saved in ~/.br
 | :-- | :-- |
 | f<br> [PAGE DOWN]<br> [SPACE] | Page down toward EOF |
 | b<br> [PAGE UP] | Page up toward SOF |
-| ^F<br> ^D<br> z | Half page down toward EOF |
-| ^B<br> ^U<br> Z | Half page up toward SOF |
+| ^F<br> ^D<br> z | Scroll half page down toward EOF |
+| ^B<br> ^U<br> Z | Scroll half page up toward SOF |
 | +<br> [RIGHT]<br> [ENTER] | Scroll one line toward EOF |
 | -<br> [LEFT] | Scroll one line toward SOF |
 | u<br> [UP] | Toggle continuous scroll toward SOF, stop at SOF |

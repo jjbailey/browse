@@ -222,11 +222,10 @@ func commands(br *browseObj) {
 		case CMD_MODE_DN:
 			// follow mode -- follow file leisurely
 			// toggle in either follow case
+			br.modeScrollDown = !br.modeScrollDown
 			if inMotion {
-				br.modeScrollDown = false
 				moveCursor(2, 1, false)
 			} else {
-				br.modeScrollDown = true
 				fmt.Print(CURRESTORE)
 			}
 			br.modeTail = false
@@ -372,12 +371,12 @@ func commands(br *browseObj) {
 			}
 
 		case CMD_HALF_PAGE_DN, CMD_HALF_PAGE_DN_1, CMD_HALF_PAGE_DN_2:
-			// half page forward/down
-			br.printPage(br.firstRow + (br.dispRows >> 1))
+			// scroll half page forward/down
+			br.scrollDown(br.dispRows >> 1)
 
 		case CMD_HALF_PAGE_UP, CMD_HALF_PAGE_UP_1, CMD_HALF_PAGE_UP_2:
-			// half page backward/up
-			br.printPage(br.firstRow - (br.dispRows >> 1))
+			// scroll half page backward/up
+			br.scrollUp(br.dispRows >> 1)
 
 		case CMD_PERCENT:
 			// this page position in percentages

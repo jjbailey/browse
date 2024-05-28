@@ -81,7 +81,7 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 
 		// display strategy: go to the page wherever the next match occurs
 
-		if PAGE_SEARCH || x.lastMatch == SEARCH_RESET {
+		if x.lastMatch == SEARCH_RESET {
 			x.printPage(sop)
 			return
 		}
@@ -103,11 +103,13 @@ func (x *browseObj) pageIsMatch(sop, eop int) (int, int) {
 
 	firstMatch := 0
 	lastMatch := 0
+	foundMatch := false
 
 	for lineno := sop; lineno < eop; lineno++ {
 		if matches, _ := x.lineIsMatch(lineno); matches > 0 {
-			if firstMatch == 0 {
+			if !foundMatch {
 				firstMatch = lineno
+				foundMatch = true
 			}
 
 			lastMatch = lineno

@@ -16,16 +16,8 @@ import (
 )
 
 func (x *browseObj) fileInit(fp *os.File, name string, fromStdin bool) {
-	fileInitDefaults(x)
-
-	x.fp = fp
-	x.fileName = name
-	x.fromStdin = fromStdin
-}
-
-func fileInitDefaults(x *browseObj) {
-	x.seekMap = make(map[int]int64, 1)
-	x.sizeMap = make(map[int]int64, 1)
+	x.seekMap = map[int]int64{0: 0}
+	x.sizeMap = map[int]int64{0: 0}
 	x.mapSiz = 1
 
 	x.ignoreCase = false
@@ -35,28 +27,28 @@ func fileInitDefaults(x *browseObj) {
 	x.shownMsg = false
 	x.saveRC = false
 
-	x.seekMap[0] = 0
-	x.sizeMap[0] = 0
 	x.shiftWidth = 0
 
 	x.modeNumbers = false
+	x.modeScrollUp = false
 	x.modeScrollDown = false
+
+	x.fp = fp
+	x.fileName = name
+	x.fromStdin = fromStdin
 }
 
 func (x *browseObj) screenInit(fp *os.File, name string) {
-	setScreenValues(x, fp, name)
-}
-
-func setScreenValues(x *browseObj, fp *os.File, name string) {
 	x.tty = fp
 	x.title = name
 
-	if width, height, err := term.GetSize(int(x.tty.Fd())); err == nil {
-		x.dispWidth = width
-		x.dispHeight = height
-	} else {
+	width, height, err := term.GetSize(int(x.tty.Fd()))
+
+	if err != nil {
 		x.dispWidth = 80
 		x.dispHeight = 25
+	} else {
+		x.dispWidth, x.dispHeight = width, height
 	}
 
 	x.dispRows = x.dispHeight - 1
