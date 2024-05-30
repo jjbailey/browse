@@ -62,6 +62,7 @@ func (x *browseObj) scrollUp(count int) {
 	// scroll up, toward SOF, stop at SOF
 
 	if x.firstRow <= 0 {
+		x.modeScrollUp = false
 		return
 	}
 
