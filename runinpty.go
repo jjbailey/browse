@@ -89,7 +89,7 @@ func (x *browseObj) ptySignals() {
 				pty.InheritSize(os.Stdout, ptmx)
 
 			default:
-				x.warnMessage(fmt.Sprintf("caught signal %v \n", sig))
+				x.warnMessage(fmt.Sprintf("caught %v \n", sig))
 				x.saneExit()
 			}
 		}
