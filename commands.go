@@ -46,7 +46,7 @@ func commands(br *browseObj) {
 		CMD_MODE_DN         = 'd'
 		CMD_MODE_UP         = 'u'
 		CMD_MODE_TAIL       = 't'
-		CMD_MODE_FOLLOW     = '\005'
+		CMD_MODE_FOLLOW     = 'e'
 		CMD_SOF             = '^'
 		CMD_SOF_1           = '0'
 		CMD_SEARCH_FWD      = '/'
@@ -90,7 +90,7 @@ func commands(br *browseObj) {
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	if br.modeScrollDown {
+	if br.inMotion() {
 		// another attempt to read more
 		time.Sleep(500 * time.Millisecond)
 	}
@@ -107,7 +107,7 @@ func commands(br *browseObj) {
 	moveCursor(2, 1, false)
 	fmt.Print(CURSAVE)
 
-	if br.modeScrollDown {
+	if br.inMotion() {
 		br.pageLast()
 		fmt.Print(CURRESTORE)
 	} else {
@@ -123,18 +123,22 @@ func commands(br *browseObj) {
 		// continuous modes
 
 		if err != nil {
-			if br.modeTail {
-				// in tail mode
-				br.scrollDown(SCROLL_TAIL)
-			}
+			switch br.modeScroll {
 
-			if br.modeScrollUp {
+			case MODE_SCROLL_UP:
 				// in continuous scroll-up mode
 				br.scrollUp(SCROLL_CONT)
-			}
 
-			if br.modeScrollDown {
+			case MODE_SCROLL_DN:
 				// in continuous scroll-down mode
+				br.scrollDown(SCROLL_CONT)
+
+			case MODE_SCROLL_TAIL:
+				// in tail mode
+				br.scrollDown(SCROLL_TAIL)
+
+			case MODE_SCROLL_FOLLOW:
+				// in follow mode
 				br.scrollDown(SCROLL_CONT)
 			}
 
@@ -180,40 +184,29 @@ func commands(br *browseObj) {
 
 		// mode cancellations
 
-		prevMotion := (br.modeTail || br.modeScrollUp || br.modeScrollDown)
+		prevMotion := br.inMotion()
 
 		if string(b) != "" {
-
 			switch b[0] {
-
-			case CMD_MODE_TAIL:
-				// toggle tail mode
-				br.modeTail = !br.modeTail
-				br.modeScrollUp = false
-				br.modeScrollDown = false
 
 			case CMD_MODE_UP:
 				// toggle scroll up mode
-				br.modeScrollUp = !br.modeScrollUp
-				br.modeTail = false
-				br.modeScrollDown = false
+				br.toggleScroll(MODE_SCROLL_UP)
 
 			case CMD_MODE_DN:
 				// toggle scroll down mode
-				br.modeScrollDown = !br.modeScrollDown
-				br.modeTail = false
-				br.modeScrollUp = false
+				br.toggleScroll(MODE_SCROLL_DN)
+
+			case CMD_MODE_TAIL:
+				// toggle tail mode
+				br.toggleScroll(MODE_SCROLL_TAIL)
 
 			case CMD_MODE_FOLLOW:
-				// follow mode
-				br.modeScrollDown = !br.modeScrollDown
-				br.modeTail = false
-				br.modeScrollUp = false
+				// toggle follow mode
+				br.toggleScroll(MODE_SCROLL_FOLLOW)
 
 			default:
-				br.modeTail = false
-				br.modeScrollUp = false
-				br.modeScrollDown = false
+				br.modeScroll = MODE_SCROLL_NONE
 
 				if prevMotion && b[0] == CMD_PAGE_DN_1 {
 					// CMD_PAGE_DN_1 doubles as mode cancel
@@ -235,17 +228,23 @@ func commands(br *browseObj) {
 		case CMD_SCROLL_DN, CMD_SCROLL_DN_1:
 			// scroll forward/down
 			br.scrollDown(1)
+			moveCursor(2, 1, false)
 
 		case CMD_MODE_DN:
 			// follow mode -- follow file leisurely
-			if prevMotion {
-				moveCursor(2, 1, false)
-			} else {
+			if br.inMotion() {
 				fmt.Print(CURRESTORE)
+			} else {
+				moveCursor(2, 1, false)
 			}
 
 		case CMD_MODE_UP:
 			// continuous scroll-up mode
+			if br.inMotion() {
+				fmt.Print(CURRESTORE)
+			} else {
+				moveCursor(2, 1, false)
+			}
 
 		case CMD_PAGE_UP:
 			// page backward/up
@@ -288,14 +287,14 @@ func commands(br *browseObj) {
 		case CMD_MODE_TAIL:
 			// tail mode -- follow file rapidly
 			br.pageLast()
-			if br.modeTail {
+			if br.inMotion() {
 				fmt.Print(CURRESTORE)
 			}
 
 		case CMD_MODE_FOLLOW:
 			// follow mode -- follow file leisurely
 			br.pageLast()
-			if br.modeScrollDown {
+			if br.inMotion() {
 				fmt.Print(CURRESTORE)
 			}
 

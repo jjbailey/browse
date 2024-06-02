@@ -66,7 +66,7 @@ func moveCursor(row int, col int, clrflag bool) {
 
 func printSEOF(what string) {
 	if what == "EOF" {
-		// save for modeTail
+		// save for modeScroll
 		fmt.Printf("\r%s%s", CLEARSCREEN, CURSAVE)
 	}
 

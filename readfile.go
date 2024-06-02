@@ -50,9 +50,7 @@ func readFile(br *browseObj, ch chan bool) {
 			br.warnMessage("File truncated")
 
 			// need to show the user
-			br.modeScrollDown = false
-			br.modeScrollUp = false
-			br.modeTail = false
+			br.modeScroll = MODE_SCROLL_NONE
 			br.shownMsg = false
 
 			// reset and fall through

@@ -49,7 +49,7 @@ func (x *browseObj) scrollDown(count int) {
 		x.lastRow++
 	}
 
-	if x.modeScrollDown || x.modeTail {
+	if x.inMotion() {
 		// in one of the follow modes
 		fmt.Print(CURRESTORE)
 	} else {
@@ -62,7 +62,7 @@ func (x *browseObj) scrollUp(count int) {
 	// scroll up, toward SOF, stop at SOF
 
 	if x.firstRow <= 0 {
-		x.modeScrollUp = false
+		x.modeScroll = MODE_SCROLL_NONE
 		return
 	}
 
@@ -79,10 +79,22 @@ func (x *browseObj) scrollUp(count int) {
 		x.printLine(x.firstRow)
 	}
 
-	if !(x.modeScrollDown || x.modeTail) {
+	if !x.inMotion() {
 		// idle
 		moveCursor(2, 1, false)
 	}
+}
+
+func (x *browseObj) toggleScroll(mode int) {
+	if mode == x.modeScroll {
+		x.modeScroll = MODE_SCROLL_NONE
+	} else {
+		x.modeScroll = mode
+	}
+}
+
+func (x *browseObj) inMotion() bool {
+	return x.modeScroll != MODE_SCROLL_NONE
 }
 
 // vim: set ts=4 sw=4 noet:

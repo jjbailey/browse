@@ -71,6 +71,14 @@ const (
 	MSG_ORANGE = _VID_BOLD + _VID_BLACK_FG + _VID_ORANGE_BG
 )
 
+const (
+	MODE_SCROLL_NONE   = 0
+	MODE_SCROLL_UP     = 1
+	MODE_SCROLL_DN     = 2
+	MODE_SCROLL_TAIL   = 3
+	MODE_SCROLL_FOLLOW = 4
+)
+
 type browseObj struct {
 	// screen vars
 	tty        *os.File
@@ -101,10 +109,8 @@ type browseObj struct {
 	saveRC     bool
 
 	// modes
-	modeNumbers    bool
-	modeScrollUp   bool
-	modeScrollDown bool
-	modeTail       bool
+	modeNumbers bool
+	modeScroll  int
 }
 
 // vim: set ts=4 sw=4 noet:
