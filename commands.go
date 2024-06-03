@@ -250,11 +250,14 @@ func commands(br *browseObj) {
 			// page backward/up
 			if br.firstRow > 0 {
 				br.pageUp()
+			} else {
+				moveCursor(2, 1, false)
 			}
 
 		case CMD_SCROLL_UP:
 			// scroll backward/up
 			br.scrollUp(1)
+			moveCursor(2, 1, false)
 
 		case CMD_SHIFT_LEFT, CMD_SHIFT_LEFT_1:
 			// horizontal scroll left
