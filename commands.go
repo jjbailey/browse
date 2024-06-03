@@ -240,11 +240,7 @@ func commands(br *browseObj) {
 
 		case CMD_MODE_UP:
 			// continuous scroll-up mode
-			if br.inMotion() {
-				fmt.Print(CURRESTORE)
-			} else {
-				moveCursor(2, 1, false)
-			}
+			moveCursor(2, 1, false)
 
 		case CMD_PAGE_UP:
 			// page backward/up
