@@ -80,7 +80,9 @@ func (x *browseObj) scrollUp(count int) {
 }
 
 func (x *browseObj) toggleScroll(mode int) {
-	if mode == x.modeScroll {
+	// NB: gives no indication of mode switch from follow to tail, or vice-versa
+
+	if mode == x.modeScroll && x.inMotion() {
 		x.modeScroll = MODE_SCROLL_NONE
 	} else {
 		x.modeScroll = mode
