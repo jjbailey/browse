@@ -103,7 +103,9 @@ func main() {
 	br.catchSignals()
 
 	// set options from commandline
-	br.modeScrollDown = *followFlag
+	if *followFlag {
+		br.modeScroll = MODE_SCROLL_FOLLOW
+	}
 	br.ignoreCase = *caseFlag
 	br.modeNumbers = *numberFlag
 

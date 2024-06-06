@@ -22,18 +22,13 @@ func (x *browseObj) scrollDown(count int) {
 		x.restoreLast()
 	}
 
-	if x.lastRow > x.mapSiz {
+	if x.lastRow > x.mapSiz || x.hitEOF {
 		// nothing more to show
 		return
 	}
 
-	for i := 0; i < count; i++ {
+	for i := 0; i < count && !x.hitEOF; i++ {
 		// printLine finds EOF, sets hitEOF
-
-		if x.hitEOF {
-			break
-		}
-
 		// add line -- +1 for header
 		moveCursor(x.lastRow+1, 1, false)
 
@@ -49,7 +44,7 @@ func (x *browseObj) scrollDown(count int) {
 		x.lastRow++
 	}
 
-	if x.modeScrollDown || x.modeTail {
+	if x.inMotion() {
 		// in one of the follow modes
 		fmt.Print(CURRESTORE)
 	} else {
@@ -59,13 +54,14 @@ func (x *browseObj) scrollDown(count int) {
 }
 
 func (x *browseObj) scrollUp(count int) {
-	// scroll up, toward SOF, stop at SOF
-
 	if x.firstRow <= 0 {
+		x.modeScroll = MODE_SCROLL_NONE
 		return
 	}
 
-	for i := 0; i < count && x.firstRow > 0; i++ {
+	rowsToScroll := minimum(count, x.firstRow)
+
+	for i := 0; i < rowsToScroll; i++ {
 		x.firstRow--
 		x.lastRow--
 
@@ -78,10 +74,23 @@ func (x *browseObj) scrollUp(count int) {
 		x.printLine(x.firstRow)
 	}
 
-	if !(x.modeScrollDown || x.modeTail) {
-		// idle
+	if !x.inMotion() {
 		moveCursor(2, 1, false)
 	}
+}
+
+func (x *browseObj) toggleScroll(mode int) {
+	// NB: gives no indication of mode switch from follow to tail, or vice-versa
+
+	if mode == x.modeScroll && x.inMotion() {
+		x.modeScroll = MODE_SCROLL_NONE
+	} else {
+		x.modeScroll = mode
+	}
+}
+
+func (x *browseObj) inMotion() bool {
+	return x.modeScroll != MODE_SCROLL_NONE
 }
 
 // vim: set ts=4 sw=4 noet:

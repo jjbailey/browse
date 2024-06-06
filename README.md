@@ -84,12 +84,13 @@ When a filename is absent, browse attempts to restore the session saved in ~/.br
 | ^B<br> ^U<br> Z | Scroll half page up toward SOF |
 | +<br> [RIGHT]<br> [ENTER] | Scroll one line toward EOF |
 | -<br> [LEFT] | Scroll one line toward SOF |
-| u<br> [UP] | Toggle continuous scroll toward SOF, stop at SOF |
 | d<br> [DOWN] | Toggle continuous scroll toward EOF, follow at EOF |
+| u<br> [UP] | Toggle continuous scroll toward SOF, stop at SOF |
 | ><br> [TAB] | Shift four characters right |
 | <<br> [BACKSPACE] | Shift four characters left |
 | ^<br> [HOME] | Jump to SOF |
-| $<br> [END] | Jump to EOF, follow at EOF |
+| G<br> $ | Jump to EOF |
+| e<br> [END] | Jump to EOF, follow at EOF |
 | t | Jump to EOF, tail at EOF |
 | &nbsp; | &nbsp; |
 | <h4>Jumps/Marks</h4> | <h4>Function</h4> |

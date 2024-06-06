@@ -37,7 +37,7 @@ func (x *browseObj) catchSignals() {
 				x.resizeWindow()
 
 			default:
-				x.warnMessage(fmt.Sprintf("caught signal %v \n", sig))
+				x.warnMessage(fmt.Sprintf("%v \n", sig))
 				x.saneExit()
 			}
 		}
@@ -54,7 +54,7 @@ func (x *browseObj) resizeWindow() {
 	x.pageHeader()
 	x.pageCurrent()
 
-	if x.modeTail || x.modeScrollDown {
+	if x.inMotion() {
 		fmt.Print(CURRESTORE)
 	}
 }

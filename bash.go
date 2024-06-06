@@ -22,6 +22,10 @@ func (x *browseObj) bashCommand() bool {
 	fmt.Print(LINEWRAPON)
 	input, cancel := x.userInput("!")
 
+	if len(input) == 0 {
+		cancel = true
+	}
+
 	if len(input) > 0 {
 		// substitute ! with the previous command
 		bangbuf := subCommandChars(input, "!", prevCommand)
@@ -50,6 +54,8 @@ func (x *browseObj) bashCommand() bool {
 			moveCursor(x.dispHeight, 1, true)
 			x.runInPty(cmdbuf)
 		}
+
+		cancel = false
 	}
 
 	if cancel {

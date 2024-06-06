@@ -17,6 +17,8 @@ import (
 func (x *browseObj) printLine(lineno int) {
 	// print a line from the map, finds EOF, sets hitEOF
 
+	x.hitEOF = windowAtEOF(lineno, x.mapSiz)
+
 	if lineno == 0 {
 		moveCursor(2, 1, true)
 		printSEOF("SOF")
@@ -37,8 +39,6 @@ func (x *browseObj) printLine(lineno int) {
 		// depends on linewrap=false
 		fmt.Printf("\r\n%s%s%s", output, VIDOFF, CLEARLINE)
 	}
-
-	x.hitEOF = windowAtEOF(lineno, x.mapSiz)
 
 	if x.hitEOF {
 		printSEOF("EOF")

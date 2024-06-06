@@ -30,8 +30,7 @@ func (x *browseObj) fileInit(fp *os.File, name string, fromStdin bool) {
 	x.shiftWidth = 0
 
 	x.modeNumbers = false
-	x.modeScrollUp = false
-	x.modeScrollDown = false
+	x.modeScroll = MODE_SCROLL_NONE
 
 	x.fp = fp
 	x.fileName = name
