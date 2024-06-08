@@ -61,15 +61,17 @@ func (x *browseObj) scrollUp(count int) {
 
 	rowsToScroll := minimum(count, x.firstRow)
 
+	if x.shownEOF {
+		// cursor is on the bottom line
+		moveCursor(2, 1, false)
+	}
+
 	for i := 0; i < rowsToScroll; i++ {
 		x.firstRow--
 		x.lastRow--
 
-		// scroll
-		moveCursor(2, 1, false)
-		fmt.Print(SCROLLREV)
-
 		// add line
+		fmt.Print(SCROLLREV)
 		moveCursor(1, 1, false)
 		x.printLine(x.firstRow)
 	}
