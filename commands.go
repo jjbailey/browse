@@ -191,19 +191,19 @@ func commands(br *browseObj) {
 
 			case CMD_MODE_UP:
 				// toggle scroll up mode
-				br.toggleScroll(MODE_SCROLL_UP)
+				br.toggleMode(MODE_SCROLL_UP)
 
 			case CMD_MODE_DN:
 				// toggle scroll down mode
-				br.toggleScroll(MODE_SCROLL_DN)
+				br.toggleMode(MODE_SCROLL_DN)
 
 			case CMD_MODE_TAIL:
 				// toggle tail mode
-				br.toggleScroll(MODE_SCROLL_TAIL)
+				br.toggleMode(MODE_SCROLL_TAIL)
 
 			case CMD_MODE_FOLLOW:
 				// toggle follow mode
-				br.toggleScroll(MODE_SCROLL_FOLLOW)
+				br.toggleMode(MODE_SCROLL_FOLLOW)
 
 			default:
 				br.modeScroll = MODE_SCROLL_NONE
