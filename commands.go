@@ -358,6 +358,7 @@ func commands(br *browseObj) {
 		case CMD_HALF_PAGE_DN, CMD_HALF_PAGE_DN_1, CMD_HALF_PAGE_DN_2:
 			// scroll half page forward/down
 			br.scrollDown(br.dispRows >> 1)
+			moveCursor(2, 1, false)
 
 		case CMD_HALF_PAGE_UP, CMD_HALF_PAGE_UP_1, CMD_HALF_PAGE_UP_2:
 			// scroll half page backward/up
