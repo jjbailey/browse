@@ -283,15 +283,8 @@ func commands(br *browseObj) {
 			br.modeNumbers = !br.modeNumbers
 			br.pageCurrent()
 
-		case CMD_MODE_TAIL:
-			// tail mode -- follow file rapidly
-			br.pageLast()
-			if br.inMotion() {
-				fmt.Print(CURRESTORE)
-			}
-
-		case CMD_MODE_FOLLOW:
-			// follow mode -- follow file leisurely
+		case CMD_MODE_TAIL, CMD_MODE_FOLLOW:
+			// tail or follow
 			br.pageLast()
 			if br.inMotion() {
 				fmt.Print(CURRESTORE)
