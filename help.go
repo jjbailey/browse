@@ -19,8 +19,6 @@ func (x *browseObj) printHelp() {
 
 	lines := []string{
 		"                                                                 ",
-		"   Browse                        Version " + BR_VERSION + "                    ",
-		"                                                                 ",
 		"   Command                       Function                        ",
 		"   f [PAGE DOWN]  b [PAGE UP]    Page down/up                    ",
 		"   ^F ^D z  ^B ^U Z              Scroll half page down/up        ",
@@ -59,17 +57,21 @@ func (x *browseObj) printHelp() {
 	}
 
 	// top line
-
 	col := int((x.dispWidth - helpWidth) / 2)
 	fmt.Print(VIDHELP)
 	moveCursor(3, col, false)
 	fmt.Printf(ENTERGRAPHICS + UPPERLEFT)
-	fmt.Print(strings.Repeat(HORIZLINE, len(lines[0])))
+	fmt.Print(strings.Repeat(HORIZLINE, helpWidth))
 	fmt.Printf(UPPERRIGHT + EXITGRAPHICS)
 
-	// body
+	// title
+	moveCursor(3, col+3, false)
+	fmt.Printf(" Browse ")
+	moveCursor(3, col+12, false)
+	fmt.Printf(" v" + BR_VERSION + " ")
 
-	for i = 0; i < len(lines); i++ {
+	// body
+	for i = 0; i < helpHeight; i++ {
 		moveCursor(i+4, col, false)
 
 		fmt.Printf("%s%s%s%s%s%s%s",
@@ -79,10 +81,9 @@ func (x *browseObj) printHelp() {
 	}
 
 	// bottom line
-
 	moveCursor(i+4, col, false)
 	fmt.Printf(ENTERGRAPHICS + LOWERLEFT)
-	fmt.Print(strings.Repeat(HORIZLINE, len(lines[0])))
+	fmt.Print(strings.Repeat(HORIZLINE, helpWidth))
 	fmt.Printf(LOWERRIGHT + EXITGRAPHICS)
 	fmt.Print(VIDOFF)
 

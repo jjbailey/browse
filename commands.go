@@ -191,19 +191,19 @@ func commands(br *browseObj) {
 
 			case CMD_MODE_UP:
 				// toggle scroll up mode
-				br.toggleScroll(MODE_SCROLL_UP)
+				br.toggleMode(MODE_SCROLL_UP)
 
 			case CMD_MODE_DN:
 				// toggle scroll down mode
-				br.toggleScroll(MODE_SCROLL_DN)
+				br.toggleMode(MODE_SCROLL_DN)
 
 			case CMD_MODE_TAIL:
 				// toggle tail mode
-				br.toggleScroll(MODE_SCROLL_TAIL)
+				br.toggleMode(MODE_SCROLL_TAIL)
 
 			case CMD_MODE_FOLLOW:
 				// toggle follow mode
-				br.toggleScroll(MODE_SCROLL_FOLLOW)
+				br.toggleMode(MODE_SCROLL_FOLLOW)
 
 			default:
 				br.modeScroll = MODE_SCROLL_NONE
@@ -283,15 +283,8 @@ func commands(br *browseObj) {
 			br.modeNumbers = !br.modeNumbers
 			br.pageCurrent()
 
-		case CMD_MODE_TAIL:
-			// tail mode -- follow file rapidly
-			br.pageLast()
-			if br.inMotion() {
-				fmt.Print(CURRESTORE)
-			}
-
-		case CMD_MODE_FOLLOW:
-			// follow mode -- follow file leisurely
+		case CMD_MODE_TAIL, CMD_MODE_FOLLOW:
+			// tail or follow
 			br.pageLast()
 			if br.inMotion() {
 				fmt.Print(CURRESTORE)
@@ -358,6 +351,7 @@ func commands(br *browseObj) {
 		case CMD_HALF_PAGE_DN, CMD_HALF_PAGE_DN_1, CMD_HALF_PAGE_DN_2:
 			// scroll half page forward/down
 			br.scrollDown(br.dispRows >> 1)
+			moveCursor(2, 1, false)
 
 		case CMD_HALF_PAGE_UP, CMD_HALF_PAGE_UP_1, CMD_HALF_PAGE_UP_2:
 			// scroll half page backward/up
