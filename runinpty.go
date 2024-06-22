@@ -31,6 +31,7 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 	ptmx, err = pty.Start(cmd)
 
 	if err != nil {
+		// reset signals
 		x.catchSignals()
 		return err
 	}
@@ -40,10 +41,8 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 	pty.InheritSize(os.Stdout, ptmx)
 	ptySave, err := term.MakeRaw(int(os.Stdout.Fd()))
 
-	if err != nil {
-		x.catchSignals()
-		return err
-	}
+	// reset signals
+	x.catchSignals()
 
 	execOK := make(chan bool)
 	go func(ch chan bool) {
@@ -51,20 +50,16 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 		ch <- true
 	}(execOK)
 	io.Copy(os.Stdout, ptmx)
+	cmd.Wait()
 
+	// restore and reset window size
 	term.Restore(int(os.Stdout.Fd()), ptySave)
-
-	// reset window size
 	pty.InheritSize(os.Stdout, ptmx)
 	x.dispHeight, x.dispWidth, _ = pty.Getsize(ptmx)
 	x.dispRows = x.dispHeight - 1
 
 	moveCursor(x.dispHeight, 1, true)
 	fmt.Printf(MSG_GREEN + " Press any key to continue... " + VIDOFF)
-
-	// reset signals
-	x.catchSignals()
-
 	<-execOK
 	return nil
 }
@@ -76,7 +71,6 @@ func (x *browseObj) ptySignals() {
 	signal.Reset(syscall.SIGWINCH)
 	signal.Notify(sigChan)
 	signal.Ignore(syscall.SIGALRM)
-	signal.Ignore(syscall.SIGCHLD)
 	signal.Ignore(syscall.SIGURG)
 
 	go func() {
