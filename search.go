@@ -87,11 +87,12 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 		}
 
 		// display strategy: reposition the page to provide match context
+		// 1/8 forward, 7/8 reverse
 
 		if searchFwd {
 			x.printPage(firstMatch - (x.dispRows >> 3))
 		} else {
-			x.printPage(lastMatch - (x.dispRows - (x.dispRows >> 3)))
+			x.printPage(lastMatch - (x.dispRows>>3)*7)
 		}
 
 		return
