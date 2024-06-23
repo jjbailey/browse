@@ -1,5 +1,6 @@
 // help.go
 // the help screen
+// ignore SIGWINCH here
 //
 // Copyright (c) 2024 jjb
 // All rights reserved.
@@ -11,7 +12,9 @@ package main
 
 import (
 	"fmt"
+	"os/signal"
 	"strings"
+	"syscall"
 )
 
 func (x *browseObj) printHelp() {
@@ -87,9 +90,17 @@ func (x *browseObj) printHelp() {
 	fmt.Printf(LOWERRIGHT + EXITGRAPHICS)
 	fmt.Print(VIDOFF)
 
+	// signals
+	signal.Ignore(syscall.SIGWINCH)
+
 	// prompt is in the body of the help screen
 	x.userAnyKey("")
-	x.pageCurrent()
+
+	// restore and reset window size
+	x.resizeWindow()
+
+	// reset signals
+	x.catchSignals()
 }
 
 // vim: set ts=4 sw=4 noet:
