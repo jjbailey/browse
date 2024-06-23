@@ -23,7 +23,7 @@ import (
 // global to avoid race
 var ptmx *os.File
 
-func (x *browseObj) runInPty(cmdbuf string) error {
+func (x *browseObj) runInPty(cmdbuf string) {
 	var err error
 
 	cmd := exec.Command("bash", "-c", cmdbuf)
@@ -33,7 +33,7 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 	if err != nil {
 		// reset signals
 		x.catchSignals()
-		return err
+		return
 	}
 
 	moveCursor(x.dispHeight, 1, true)
@@ -61,7 +61,6 @@ func (x *browseObj) runInPty(cmdbuf string) error {
 	moveCursor(x.dispHeight, 1, true)
 	fmt.Printf(MSG_GREEN + " Press any key to continue... " + VIDOFF)
 	<-execOK
-	return nil
 }
 
 func (x *browseObj) ptySignals() {
