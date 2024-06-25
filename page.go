@@ -29,7 +29,7 @@ func (x *browseObj) pageDown() {
 func (x *browseObj) pageHeader() {
 	// print the header line
 
-	// if the title is too long, fit to size, include elipsis
+	// if the title is too long, fit to size, include ellipsis
 	dispTitle := x.title
 	lenDiff := (len(x.title) - x.dispWidth) + 6 + 3
 

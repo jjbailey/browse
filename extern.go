@@ -1,5 +1,5 @@
 // extern.go
-// verious constants, the structure of a browser object
+// various constants, the structure of a browser object
 //
 // Copyright (c) 2024 jjb
 // All rights reserved.
