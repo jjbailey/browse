@@ -1,4 +1,4 @@
-module internetguy.net/main
+module internetguy.net/browse
 
 go 1.18
 
