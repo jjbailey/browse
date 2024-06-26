@@ -20,6 +20,11 @@ import (
 	"golang.org/x/term"
 )
 
+const (
+	RUNSIGS  = 1
+	WAITSIGS = 2
+)
+
 // global to avoid race
 var ptmx *os.File
 
@@ -27,7 +32,8 @@ func (x *browseObj) runInPty(cmdbuf string) {
 	var err error
 
 	cmd := exec.Command("bash", "-c", cmdbuf)
-	x.ptySignals()
+	// child signals
+	x.ptySignals(RUNSIGS)
 	ptmx, err = pty.Start(cmd)
 
 	if err != nil {
@@ -39,10 +45,10 @@ func (x *browseObj) runInPty(cmdbuf string) {
 	moveCursor(x.dispHeight, 1, true)
 	defer ptmx.Close()
 	pty.InheritSize(os.Stdout, ptmx)
-	ptySave, err := term.MakeRaw(int(os.Stdout.Fd()))
+	ptySave, _ := term.MakeRaw(int(os.Stdout.Fd()))
 
-	// reset signals
-	x.catchSignals()
+	// parent signals
+	x.ptySignals(WAITSIGS)
 
 	execOK := make(chan bool)
 	go func(ch chan bool) {
@@ -61,21 +67,29 @@ func (x *browseObj) runInPty(cmdbuf string) {
 	moveCursor(x.dispHeight, 1, true)
 	fmt.Printf(MSG_GREEN + " Press any key to continue... " + VIDOFF)
 	<-execOK
+
+	// reset signals
+	x.catchSignals()
 }
 
-func (x *browseObj) ptySignals() {
-	// signals
+func (x *browseObj) ptySignals(sigSet int) {
+	// signals for pty processing
 
 	sigChan := make(chan os.Signal, 1)
-	signal.Reset(syscall.SIGWINCH)
 	signal.Notify(sigChan)
-	signal.Ignore(syscall.SIGALRM)
-	signal.Ignore(syscall.SIGURG)
+
+	switch sigSet {
+
+	case RUNSIGS:
+		signal.Ignore(syscall.SIGALRM, syscall.SIGURG)
+		signal.Reset(syscall.SIGWINCH)
+
+	case WAITSIGS:
+		signal.Ignore(syscall.SIGALRM, syscall.SIGCHLD, syscall.SIGURG)
+	}
 
 	go func() {
-		for {
-			sig := <-sigChan
-
+		for sig := range sigChan {
 			switch sig {
 
 			case syscall.SIGWINCH:
