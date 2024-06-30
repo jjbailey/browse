@@ -1,5 +1,5 @@
 // extern.go
-// verious constants, the structure of a browser object
+// various constants, the structure of a browser object
 //
 // Copyright (c) 2024 jjb
 // All rights reserved.
@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	BR_VERSION   = "0.30"
+	BR_VERSION   = "0.31"
 	READBUFSIZ   = 512
 	TABWIDTH     = 4
 	MAXMARKS     = 10

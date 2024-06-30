@@ -19,7 +19,7 @@ import (
 )
 
 func (x *browseObj) catchSignals() {
-	// signals
+	// standard signal disposition
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan)
