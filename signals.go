@@ -37,7 +37,7 @@ func (x *browseObj) catchSignals() {
 				x.resizeWindow()
 
 			default:
-				x.warnMessage(fmt.Sprintf("%v \n", sig))
+				x.printMessage(fmt.Sprintf("%v \n", sig), MSG_ORANGE)
 				x.saneExit()
 			}
 		}

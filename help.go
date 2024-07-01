@@ -55,7 +55,7 @@ func (x *browseObj) printHelp() {
 	helpWidth := len(lines[0])
 
 	if x.dispHeight < (helpHeight+4) || x.dispWidth < (helpWidth+2) {
-		x.printMessage("Screen is too small")
+		x.printMessage("Screen is too small", MSG_ORANGE)
 		return
 	}
 

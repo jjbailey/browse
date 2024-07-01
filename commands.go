@@ -320,9 +320,9 @@ func commands(br *browseObj) {
 			br.ignoreCase = !br.ignoreCase
 			br.reCompile(br.pattern)
 			if br.ignoreCase {
-				br.printMessage("Search ignores case")
+				br.printMessage("Search ignores case", MSG_GREEN)
 			} else {
-				br.printMessage("Search considers case")
+				br.printMessage("Search considers case", MSG_GREEN)
 			}
 
 		case CMD_GREP:
@@ -333,7 +333,7 @@ func commands(br *browseObj) {
 			// clear the search pattern
 			br.re = nil
 			br.pattern = ""
-			br.printMessage("Search pattern cleared")
+			br.printMessage("Search pattern cleared", MSG_GREEN)
 
 		case CMD_MARK:
 			// mark page
@@ -342,7 +342,7 @@ func commands(br *browseObj) {
 				br.restoreLast()
 			} else if m := getMark(lbuf); m != 0 {
 				br.marks[m] = br.firstRow
-				br.printMessage(fmt.Sprintf("Mark %d at line %d", m, br.marks[m]))
+				br.printMessage(fmt.Sprintf("Mark %d at line %d", m, br.marks[m]), MSG_GREEN)
 			}
 
 		case CMD_BASH:
@@ -362,7 +362,7 @@ func commands(br *browseObj) {
 			// +1 for EOF
 			t := float32(br.firstRow) / float32(br.mapSiz+1) * 100.0
 			b := float32(br.lastRow) / float32(br.mapSiz+1) * 100.0
-			br.printMessage(fmt.Sprintf("Position is %1.2f%% - %1.2f%%", t, b))
+			br.printMessage(fmt.Sprintf("Position is %1.2f%% - %1.2f%%", t, b), MSG_GREEN)
 
 		case CMD_QUIT:
 			// quit -- this is the only way to save an rc file

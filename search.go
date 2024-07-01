@@ -18,7 +18,7 @@ import (
 // %6d + one space
 const NUMCOLWIDTH = 7
 
-func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
+func (x *browseObj) searchFile(pattern string, searchDir, next bool) bool {
 	var sop, eop int
 	var wrapped, warned bool
 	var firstMatch, lastMatch int
@@ -35,13 +35,13 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 	patternLen, err := x.reCompile(pattern)
 
 	if err != nil {
-		x.warnMessage(fmt.Sprintf("%v", err))
-		return
+		x.printMessage(fmt.Sprintf("%v", err), MSG_ORANGE)
+		return false
 	}
 
 	if patternLen == 0 {
-		x.warnMessage("No search pattern")
-		return
+		x.printMessage("No search pattern", MSG_ORANGE)
+		return false
 	}
 
 	// where to start search
@@ -61,14 +61,14 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 
 		if wrapped {
 			if warned {
-				x.warnMessage("Pattern not found: " + x.pattern)
-				return
+				x.printMessage("Pattern not found: "+x.pattern, MSG_ORANGE)
+				return false
 			}
 
 			if searchFwd {
-				x.timedMessage("Resuming search from SOF")
+				x.timedMessage("Resuming search from SOF", MSG_GREEN)
 			} else {
-				x.timedMessage("Resuming search from EOF")
+				x.timedMessage("Resuming search from EOF", MSG_GREEN)
 			}
 
 			warned = true
@@ -83,7 +83,7 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 
 		if x.lastMatch == SEARCH_RESET {
 			x.printPage(sop)
-			return
+			return true
 		}
 
 		// display strategy: reposition the page to provide match context
@@ -95,7 +95,7 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) {
 			x.printPage(lastMatch - (x.dispRows>>3)*7)
 		}
 
-		return
+		return true
 	}
 }
 
@@ -224,7 +224,7 @@ func (x *browseObj) doSearch(oldDir, newDir bool) bool {
 
 	if oldDir != newDir && (len(patbuf) > 0 || len(x.pattern) > 0) {
 		// print direction
-		x.timedMessage(message)
+		x.timedMessage(message, MSG_GREEN)
 	}
 
 	if len(patbuf) == 0 {
