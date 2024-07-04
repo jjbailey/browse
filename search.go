@@ -269,7 +269,7 @@ func (x *browseObj) reCompile(pattern string) (int, error) {
 
 	x.pattern = pattern
 	x.re = re
-	x.replstr = fmt.Sprintf("%s%s%s", VIDPATTERN, "$0", VIDOFF)
+	x.replstr = fmt.Sprintf("%s%s%s", MSG_GREEN, "$0", VIDOFF)
 
 	return len(pattern), nil
 }
