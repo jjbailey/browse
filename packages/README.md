@@ -1,6 +1,6 @@
 ## Packages for browse
 
-This directory contains unsigned packages for browse.  The packages contain a single static binary called `browse` and a symlink to it called `br`.  The commands install in `/usr/local/bin`.
+This directory contains signed packages for browse.  The packages contain a single static binary called `browse` and a symlink to it called `br`.  The commands install in `/usr/local/bin`.
 
 ## Build
 
