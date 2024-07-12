@@ -40,6 +40,11 @@ func (x *browseObj) printLine(lineno int) {
 		fmt.Printf("\r\n%s%s%s", output, VIDOFF, CLEARLINE)
 	}
 
+	if lineno < x.dispRows {
+		// save cursor when screen is not full
+		fmt.Printf("\r%s", CURSAVE)
+	}
+
 	if x.hitEOF {
 		printSEOF("EOF")
 	}
