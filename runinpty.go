@@ -96,7 +96,7 @@ func (x *browseObj) ptySignals(sigSet int) {
 				pty.InheritSize(os.Stdout, ptmx)
 
 			default:
-				x.warnMessage(fmt.Sprintf("%v \n", sig))
+				x.printMessage(fmt.Sprintf("%v \n", sig), MSG_ORANGE)
 				x.saneExit()
 			}
 		}

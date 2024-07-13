@@ -40,6 +40,11 @@ func (x *browseObj) printLine(lineno int) {
 		fmt.Printf("\r\n%s%s%s", output, VIDOFF, CLEARLINE)
 	}
 
+	if lineno < x.dispRows {
+		// save cursor when screen is not full
+		fmt.Printf("\r%s", CURSAVE)
+	}
+
 	if x.hitEOF {
 		printSEOF("EOF")
 	}
@@ -100,28 +105,17 @@ func (x *browseObj) printPage(lineno int) {
 	x.lastRow = i
 }
 
-func (x *browseObj) timedMessage(msg string) {
-	x.printMessage(msg)
+func (x *browseObj) timedMessage(msg string, color string) {
+	x.printMessage(msg, color)
 	// sleep time is arbitrary
 	time.Sleep(1250 * time.Millisecond)
 }
 
-func (x *browseObj) printMessage(msg string) {
+func (x *browseObj) printMessage(msg string, color string) {
 	// print a message on the bottom line of the display
 
 	moveCursor(x.dispHeight, 1, true)
-	fmt.Printf("%s %s %s", MSG_GREEN, msg, VIDOFF)
-	moveCursor(2, 1, false)
-
-	// scrollDown needs this
-	x.shownMsg = true
-}
-
-func (x *browseObj) warnMessage(msg string) {
-	// print a warning on the bottom line of the display
-
-	moveCursor(x.dispHeight, 1, true)
-	fmt.Printf("%s %s %s", MSG_ORANGE, msg, VIDOFF)
+	fmt.Printf("%s %s %s", color, msg, VIDOFF)
 	moveCursor(2, 1, false)
 
 	// scrollDown needs this

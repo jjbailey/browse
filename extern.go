@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	BR_VERSION   = "0.31"
+	BR_VERSION   = "0.32"
 	READBUFSIZ   = 512
 	TABWIDTH     = 4
 	MAXMARKS     = 10
@@ -50,25 +50,27 @@ const (
 
 const (
 	// colors
-	_VID_BLACK_FG  = "\033[38;5;16m"
-	_VID_BLINK     = "\033[5m"
+	_VID_BLINK = "\033[5m"
+	_VID_BOLD  = "\033[1m"
+	_VID_REV   = "\033[7m"
+	_VID_OFF   = "\033[0m"
+
+	_VID_BLACK_FG = "\033[38;5;16m"
+	_VID_WHITE_FG = "\033[38;5;15m"
+
 	_VID_BLUE_BG   = "\033[48;5;21m"
-	_VID_BOLD      = "\033[1m"
-	_VID_GREEN     = "\033[32m"
 	_VID_GREEN_BG  = "\033[48;5;46m"
 	_VID_ORANGE_BG = "\033[48;5;208m"
-	_VID_REV       = "\033[7m"
-	_VID_WHITE_FG  = "\033[38;5;15m"
-	_VID_OFF       = "\033[0m"
+	_VID_RED_BG    = "\033[48;5;160m"
 
 	VIDBLINK   = _VID_BLINK
 	VIDBOLDREV = _VID_BOLD + _VID_REV
 	VIDHELP    = _VID_WHITE_FG + _VID_BLUE_BG
 	VIDOFF     = _VID_OFF
-	VIDPATTERN = MSG_GREEN
 
 	MSG_GREEN  = _VID_BOLD + _VID_BLACK_FG + _VID_GREEN_BG
 	MSG_ORANGE = _VID_BOLD + _VID_BLACK_FG + _VID_ORANGE_BG
+	MSG_RED    = _VID_BOLD + _VID_WHITE_FG + _VID_RED_BG
 )
 
 const (

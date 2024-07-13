@@ -47,7 +47,7 @@ func readFile(br *browseObj, ch chan bool) {
 		if newFileSiz < savFileSiz {
 			// file shrunk -- reinitialize
 			br.fileInit(br.fp, br.fileName, br.fromStdin)
-			br.warnMessage("File truncated")
+			br.printMessage("File truncated", MSG_ORANGE)
 
 			// need to show the user
 			br.modeScroll = MODE_SCROLL_NONE
