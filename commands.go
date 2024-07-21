@@ -83,22 +83,8 @@ func commands(br *browseObj) {
 	// seed the saved search pattern
 	br.reCompile(br.pattern)
 
-	// reasons for a delayed start
-
-	if br.fromStdin {
-		// wait for some input
-		time.Sleep(500 * time.Millisecond)
-	}
-
-	if br.inMotion() {
-		// another attempt to read more
-		time.Sleep(500 * time.Millisecond)
-	}
-
-	if br.firstRow > br.mapSiz {
-		// one last attempt for big files
-		time.Sleep(500 * time.Millisecond)
-	}
+	// wait for a full page
+	waitForInput(br, br.dispHeight)
 
 	ttyBrowser()
 	br.pageHeader()
@@ -386,6 +372,18 @@ func commands(br *browseObj) {
 			// no modes active
 			moveCursor(2, 1, false)
 		}
+	}
+}
+
+func waitForInput(br *browseObj, lineno int) {
+	// wait for input, up to lineno
+
+	for i := 0; i < 10; i++ {
+		if br.mapSiz > lineno {
+			break
+		}
+
+		time.Sleep(250 * time.Millisecond)
 	}
 }
 
