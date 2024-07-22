@@ -35,7 +35,7 @@ func readFile(br *browseObj, ch chan bool) {
 
 	if br.fromStdin {
 		// wait for some input from stdin
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(time.Second)
 	}
 
 	for {
