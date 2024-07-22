@@ -100,6 +100,9 @@ func commands(br *browseObj) {
 		br.pageCurrent()
 	}
 
+	// handle panic
+	defer handlePanic(br)
+
 	for {
 		// scan for input -- compare 4 characters
 
@@ -385,6 +388,17 @@ func waitForInput(br *browseObj, lineno int) {
 
 		time.Sleep(250 * time.Millisecond)
 	}
+}
+
+func handlePanic(br *browseObj) {
+	// graceful exit
+
+	if r := recover(); r != nil {
+		moveCursor(br.dispHeight-1, 1, true)
+		fmt.Printf("%s%s panic: %v %s\n", CLEARSCREEN, MSG_RED, r, VIDOFF)
+	}
+
+	br.saneExit()
 }
 
 // vim: set ts=4 sw=4 noet:
