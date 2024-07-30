@@ -14,8 +14,13 @@ import (
 	"errors"
 	"io"
 	"os"
+	"sync"
 	"syscall"
 	"time"
+)
+
+var (
+	mutex sync.Mutex
 )
 
 func readFile(br *browseObj, ch chan bool) {
@@ -30,17 +35,21 @@ func readFile(br *browseObj, ch chan bool) {
 
 	if br.fromStdin {
 		// wait for some input from stdin
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(time.Second)
 	}
 
 	for {
+		mutex.Lock()
 		newFileSiz, err = getFileSize(br.fp)
 
 		if err != nil {
+			// fatal
+
 			if !notified {
 				ch <- false
 			}
 
+			mutex.Unlock()
 			return
 		}
 
@@ -75,10 +84,6 @@ func readFile(br *browseObj, ch chan bool) {
 				bytesRead += int64(lineLen)
 				br.sizeMap[br.mapSiz] = int64(minimum(lineLen-1, READBUFSIZ))
 				br.mapSiz++
-
-				// init the next map entry
-				br.seekMap[br.mapSiz] = 0
-				br.sizeMap[br.mapSiz] = 0
 			}
 
 			br.hitEOF = false
@@ -92,15 +97,18 @@ func readFile(br *browseObj, ch chan bool) {
 		savFileSiz, err = getFileSize(br.fp)
 
 		if err != nil {
+			// fatal
+
 			if !notified {
 				ch <- false
 			}
 
+			mutex.Unlock()
 			return
 		}
 
-		// no hurry
-		time.Sleep(2 * time.Second)
+		mutex.Unlock()
+		time.Sleep(time.Second)
 	}
 }
 
@@ -138,6 +146,9 @@ func (x *browseObj) readStdin(fin, fout *os.File) {
 
 func (x *browseObj) readFromMap(lineno int) []byte {
 	// use the maps to read a line from the file
+
+	mutex.Lock()
+	defer mutex.Unlock()
 
 	if lineno >= x.mapSiz {
 		// should not happen

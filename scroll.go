@@ -40,7 +40,10 @@ func (x *browseObj) scrollDown(count int) {
 
 		x.printLine(x.lastRow)
 
-		x.firstRow++
+		if x.lastRow >= x.dispRows {
+			x.firstRow++
+		}
+
 		x.lastRow++
 	}
 
@@ -85,31 +88,27 @@ func (x *browseObj) toggleMode(mode int) {
 	// arrows and function keys toggle modes, with some
 	// exceptions required for modes to work as users expect
 
+	needsScrollCancel := false
+
 	switch mode {
 
 	case MODE_SCROLL_UP:
 		// toggle
-		if x.modeScroll == mode {
-			x.modeScroll = MODE_SCROLL_NONE
-		} else {
-			x.modeScroll = mode
-		}
+		needsScrollCancel = x.modeScroll == mode
 
 	case MODE_SCROLL_DN:
 		// cancel down or either follow mode, else start this mode
-		if x.inFollow() {
-			x.modeScroll = MODE_SCROLL_NONE
-		} else {
-			x.modeScroll = mode
-		}
+		needsScrollCancel = x.inFollow()
 
 	case MODE_SCROLL_TAIL, MODE_SCROLL_FOLLOW:
 		// cancel either follow mode at EOF, else start this mode
-		if x.inFollow() && x.shownEOF {
-			x.modeScroll = MODE_SCROLL_NONE
-		} else {
-			x.modeScroll = mode
-		}
+		needsScrollCancel = x.inFollow() && x.shownEOF
+	}
+
+	if needsScrollCancel {
+		x.modeScroll = MODE_SCROLL_NONE
+	} else {
+		x.modeScroll = mode
 	}
 }
 

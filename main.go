@@ -96,9 +96,6 @@ func main() {
 	tty, _ = os.Open("/dev/tty")
 	br.screenInit(tty, title)
 
-	// error recovery, graceful exit
-	defer handlePanic(&br)
-
 	// signals
 	br.catchSignals()
 
@@ -128,16 +125,6 @@ func main() {
 	}
 
 	// done
-	br.saneExit()
-}
-
-func handlePanic(br *browseObj) {
-	moveCursor(br.dispHeight, 1, true)
-
-	if err := recover(); err != nil {
-		fmt.Printf("panic occurred: %v", err)
-	}
-
 	br.saneExit()
 }
 

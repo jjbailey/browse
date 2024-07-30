@@ -83,22 +83,8 @@ func commands(br *browseObj) {
 	// seed the saved search pattern
 	br.reCompile(br.pattern)
 
-	// reasons for a delayed start
-
-	if br.fromStdin {
-		// wait for some input
-		time.Sleep(500 * time.Millisecond)
-	}
-
-	if br.inMotion() {
-		// another attempt to read more
-		time.Sleep(500 * time.Millisecond)
-	}
-
-	if br.firstRow > br.mapSiz {
-		// one last attempt for big files
-		time.Sleep(500 * time.Millisecond)
-	}
+	// wait for a full page
+	waitForInput(br, br.dispHeight)
 
 	ttyBrowser()
 	br.pageHeader()
@@ -113,6 +99,9 @@ func commands(br *browseObj) {
 	} else {
 		br.pageCurrent()
 	}
+
+	// handle panic
+	defer handlePanic(br)
 
 	for {
 		// scan for input -- compare 4 characters
@@ -387,6 +376,32 @@ func commands(br *browseObj) {
 			moveCursor(2, 1, false)
 		}
 	}
+}
+
+func waitForInput(br *browseObj, lineno int) {
+	// wait for input, up to lineno
+
+	var saveSiz int
+
+	for i := 0; i < 10; i++ {
+		if br.mapSiz > lineno || (i > 3 && br.mapSiz == saveSiz) {
+			break
+		}
+
+		saveSiz = br.mapSiz
+		time.Sleep(200 * time.Millisecond)
+	}
+}
+
+func handlePanic(br *browseObj) {
+	// graceful exit
+
+	if r := recover(); r != nil {
+		moveCursor(br.dispHeight-1, 1, true)
+		fmt.Printf("%s%s panic: %v %s\n", CLEARSCREEN, MSG_RED, r, VIDOFF)
+	}
+
+	br.saneExit()
 }
 
 // vim: set ts=4 sw=4 noet:
