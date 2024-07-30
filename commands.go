@@ -381,12 +381,15 @@ func commands(br *browseObj) {
 func waitForInput(br *browseObj, lineno int) {
 	// wait for input, up to lineno
 
+	var saveSiz int
+
 	for i := 0; i < 10; i++ {
-		if br.mapSiz > lineno {
+		if br.mapSiz > lineno || (i > 3 && br.mapSiz == saveSiz) {
 			break
 		}
 
-		time.Sleep(250 * time.Millisecond)
+		saveSiz = br.mapSiz
+		time.Sleep(200 * time.Millisecond)
 	}
 }
 
