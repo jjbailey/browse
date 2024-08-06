@@ -12,6 +12,7 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
 	"time"
 	"unicode"
 )
@@ -56,6 +57,7 @@ func commands(br *browseObj) {
 		CMD_SEARCH_IGN_CASE = 'i'
 		CMD_GREP            = '&'
 		CMD_PERCENT         = '%'
+		CMD_PERCENT_1       = '\007'
 		CMD_SEARCH_CLEAR    = 'C'
 
 		VK_UP    = "\033[A\000"
@@ -346,12 +348,12 @@ func commands(br *browseObj) {
 			// scroll half page backward/up
 			br.scrollUp(br.dispRows >> 1)
 
-		case CMD_PERCENT:
-			// this page position in percentages
-			// +1 for EOF
-			t := float32(br.firstRow) / float32(br.mapSiz+1) * 100.0
-			b := float32(br.lastRow) / float32(br.mapSiz+1) * 100.0
-			br.printMessage(fmt.Sprintf("Position is %1.2f%% - %1.2f%%", t, b), MSG_GREEN)
+		case CMD_PERCENT, CMD_PERCENT_1:
+			// page position
+			// -1 for SOF
+			t := float32(br.firstRow) / float32(br.mapSiz-1) * 100.0
+			br.printMessage(fmt.Sprintf("\"%s\" %d lines --%1.1f%%--",
+				filepath.Base(br.fileName), br.mapSiz-1, t), MSG_GREEN)
 
 		case CMD_QUIT:
 			// quit -- this is the only way to save an rc file
