@@ -110,7 +110,7 @@ When a filename is absent, browse attempts to restore the session saved in ~/.br
 | &nbsp; | &nbsp; |
 | <h4>Miscellaneous</h4> | <h4>Function</h4> |
 | # | Toggle line numbers on and off |
-| % | Page position in percentages |
+| %<br> ^G | Page position |
 | ! | Run a bash command (expands !, %, &) |
 | q | Quit browse, save session in ~/.browserc |
 | Q | Quit browse, do not save session |
