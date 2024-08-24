@@ -95,6 +95,7 @@ func readFile(br *browseObj, ch chan bool) {
 		}
 
 		savFileSiz, err = getFileSize(br.fp)
+		mutex.Unlock()
 
 		if err != nil {
 			// fatal
@@ -103,11 +104,9 @@ func readFile(br *browseObj, ch chan bool) {
 				ch <- false
 			}
 
-			mutex.Unlock()
 			return
 		}
 
-		mutex.Unlock()
 		time.Sleep(time.Second)
 	}
 }
