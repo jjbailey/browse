@@ -188,7 +188,7 @@ func (x *browseObj) replaceMatch(lineno int, input string) string {
 		leftMatch, rightMatch = x.undisplayedMatches(input, sol, eol)
 
 		if leftMatch || rightMatch {
-			line = _VID_BOLD + x.re.ReplaceAllString(input[sol:], x.replstr)
+			line = _VID_GREEN_FG + x.re.ReplaceAllString(input[sol:], x.replstr + _VID_GREEN_FG)
 		} else {
 			line = x.re.ReplaceAllString(input[sol:], x.replstr)
 		}
