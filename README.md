@@ -34,6 +34,10 @@ browse has several scrolling/following modes:
 
 - The cursor position indicates whether or not browse is following the file.  If the cursor is in the lower left-hand corner, browse follows.  If the cursor is in the upper left-hand corner, browse is idle.
 
+## Searching
+
+browse utilizes the RE2 regular expression syntax for pattern matching, highlighting all the matches on a line.  When browse finds matches not on the visible screen, browse highlights the entire line.  Scroll right or left to highlight the match(es).
+
 ## Saved Sessions
 
 browse saves sessions in ~/.browserc.  The format of the file is plaintext containing the following lines:

@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	BR_VERSION   = "0.35"
+	BR_VERSION   = "0.36"
 	READBUFSIZ   = 512
 	TABWIDTH     = 4
 	MAXMARKS     = 10
@@ -57,6 +57,7 @@ const (
 
 	_VID_BLACK_FG = "\033[38;5;16m"
 	_VID_WHITE_FG = "\033[38;5;15m"
+	_VID_GREEN_FG = "\033[38;5;46m"
 
 	_VID_BLUE_BG   = "\033[48;5;21m"
 	_VID_GREEN_BG  = "\033[48;5;46m"
