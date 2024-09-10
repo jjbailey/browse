@@ -188,7 +188,7 @@ func (x *browseObj) replaceMatch(lineno int, input string) string {
 		leftMatch, rightMatch = x.undisplayedMatches(input, sol, eol)
 
 		if leftMatch || rightMatch {
-			line = _VID_GREEN_FG + x.re.ReplaceAllString(input[sol:], x.replstr + _VID_GREEN_FG)
+			line = _VID_GREEN_FG + x.re.ReplaceAllString(input[sol:], x.replstr+_VID_GREEN_FG)
 		} else {
 			line = x.re.ReplaceAllString(input[sol:], x.replstr)
 		}
@@ -282,7 +282,8 @@ func (x *browseObj) undisplayedMatches(input string, sol, eol int) (bool, bool) 
 	for _, index := range x.re.FindAllStringSubmatchIndex(input, -1) {
 		if index[0] < sol {
 			leftMatch = true
-		} else if index[0] > eol {
+		} else if index[0] > eol+1 {
+			// index off-by-one bug here
 			rightMatch = true
 		}
 
