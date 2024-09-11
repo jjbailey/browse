@@ -173,8 +173,8 @@ func (x *browseObj) replaceMatch(lineno int, input string) string {
 	var leftMatch, rightMatch bool
 
 	sol := minimum(x.shiftWidth, len(input))
-	// NB: -2 from the end
-	eol := minimum((sol+x.dispWidth), len(input)) - 2
+	// NB: -1 from the end
+	eol := minimum((sol + x.dispWidth), len(input)) - 1
 
 	if x.modeNumbers {
 		eol -= NUMCOLWIDTH
@@ -282,8 +282,7 @@ func (x *browseObj) undisplayedMatches(input string, sol, eol int) (bool, bool) 
 	for _, index := range x.re.FindAllStringSubmatchIndex(input, -1) {
 		if index[0] < sol {
 			leftMatch = true
-		} else if index[0] > eol+1 {
-			// index off-by-one bug here
+		} else if index[0] > eol {
 			rightMatch = true
 		}
 
