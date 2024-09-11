@@ -10,6 +10,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 	"os"
@@ -17,43 +18,35 @@ import (
 )
 
 func expandTabs(data []byte) []byte {
-	// replace tabs with spaces (TABWIDTH)
-	// silently map CR to space
+	var output []byte
 
-	if !strings.ContainsAny(string(data), "\t\r") {
+	if strings.IndexAny(string(data), "\t\r") == -1 {
 		return data
 	}
 
-	var newdata = make([]byte, READBUFSIZ*2)
-	j := 0
-
-	for i := 0; i < len(data); i++ {
-		switch data[i] {
+	for _, char := range data {
+		switch char {
 
 		case '\r':
-			newdata[j] = ' '
+			// silently map CR to space
+			output = append(output, ' ')
 
 		case '\t':
-			k := TABWIDTH - (j % TABWIDTH)
-
-			for k > 0 {
-				newdata[j] = ' '
-				j++
-				k--
-			}
-
-			continue
+			spaceCount := TABWIDTH - (len(output) % TABWIDTH)
+			output = append(output, bytes.Repeat([]byte{' '}, spaceCount)...)
 
 		default:
-			newdata[j] = data[i]
+			output = append(output, char)
 		}
 
-		if j++; j == READBUFSIZ*2 {
-			break
+		if len(output) == cap(output) {
+			newOutput := make([]byte, len(output), 2*len(output))
+			copy(newOutput, output)
+			output = newOutput
 		}
 	}
 
-	return newdata
+	return output
 }
 
 func moveCursor(row int, col int, clrflag bool) {
