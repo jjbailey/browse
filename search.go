@@ -170,28 +170,27 @@ func (x *browseObj) replaceMatch(lineno int, input string) string {
 	// make the regex replacements and return the new line
 
 	var line string
-	var leftMatch, rightMatch bool
+	sol := x.shiftWidth
 
-	sol := minimum(x.shiftWidth, len(input))
-	// NB: -1 from the end
-	eol := minimum((sol + x.dispWidth), len(input)) - 1
+	if sol >= len(input) {
+		if x.modeNumbers {
+			return fmt.Sprintf("%6d %s", lineno, "")
+		}
 
-	if x.modeNumbers {
-		eol -= NUMCOLWIDTH
+		return ""
 	}
 
 	if x.noSearchPattern() {
-		// no regex
-		line = input[sol:]
-	} else {
-		// regex
-		leftMatch, rightMatch = x.undisplayedMatches(input, sol, eol)
+		return input[sol:]
+	}
 
-		if leftMatch || rightMatch {
-			line = _VID_GREEN_FG + x.re.ReplaceAllString(input[sol:], x.replstr+_VID_GREEN_FG)
-		} else {
-			line = x.re.ReplaceAllString(input[sol:], x.replstr)
-		}
+	// regex
+	leftMatch, rightMatch := x.undisplayedMatches(input, sol)
+
+	if leftMatch || rightMatch {
+		line = _VID_GREEN_FG + x.re.ReplaceAllString(input[sol:], x.replstr+_VID_GREEN_FG)
+	} else {
+		line = x.re.ReplaceAllString(input[sol:], x.replstr)
 	}
 
 	if x.modeNumbers {
@@ -274,20 +273,28 @@ func (x *browseObj) reCompile(pattern string) (int, error) {
 	return len(pattern), nil
 }
 
-func (x *browseObj) undisplayedMatches(input string, sol, eol int) (bool, bool) {
+func (x *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
 	// check for matches to the left and right of the line as displayed
 
 	var leftMatch, rightMatch bool
 
+	newWidth := x.dispWidth
+
+	if x.modeNumbers {
+		newWidth -= NUMCOLWIDTH
+	}
+
 	for _, index := range x.re.FindAllStringSubmatchIndex(input, -1) {
 		if index[0] < sol {
 			leftMatch = true
-		} else if index[0] > eol {
-			rightMatch = true
-		}
+		} else {
+			newIndex := index[0] - x.shiftWidth
 
-		if leftMatch && rightMatch {
-			break
+			if newIndex+2 > newWidth {
+				// NB: off by two
+				rightMatch = true
+				break
+			}
 		}
 	}
 
