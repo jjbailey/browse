@@ -20,7 +20,7 @@ import (
 func expandTabs(data []byte) []byte {
 	var output []byte
 
-	if strings.IndexAny(string(data), "\t\r") == -1 {
+	if !strings.ContainsAny(string(data), "\t\r") {
 		return data
 	}
 
