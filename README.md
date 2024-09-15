@@ -126,3 +126,4 @@ When a filename is absent, browse attempts to restore the session saved in ~/.br
 - Logical lines chopped to the screen width
 - Probably US-centric
 - Can be confused by lines with non-printable characters
+- Tabs mapped to spaces
