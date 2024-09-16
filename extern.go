@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	BR_VERSION   = "0.36"
-	READBUFSIZ   = 512
+	BR_VERSION   = "0.37"
+	READBUFSIZ   = 1024
 	TABWIDTH     = 4
 	MAXMARKS     = 10
 	SEARCH_RESET = 0
@@ -55,14 +55,13 @@ const (
 	_VID_REV   = "\033[7m"
 	_VID_OFF   = "\033[0m"
 
-	_VID_BLACK_FG = "\033[38;5;16m"
-	_VID_WHITE_FG = "\033[38;5;15m"
-	_VID_GREEN_FG = "\033[38;5;46m"
-
+	_VID_BLACK_FG  = "\033[38;5;16m"
 	_VID_BLUE_BG   = "\033[48;5;21m"
 	_VID_GREEN_BG  = "\033[48;5;46m"
+	_VID_GREEN_FG  = "\033[38;5;46m"
 	_VID_ORANGE_BG = "\033[48;5;208m"
 	_VID_RED_BG    = "\033[48;5;160m"
+	_VID_WHITE_FG  = "\033[38;5;15m"
 
 	VIDBLINK   = _VID_BLINK
 	VIDBOLDREV = _VID_BOLD + _VID_REV

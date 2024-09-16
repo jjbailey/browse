@@ -69,7 +69,7 @@ func (x *browseObj) bashCommand() bool {
 }
 
 func subCommandChars(input, char, repl string) string {
-	// negative lookbehind doesn't compile, e.g.
+	// negative lookbehind not supported in golang RE2 engine
 	// pattern := `(?<!\\)%`
 
 	pattern := `(^|[^\\])` + regexp.QuoteMeta(char)
