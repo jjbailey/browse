@@ -181,6 +181,10 @@ func (x *browseObj) replaceMatch(lineno int, input string) string {
 	}
 
 	if x.noSearchPattern() {
+		if x.modeNumbers {
+			return fmt.Sprintf("%6d %s", lineno, input[sol:])
+		}
+
 		return input[sol:]
 	}
 
