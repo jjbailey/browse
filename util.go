@@ -14,39 +14,33 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"strings"
 )
 
 func expandTabs(data []byte) []byte {
-	var output []byte
+	var buf []byte
+	var tab []byte
 
-	if !strings.ContainsAny(string(data), "\t\r") {
+	if !bytes.ContainsAny(data, "\t\r") {
 		return data
 	}
 
-	for _, char := range data {
-		switch char {
+	for _, b := range data {
+		switch b {
 
 		case '\r':
-			// silently map CR to space
-			output = append(output, ' ')
+			// Silently map CR to space
+			buf = append(buf, ' ')
 
 		case '\t':
-			spaceCount := TABWIDTH - (len(output) % TABWIDTH)
-			output = append(output, bytes.Repeat([]byte{' '}, spaceCount)...)
+			tab = bytes.Repeat([]byte{' '}, TABWIDTH-len(buf)%TABWIDTH)
+			buf = append(buf, tab...)
 
 		default:
-			output = append(output, char)
-		}
-
-		if len(output) == cap(output) {
-			newOutput := make([]byte, len(output), 2*len(output))
-			copy(newOutput, output)
-			output = newOutput
+			buf = append(buf, b)
 		}
 	}
 
-	return output
+	return buf
 }
 
 func moveCursor(row int, col int, clrflag bool) {
@@ -98,13 +92,16 @@ func getMark(buf string) int {
 	// scan a mark digit from the buffer
 	// valid marks are 1 - 9
 
-	var d int
+	var mark int
 
-	if _, err := fmt.Sscanf(buf, "%d", &d); err != nil {
+	if _, err := fmt.Sscanf(buf, "%d", &mark); err != nil {
 		return 0
 	}
 
-	return int(minimum(maximum(d, 1), 9))
+	mark = int(math.Max(float64(mark), 1))
+	mark = int(math.Min(float64(mark), 9))
+
+	return mark
 }
 
 // vim: set ts=4 sw=4 noet:
