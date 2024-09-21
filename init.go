@@ -37,17 +37,18 @@ func (x *browseObj) fileInit(fp *os.File, name string, fromStdin bool) {
 	x.fromStdin = fromStdin
 }
 
-func (x *browseObj) screenInit(fp *os.File, name string) {
-	x.tty = fp
-	x.title = name
+func (x *browseObj) screenInit(tty *os.File, title string) {
+	x.tty = tty
+	x.title = title
 
-	width, height, err := term.GetSize(int(x.tty.Fd()))
+	width, height, err := term.GetSize(int(tty.Fd()))
 
 	if err != nil {
 		x.dispWidth = 80
 		x.dispHeight = 25
 	} else {
-		x.dispWidth, x.dispHeight = width, height
+		x.dispWidth = width
+		x.dispHeight = height
 	}
 
 	x.dispRows = x.dispHeight - 1

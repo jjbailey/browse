@@ -21,7 +21,7 @@ import (
 func (x *browseObj) userAnyKey(prompt string) {
 	// wait for a key press
 
-	b := make([]byte, 1)
+	const timeout = 500 * time.Millisecond
 
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT)
 
@@ -32,21 +32,23 @@ func (x *browseObj) userAnyKey(prompt string) {
 	} else {
 		moveCursor(x.dispHeight, 1, true)
 		ttyBrowser()
-		fmt.Printf("%s", prompt)
+		fmt.Print(prompt)
 	}
 
+	b := make([]byte, 1)
+
 	for {
-		count, err := x.tty.Read(b)
+		n, err := x.tty.Read(b)
 
-		if err != nil && err != io.EOF {
-			errorExit(err)
-		}
-
-		if count > 0 {
+		if err != nil {
+			if err != io.EOF {
+				errorExit(err)
+			}
+		} else if n > 0 {
 			break
 		}
 
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(timeout)
 	}
 
 	signal.Reset(syscall.SIGINT, syscall.SIGQUIT)

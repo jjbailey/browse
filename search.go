@@ -15,8 +15,11 @@ import (
 	"strings"
 )
 
-// %6d + one space
-const NUMCOLWIDTH = 7
+const (
+	// %6d + one space
+	LINENUMBERS = "%6d %s"
+	NUMCOLWIDTH = 7
+)
 
 func (x *browseObj) searchFile(pattern string, searchDir, next bool) bool {
 	var sop, eop int
@@ -167,14 +170,15 @@ func (x *browseObj) setNextPage(searchDir bool, sop int) (int, int, bool) {
 }
 
 func (x *browseObj) replaceMatch(lineno int, input string) string {
-	// make the regex replacements and return the new line
+	// make the regex replacements
+	// return the new line with or without line numbers as necessary
 
 	var line string
 	sol := x.shiftWidth
 
 	if sol >= len(input) {
 		if x.modeNumbers {
-			return fmt.Sprintf("%6d %s", lineno, "")
+			return fmt.Sprintf(LINENUMBERS, lineno, "")
 		}
 
 		return ""
@@ -182,7 +186,7 @@ func (x *browseObj) replaceMatch(lineno int, input string) string {
 
 	if x.noSearchPattern() {
 		if x.modeNumbers {
-			return fmt.Sprintf("%6d %s", lineno, input[sol:])
+			return fmt.Sprintf(LINENUMBERS, lineno, input[sol:])
 		}
 
 		return input[sol:]
@@ -198,11 +202,9 @@ func (x *browseObj) replaceMatch(lineno int, input string) string {
 	}
 
 	if x.modeNumbers {
-		// line numbers -- uses NUMCOLWIDTH columns
-		return fmt.Sprintf("%6d %s", lineno, line)
+		return fmt.Sprintf(LINENUMBERS, lineno, line)
 	}
 
-	// no line numbers
 	return line
 }
 
@@ -280,7 +282,8 @@ func (x *browseObj) reCompile(pattern string) (int, error) {
 func (x *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
 	// check for matches to the left and right of the line as displayed
 
-	var leftMatch, rightMatch bool
+	leftMatch := false
+	rightMatch := false
 
 	newWidth := x.dispWidth
 
