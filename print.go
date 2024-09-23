@@ -37,7 +37,7 @@ func (x *browseObj) printLine(lineno int) {
 		// replaceMatch adds line numbers if applicable
 		output := x.replaceMatch(lineno, input)
 		// depends on linewrap=false
-		fmt.Printf("\r\n%s%s%s", output, VIDOFF, CLEARLINE)
+		fmt.Printf("\n%s%s%s", output, VIDOFF, CLEARLINE)
 	}
 
 	if lineno < x.dispRows {
@@ -91,7 +91,7 @@ func (x *browseObj) printPage(lineno int) {
 	}
 
 	fmt.Print(LINEWRAPOFF)
-	// printLine starts with \r\n
+	// printLine starts with \n
 	moveCursor(1, 1, false)
 
 	for i = sop; i < eop; i++ {
