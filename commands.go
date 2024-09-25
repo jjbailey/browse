@@ -36,7 +36,8 @@ func commands(br *browseObj) {
 		CMD_HALF_PAGE_UP_1  = '\025'
 		CMD_HALF_PAGE_UP_2  = 'Z'
 		CMD_SHIFT_LEFT      = '<'
-		CMD_SHIFT_LEFT_1    = '\010'
+		CMD_SHIFT_LEFT_1    = '\b'
+		CMD_SHIFT_LEFT_2    = '\177'
 		CMD_SHIFT_RIGHT     = '>'
 		CMD_SHIFT_RIGHT_1   = '\011'
 		CMD_QUIT            = 'q'
@@ -246,7 +247,7 @@ func commands(br *browseObj) {
 			br.scrollUp(1)
 			moveCursor(2, 1, false)
 
-		case CMD_SHIFT_LEFT, CMD_SHIFT_LEFT_1:
+		case CMD_SHIFT_LEFT, CMD_SHIFT_LEFT_1, CMD_SHIFT_LEFT_2:
 			// horizontal scroll left
 			if br.shiftWidth > 0 {
 				br.shiftWidth -= TABWIDTH
