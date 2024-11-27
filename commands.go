@@ -40,6 +40,7 @@ func commands(br *browseObj) {
 		CMD_SHIFT_LEFT_2    = '\177'
 		CMD_SHIFT_RIGHT     = '>'
 		CMD_SHIFT_RIGHT_1   = '\011'
+		CMD_SHIFT_ZERO      = '^'
 		CMD_QUIT            = 'q'
 		CMD_QUIT_NO_SAVE    = 'Q'
 		CMD_SCROLL_DN       = '+'
@@ -49,8 +50,7 @@ func commands(br *browseObj) {
 		CMD_MODE_UP         = 'u'
 		CMD_MODE_TAIL       = 't'
 		CMD_MODE_FOLLOW     = 'e'
-		CMD_SOF             = '^'
-		CMD_SOF_1           = '0'
+		CMD_SOF             = '0'
 		CMD_SEARCH_FWD      = '/'
 		CMD_SEARCH_REV      = '?'
 		CMD_SEARCH_NEXT     = 'n'
@@ -261,7 +261,14 @@ func commands(br *browseObj) {
 				br.pageCurrent()
 			}
 
-		case CMD_SOF, CMD_SOF_1:
+		case CMD_SHIFT_ZERO:
+			// horizontal scroll left to column 1
+			if br.shiftWidth > 0 {
+				br.shiftWidth = 0
+				br.pageCurrent()
+			}
+
+		case CMD_SOF:
 			// beginning of file at column 1
 			br.shiftWidth = 0
 			br.printPage(0)
