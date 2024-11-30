@@ -93,7 +93,7 @@ When a filename is absent, browse attempts to restore the session saved in ~/.br
 | ><br> [TAB] | Scroll 4 characters right |
 | <<br> [BACKSPACE]<br> [DEL] | Scroll 4 characters left |
 | ^ | Scroll to column 1 |
-| 0<br> [HOME] | Jump to SOF |
+| 0<br> [HOME] | Jump to line 1, column 1 |
 | G<br> $ | Jump to EOF |
 | e<br> [END] | Jump to EOF, follow at EOF |
 | t | Jump to EOF, tail at EOF |
@@ -101,7 +101,6 @@ When a filename is absent, browse attempts to restore the session saved in ~/.br
 | <h4>Jumps/Marks</h4> | <h4>Function</h4> |
 | j | Jump to a line |
 | m | Assign top line to mark 1 through 9 |
-| 0 (zero) | Jump to line 1, column 1 |
 | 1 - 9 | Jump to marked line, default to SOF |
 | &nbsp; | &nbsp; |
 | <h4>Searches</h4> | <h4>Function</h4> |
