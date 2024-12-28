@@ -15,31 +15,36 @@ import (
 	"golang.org/x/term"
 )
 
-func (x *browseObj) fileInit(fp *os.File, name string, fromStdin bool) {
+func (x *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin bool) {
+	x.fp = fp
+	x.fileName = fileName
+	x.title = title
+	x.fromStdin = fromStdin
+
 	x.seekMap = map[int]int64{0: 0}
 	x.sizeMap = map[int]int64{0: 0}
 	x.mapSiz = 1
 
+	x.newFileSiz = 0
+	x.savFileSiz = 0
+}
+
+func (x *browseObj) browseInit() {
 	x.ignoreCase = false
 	x.lastMatch = SEARCH_RESET
 	x.hitEOF = false
 	x.shownEOF = false
 	x.shownMsg = false
-	x.saveRC = false
-
 	x.shiftWidth = 0
-
 	x.modeNumbers = false
 	x.modeScroll = MODE_SCROLL_NONE
 
-	x.fp = fp
-	x.fileName = name
-	x.fromStdin = fromStdin
+	x.saveRC = false
+	x.exit = false
 }
 
-func (x *browseObj) screenInit(tty *os.File, title string) {
+func (x *browseObj) screenInit(tty *os.File) {
 	x.tty = tty
-	x.title = title
 
 	width, height, err := term.GetSize(int(tty.Fd()))
 

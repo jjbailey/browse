@@ -43,6 +43,8 @@ func commands(br *browseObj) {
 		CMD_SHIFT_ZERO      = '^'
 		CMD_QUIT            = 'q'
 		CMD_QUIT_NO_SAVE    = 'Q'
+		CMD_EXIT            = 'x'
+		CMD_EXIT_NO_SAVE    = 'X'
 		CMD_SCROLL_DN       = '+'
 		CMD_SCROLL_DN_1     = '\r'
 		CMD_SCROLL_UP       = '-'
@@ -364,13 +366,23 @@ func commands(br *browseObj) {
 				filepath.Base(br.fileName), br.mapSiz-1, t), MSG_GREEN)
 
 		case CMD_QUIT:
-			// quit -- this is the only way to save an rc file
 			br.saveRC = true
+			br.exit = false
 			return
 
 		case CMD_QUIT_NO_SAVE:
-			// Quit -- do not save an rc file
 			br.saveRC = false
+			br.exit = false
+			return
+
+		case CMD_EXIT:
+			br.saveRC = true
+			br.exit = true
+			return
+
+		case CMD_EXIT_NO_SAVE:
+			br.saveRC = false
+			br.exit = true
 			return
 
 		case CMD_HELP:
@@ -409,9 +421,8 @@ func handlePanic(br *browseObj) {
 	if r := recover(); r != nil {
 		moveCursor(br.dispHeight-1, 1, true)
 		fmt.Printf("%s%s panic: %v %s\n", CLEARSCREEN, MSG_RED, r, VIDOFF)
+		br.saneExit()
 	}
-
-	br.saneExit()
 }
 
 // vim: set ts=4 sw=4 noet:

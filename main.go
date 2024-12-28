@@ -21,17 +21,17 @@ import (
 func main() {
 	var br browseObj
 	var tty *os.File
-	var fileName, title string
+	var fromStdin bool
 
-	var (
-		followFlag  = getopt.BoolLong("follow", 'f', "follow file")
-		caseFlag    = getopt.BoolLong("ignore-case", 'i', "search ignores case")
-		numberFlag  = getopt.BoolLong("numbers", 'n', "line numbers")
-		patternStr  = getopt.StringLong("pattern", 'p', "", "search pattern")
-		titleStr    = getopt.StringLong("title", 't', "", "page title")
-		versionFlag = getopt.BoolLong("version", 'v', "print version number")
-		helpFlag    = getopt.BoolLong("help", '?', "this message")
-	)
+	// define command line flags
+
+	followFlag := getopt.BoolLong("follow", 'f', "follow file")
+	caseFlag := getopt.BoolLong("ignore-case", 'i', "search ignores case")
+	numberFlag := getopt.BoolLong("numbers", 'n', "line numbers")
+	patternStr := getopt.StringLong("pattern", 'p', "", "search pattern")
+	titleStr := getopt.StringLong("title", 't', "", "page title")
+	versionFlag := getopt.BoolLong("version", 'v', "print version number")
+	helpFlag := getopt.BoolLong("help", '?', "this message")
 
 	getopt.SetUsage(usageMessage)
 	getopt.Parse()
@@ -48,80 +48,64 @@ func main() {
 		os.Exit(0)
 	}
 
-	// do this now
-	ttySaveTerm()
-	syscall.Umask(077)
+	preInitialization(&br)
 
-	if term.IsTerminal(int(os.Stdin.Fd())) {
+	if fromStdin = !term.IsTerminal(int(os.Stdin.Fd())); !fromStdin {
 		if argc == 0 {
 			if !readRcFile(&br) {
 				usageMessage()
 				os.Exit(1)
 			}
-
-			// we have some defaults
-			fileName = br.fileName
-
-			if len(br.title) > 0 {
-				title = br.title
-			} else {
-				title = br.fileName
-			}
-		} else {
-			// use file given
-			fileName = args[0]
-			title = args[0]
 		}
-
-		// open file for reading
-		fp, err := os.Open(fileName)
-		errorExit(err)
-		br.fileInit(fp, fileName, false)
-	} else {
-		// create temp file for writing
-		tmpfp, err := os.CreateTemp("", "browse")
-		errorExit(err)
-
-		// open temp file for reading
-		title = "          "
-		fileName = tmpfp.Name()
-		fp, err := os.Open(fileName)
-		errorExit(err)
-		br.fileInit(fp, fileName, true)
-
-		// copy stdin to temp file
-		go br.readStdin(os.Stdin, tmpfp)
 	}
 
-	tty, _ = os.Open("/dev/tty")
-	br.screenInit(tty, title)
+	// set options from command line
 
-	// signals
-	br.catchSignals()
-
-	// set options from commandline
 	if *followFlag {
 		br.modeScroll = MODE_SCROLL_FOLLOW
 	}
+
 	br.ignoreCase = *caseFlag
 	br.modeNumbers = *numberFlag
 
-	if *patternStr != "" {
+	if len(*patternStr) > 0 {
 		br.pattern = *patternStr
 	}
-	if *titleStr != "" {
+
+	if len(*titleStr) > 0 {
 		br.title = *titleStr
 	}
 
-	// start a file reader
-	syncOK := make(chan bool)
-	go readFile(&br, syncOK)
-	readerOK := <-syncOK
-	close(syncOK)
+	// init tty and signals
 
-	if readerOK {
-		// go
-		commands(&br)
+	tty, _ = os.Open("/dev/tty")
+	br.screenInit(tty)
+	br.catchSignals()
+
+	if fromStdin {
+		// input is a pipeline
+
+		tmpfp, err := os.CreateTemp("", "browse")
+		errorExit(err)
+
+		go br.readStdin(os.Stdin, tmpfp)
+		browseFile(&br, tmpfp.Name(), setTitle(br.title, "          "), true)
+	} else {
+		// input is a tty
+
+		if argc == 0 {
+			browseFile(&br, br.fileName, setTitle(br.title, br.fileName), false)
+		} else {
+			for _, fileName := range args {
+				browseFile(&br, fileName, setTitle(*titleStr, fileName), false)
+
+				if br.exit {
+					break
+				}
+
+				resetState(&br)
+			}
+		}
 	}
 
 	// done
@@ -133,7 +117,7 @@ func brVersion() {
 }
 
 func usageMessage() {
-	fmt.Print("Usage: browse [-finv] [-p pattern] [-t title] [filename]\n")
+	fmt.Print("Usage: browse [-finv] [-p pattern] [-t title] [filename...]\n")
 	fmt.Print(" -f, --follow       follow file\n")
 	fmt.Print(" -i, --ignore-case  search ignores case\n")
 	fmt.Print(" -n, --numbers      line numbers\n")
@@ -141,6 +125,57 @@ func usageMessage() {
 	fmt.Print(" -t, --title        page title\n")
 	fmt.Print(" -v, --version      print version number\n")
 	fmt.Print(" -?, --help         this message\n")
+}
+
+func browseFile(br *browseObj, fileName, title string, fromStdin bool) {
+	// init
+
+	fp, err := os.Open(fileName)
+
+	if err != nil {
+		br.timedMessage(fmt.Sprintf("%v", err), MSG_RED)
+		return
+	}
+
+	br.fileInit(fp, fileName, title, fromStdin)
+
+	// start a reader
+	syncOK := make(chan bool)
+	go readFile(br, syncOK)
+	readerOK := <-syncOK
+	close(syncOK)
+
+	// process commands
+
+	if readerOK {
+		commands(br)
+	}
+
+	if !br.fromStdin && br.saveRC {
+		writeRcFile(br)
+	}
+
+	fp.Close()
+}
+
+func resetState(br *browseObj) {
+	br.firstRow = 0
+	br.lastRow = 0
+	br.shiftWidth = 0
+}
+
+func setTitle(primary, fallback string) string {
+	if len(primary) > 0 {
+		return primary
+	}
+
+	return fallback
+}
+
+func preInitialization(br *browseObj) {
+	ttySaveTerm()
+	syscall.Umask(077)
+	br.browseInit()
 }
 
 // vim: set ts=4 sw=4 noet:
