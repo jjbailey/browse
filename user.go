@@ -60,8 +60,8 @@ func (x *browseObj) userInput(prompt string) (string, bool) {
 		NEWLINE   = '\n'
 		CARRETURN = '\r'
 		BACKSPACE = '\b'
-		ERASEWORD = '\025'
-		ERASELINE = '\027'
+		ERASEWORD = '\027'
+		ERASELINE = '\025'
 		ESCAPE    = '\033'
 		DELETE    = '\177'
 	)
