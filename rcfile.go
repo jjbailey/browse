@@ -12,7 +12,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -47,7 +46,7 @@ func writeRcFile(br *browseObj) bool {
 	data.WriteString(br.title + "\n")
 
 	// save
-	err := ioutil.WriteFile(filePath, []byte(data.String()), 0644)
+	err := os.WriteFile(filePath, []byte(data.String()), 0644)
 
 	return err == nil
 }

@@ -108,7 +108,7 @@ func (x *browseObj) printPage(lineno int) {
 func (x *browseObj) timedMessage(msg string, color string) {
 	x.printMessage(msg, color)
 	// sleep time is arbitrary
-	time.Sleep(1250 * time.Millisecond)
+	time.Sleep(1500 * time.Millisecond)
 }
 
 func (x *browseObj) printMessage(msg string, color string) {

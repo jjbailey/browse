@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	BR_VERSION   = "0.41"
+	BR_VERSION   = "0.42"
 	READBUFSIZ   = 1024
 	TABWIDTH     = 4
 	MAXMARKS     = 10
@@ -108,7 +108,14 @@ type browseObj struct {
 	shownEOF   bool
 	shownMsg   bool
 	marks      [MAXMARKS]int
-	saveRC     bool
+
+	// quit, exit
+	saveRC bool
+	exit   bool
+
+	// size vars
+	newFileSiz int64
+	savFileSiz int64
 
 	// modes
 	modeNumbers bool

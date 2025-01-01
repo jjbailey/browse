@@ -28,7 +28,6 @@ func readFile(br *browseObj, ch chan bool) {
 
 	var bytesRead int64
 	var notified bool
-	var newFileSiz, savFileSiz int64
 	var err error
 
 	reader := bufio.NewReader(br.fp)
@@ -38,9 +37,11 @@ func readFile(br *browseObj, ch chan bool) {
 		time.Sleep(time.Second)
 	}
 
+	br.newFileSiz, br.savFileSiz = 0, 0
+
 	for {
 		mutex.Lock()
-		newFileSiz, err = getFileSize(br.fp)
+		br.newFileSiz, err = getFileSize(br.fp)
 
 		if err != nil {
 			// fatal
@@ -53,9 +54,9 @@ func readFile(br *browseObj, ch chan bool) {
 			return
 		}
 
-		if newFileSiz < savFileSiz {
+		if br.newFileSiz < br.savFileSiz {
 			// file shrunk -- reinitialize
-			br.fileInit(br.fp, br.fileName, br.fromStdin)
+			br.fileInit(br.fp, br.fileName, br.title, br.fromStdin)
 			br.printMessage("File truncated", MSG_RED)
 
 			// need to show the user
@@ -63,10 +64,10 @@ func readFile(br *browseObj, ch chan bool) {
 			br.shownMsg = false
 
 			// reset and fall through
-			savFileSiz, bytesRead = 0, 0
+			br.savFileSiz, bytesRead = 0, 0
 		}
 
-		if savFileSiz == 0 || savFileSiz < newFileSiz {
+		if br.savFileSiz == 0 || br.savFileSiz < br.newFileSiz {
 			// file unread or grew
 			// read and map the new lines
 
@@ -94,7 +95,7 @@ func readFile(br *browseObj, ch chan bool) {
 			}
 		}
 
-		savFileSiz, err = getFileSize(br.fp)
+		br.savFileSiz, err = getFileSize(br.fp)
 		mutex.Unlock()
 
 		if err != nil {
