@@ -42,11 +42,11 @@ browse utilizes the RE2 regular expression syntax for pattern matching, highligh
 
 browse saves sessions in ~/.browserc. The format of the file is plaintext containing the following lines:
 
-1.  file name
-2.  first line on page
-3.  search pattern
-4.  marks
-5.  page title
+1. file name
+2. first line on page
+3. search pattern
+4. marks
+5. page title
 
 The session attributes not saved:
 
