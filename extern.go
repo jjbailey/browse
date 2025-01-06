@@ -1,7 +1,7 @@
 // extern.go
 // various constants, the structure of a browser object
 //
-// Copyright (c) 2024 jjb
+// Copyright (c) 2024-2025 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	BR_VERSION   = "0.42"
+	BR_VERSION   = "0.43"
 	READBUFSIZ   = 1024
 	TABWIDTH     = 4
 	MAXMARKS     = 10
