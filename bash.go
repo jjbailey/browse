@@ -1,7 +1,7 @@
 // bash.go
 // run a command with bash
 //
-// Copyright (c) 2024 jjb
+// Copyright (c) 2024-2025 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -73,7 +73,7 @@ func subCommandChars(input, char, repl string) string {
 	// pattern := `(?<!\\)%`
 
 	pattern := `(^|[^\\])` + regexp.QuoteMeta(char)
-	replstr := "${1}" + repl
+	replstr := `${1}` + repl
 
 	re, err := regexp.Compile(pattern)
 
@@ -81,13 +81,7 @@ func subCommandChars(input, char, repl string) string {
 		return ""
 	}
 
-	rbuf1 := input
-
-	for rbuf2 := re.ReplaceAllString(rbuf1, replstr); rbuf2 != rbuf1; {
-		rbuf1 = rbuf2
-	}
-
-	return rbuf1
+	return re.ReplaceAllString(input, replstr)
 }
 
 // vim: set ts=4 sw=4 noet:
