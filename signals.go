@@ -1,7 +1,7 @@
 // signals.go
 // signal handling functions
 //
-// Copyright (c) 2024 jjb
+// Copyright (c) 2024-2025 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -19,13 +19,9 @@ import (
 )
 
 func (x *browseObj) catchSignals() {
-	// standard signal disposition
-
 	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan)
-	signal.Ignore(syscall.SIGALRM)
-	signal.Ignore(syscall.SIGCHLD)
-	signal.Ignore(syscall.SIGURG)
+	signal.Notify(sigChan, syscall.SIGWINCH)
+	signal.Ignore(syscall.SIGALRM, syscall.SIGCHLD, syscall.SIGURG)
 
 	go func() {
 		for {
