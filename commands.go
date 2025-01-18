@@ -429,12 +429,12 @@ func shiftLongest(br *browseObj) int {
 		longest = maximum(longest, len(string(br.readFromMap(i))))
 	}
 
-	if longest < br.dispWidth {
-		return 0
-	}
-
 	if br.modeNumbers {
 		longest += NUMCOLWIDTH
+	}
+
+	if longest < br.dispWidth {
+		return 0
 	}
 
 	longest -= br.dispWidth
