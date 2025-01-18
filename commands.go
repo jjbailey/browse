@@ -2,7 +2,7 @@
 // the command processor
 // all user activity starts here
 //
-// Copyright (c) 2024 jjb
+// Copyright (c) 2024-2025 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -20,8 +20,7 @@ import (
 func commands(br *browseObj) {
 	const (
 		CMD_BASH            = '!'
-		CMD_EOF             = '$'
-		CMD_EOF_1           = 'G'
+		CMD_EOF             = 'G'
 		CMD_HELP            = 'h'
 		CMD_JUMP            = 'j'
 		CMD_MARK            = 'm'
@@ -41,6 +40,7 @@ func commands(br *browseObj) {
 		CMD_SHIFT_RIGHT     = '>'
 		CMD_SHIFT_RIGHT_1   = '\011'
 		CMD_SHIFT_ZERO      = '^'
+		CMD_SHIFT_LONGEST   = '$'
 		CMD_QUIT            = 'q'
 		CMD_QUIT_NO_SAVE    = 'Q'
 		CMD_EXIT            = 'x'
@@ -270,12 +270,17 @@ func commands(br *browseObj) {
 				br.pageCurrent()
 			}
 
+		case CMD_SHIFT_LONGEST:
+			// horizontal scroll longest
+			br.shiftWidth = shiftLongest(br)
+			br.pageCurrent()
+
 		case CMD_SOF:
 			// beginning of file at column 1
 			br.shiftWidth = 0
 			br.printPage(0)
 
-		case CMD_EOF, CMD_EOF_1:
+		case CMD_EOF:
 			// end of file
 			br.pageLast()
 
@@ -413,6 +418,27 @@ func waitForInput(br *browseObj, lineno int) {
 		saveSiz = br.mapSiz
 		time.Sleep(200 * time.Millisecond)
 	}
+}
+
+func shiftLongest(br *browseObj) int {
+	// shift to show the end of the longest line on the page
+
+	longest := 0
+
+	for i := br.firstRow; i < br.firstRow+br.dispRows && i < br.mapSiz; i++ {
+		longest = maximum(longest, len(string(br.readFromMap(i))))
+	}
+
+	if longest < br.dispWidth {
+		return 0
+	}
+
+	if br.modeNumbers {
+		longest += NUMCOLWIDTH
+	}
+
+	longest -= br.dispWidth
+	return (int(longest/TABWIDTH) + 1) * TABWIDTH
 }
 
 func handlePanic(br *browseObj) {
