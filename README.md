@@ -93,7 +93,8 @@ When a filename is absent, browse attempts to restore the session saved in ~/.br
 | u<br> [UP]                    | Toggle continuous scroll toward SOF, stop at SOF                               |
 | ><br> [TAB]                   | Scroll 4 characters right                                                      |
 | <<br> [BACKSPACE]<br> [DEL]   | Scroll 4 characters left                                                       |
-| ^<br> $                       | Scroll to column 1, scroll to EOL                                              |
+| ^                             | Scroll to column 1                                                             |
+| $                             | Scroll to EOL                                                                  |
 | 0<br> [HOME]                  | Jump to line 1, column 1                                                       |
 | G                             | Jump to EOF                                                                    |
 | e<br> [END]                   | Jump to EOF, follow at EOF                                                     |
