@@ -1,7 +1,7 @@
 // user.go
 // user input functions
 //
-// Copyright (c) 2024 jjb
+// Copyright (c) 2024-2025 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -24,10 +24,11 @@ func (x *browseObj) userAnyKey(prompt string) {
 	const timeout = 500 * time.Millisecond
 
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT)
+	defer signal.Reset(syscall.SIGINT, syscall.SIGQUIT)
 
 	// prompt is optional
 
-	if len(prompt) == 0 {
+	if prompt == "" {
 		moveCursor(2, 1, false)
 	} else {
 		moveCursor(x.dispHeight, 1, true)
@@ -38,9 +39,7 @@ func (x *browseObj) userAnyKey(prompt string) {
 	b := make([]byte, 1)
 
 	for {
-		n, err := x.tty.Read(b)
-
-		if err != nil {
+		if n, err := x.tty.Read(b); err != nil {
 			if err != io.EOF {
 				errorExit(err)
 			}
@@ -51,7 +50,6 @@ func (x *browseObj) userAnyKey(prompt string) {
 		time.Sleep(timeout)
 	}
 
-	signal.Reset(syscall.SIGINT, syscall.SIGQUIT)
 	x.restoreLast()
 }
 
@@ -72,6 +70,7 @@ func (x *browseObj) userInput(prompt string) (string, bool) {
 	)
 
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT)
+	defer signal.Reset(syscall.SIGINT, syscall.SIGQUIT)
 	ttyPrompter()
 	moveCursor(x.dispHeight, 1, true)
 	fmt.Printf("%s", prompt)
@@ -127,7 +126,6 @@ func (x *browseObj) userInput(prompt string) (string, bool) {
 		}
 	}
 
-	signal.Reset(syscall.SIGINT, syscall.SIGQUIT)
 	ttyBrowser()
 	x.restoreLast()
 
