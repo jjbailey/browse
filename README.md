@@ -81,47 +81,53 @@ When a filename is absent, browse attempts to restore the session saved in ~/.br
 
 <br>
 
-| <h4>Pages/Lines</h4>          | <h4>Function</h4>                                                              |
-| :---------------------------- | :----------------------------------------------------------------------------- |
-| f<br> [PAGE DOWN]<br> [SPACE] | Page down toward EOF                                                           |
-| b<br> [PAGE UP]               | Page up toward SOF                                                             |
-| ^F<br> ^D<br> z               | Scroll half page down toward EOF                                               |
-| ^B<br> ^U<br> Z               | Scroll half page up toward SOF                                                 |
-| +<br> [RIGHT]<br> [ENTER]     | Scroll one line toward EOF                                                     |
-| -<br> [LEFT]                  | Scroll one line toward SOF                                                     |
-| d<br> [DOWN]                  | Toggle continuous scroll toward EOF, follow at EOF                             |
-| u<br> [UP]                    | Toggle continuous scroll toward SOF, stop at SOF                               |
-| ><br> [TAB]                   | Scroll 4 characters right                                                      |
-| <<br> [BACKSPACE]<br> [DEL]   | Scroll 4 characters left                                                       |
-| ^                             | Scroll to column 1                                                             |
-| $                             | Scroll to EOL                                                                  |
-| 0<br> [HOME]                  | Jump to line 1, column 1                                                       |
-| G                             | Jump to EOF                                                                    |
-| e<br> [END]                   | Jump to EOF, follow at EOF                                                     |
-| t                             | Jump to EOF, tail at EOF                                                       |
-| &nbsp;                        | &nbsp;                                                                         |
-| <h4>Jumps/Marks</h4>          | <h4>Function</h4>                                                              |
-| j                             | Jump to a line                                                                 |
-| m                             | Assign top line to mark 1 through 9                                            |
-| 1 - 9                         | Jump to marked line, default to SOF                                            |
-| &nbsp;                        | &nbsp;                                                                         |
-| <h4>Searches</h4>             | <h4>Function</h4>                                                              |
-| /                             | Regex search forward, empty pattern repeats search or changes search direction |
-| ?                             | Regex search reverse, empty pattern repeats search or changes search direction |
-| n                             | Repeat search in the current search direction                                  |
-| N                             | Repeat search in the opposite search direction                                 |
-| i                             | Toggle between case-sensitive and case-insensitive searches                    |
-| C                             | Clear the search pattern                                                       |
-| &                             | Run 'grep -nP' on input file for search pattern                                |
-| &nbsp;                        | &nbsp;                                                                         |
-| <h4>Miscellaneous</h4>        | <h4>Function</h4>                                                              |
-| #                             | Toggle line numbers on and off                                                 |
-| %<br> ^G                      | Page position                                                                  |
-| !                             | Run a bash command (expands !, %, &)                                           |
-| q                             | Quit, save .browserc, next file                                                |
-| Q                             | Quit, don't save .browserc, next file                                          |
-| x                             | Exit, save .browserc                                                           |
-| X                             | Exit, don't save .browserc                                                     |
+| <h4>Pages/Lines</h4>          | <h4>Function</h4>                                  |
+| :---------------------------- | :------------------------------------------------- |
+| f<br> [PAGE DOWN]<br> [SPACE] | Page down toward EOF                               |
+| b<br> [PAGE UP]               | Page up toward SOF                                 |
+| ^F<br> ^D<br> z               | Scroll half page down toward EOF                   |
+| ^B<br> ^U<br> Z               | Scroll half page up toward SOF                     |
+| +<br> [RIGHT]<br> [ENTER]     | Scroll one line toward EOF                         |
+| -<br> [LEFT]                  | Scroll one line toward SOF                         |
+| d<br> [DOWN]                  | Toggle continuous scroll toward EOF, follow at EOF |
+| u<br> [UP]                    | Toggle continuous scroll toward SOF, stop at SOF   |
+| ><br> [TAB]                   | Scroll 4 characters right                          |
+| <<br> [BACKSPACE]<br> [DEL]   | Scroll 4 characters left                           |
+| ^                             | Scroll to column 1                                 |
+| $                             | Scroll to EOL                                      |
+| 0<br> [HOME]                  | Jump to line 1, column 1                           |
+| G                             | Jump to EOF                                        |
+| e<br> [END]                   | Jump to EOF, follow at EOF                         |
+| t                             | Jump to EOF, tail at EOF                           |
+
+<br>
+
+| <h4>Jumps/Marks</h4> | <h4>Function</h4>                                                              |
+| :------------------- | :----------------------------------------------------------------------------- |
+| j                    | Jump to a line                                                                 |
+| m                    | Assign top line to mark 1 through 9                                            |
+| 1 - 9                | Jump to marked line, default to SOF                                            |
+| &nbsp;               | &nbsp;                                                                         |
+| <h4>Searches</h4>    | <h4>Function</h4>                                                              |
+| /                    | Regex search forward, empty pattern repeats search or changes search direction |
+| ?                    | Regex search reverse, empty pattern repeats search or changes search direction |
+| n                    | Repeat search in the current search direction                                  |
+| N                    | Repeat search in the opposite search direction                                 |
+| i                    | Toggle between case-sensitive and case-insensitive searches                    |
+| C                    | Clear the search pattern                                                       |
+| &                    | Run 'grep -nP' on input file for search pattern                                |
+
+<br>
+
+| <h4>Miscellaneous</h4> | <h4>Function</h4>                     |
+| :--------------------- | :------------------------------------ |
+| #                      | Toggle line numbers on and off        |
+| %<br> ^G               | Page position                         |
+| !                      | Run a bash command (expands !, %, &)  |
+| q                      | Quit, save .browserc, next file       |
+| Q                      | Quit, don't save .browserc, next file |
+| x                      | Exit, save .browserc                  |
+| X                      | Exit, don't save .browserc            |
 
 <br>
 
