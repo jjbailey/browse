@@ -102,20 +102,23 @@ When a filename is absent, browse attempts to restore the session saved in ~/.br
 
 <br>
 
-| <h4>Jumps/Marks</h4> | <h4>Function</h4>                                                              |
-| :------------------- | :----------------------------------------------------------------------------- |
-| j                    | Jump to a line                                                                 |
-| m                    | Assign top line to mark 1 through 9                                            |
-| 1 - 9                | Jump to marked line, default to SOF                                            |
-| &nbsp;               | &nbsp;                                                                         |
-| <h4>Searches</h4>    | <h4>Function</h4>                                                              |
-| /                    | Regex search forward, empty pattern repeats search or changes search direction |
-| ?                    | Regex search reverse, empty pattern repeats search or changes search direction |
-| n                    | Repeat search in the current search direction                                  |
-| N                    | Repeat search in the opposite search direction                                 |
-| i                    | Toggle between case-sensitive and case-insensitive searches                    |
-| C                    | Clear the search pattern                                                       |
-| &                    | Run 'grep -nP' on input file for search pattern                                |
+| <h4>Jumps/Marks</h4> | <h4>Function</h4>                   |
+| :------------------- | :---------------------------------- |
+| j                    | Jump to a line                      |
+| m                    | Assign top line to mark 1 through 9 |
+| 1 - 9                | Jump to marked line, default to SOF |
+
+<br>
+
+| <h4>Searches</h4> | <h4>Function</h4>                                                              |
+| :---------------- | :----------------------------------------------------------------------------- |
+| /                 | Regex search forward, empty pattern repeats search or changes search direction |
+| ?                 | Regex search reverse, empty pattern repeats search or changes search direction |
+| n                 | Repeat search in the current search direction                                  |
+| N                 | Repeat search in the opposite search direction                                 |
+| i                 | Toggle between case-sensitive and case-insensitive searches                    |
+| C                 | Clear the search pattern                                                       |
+| &                 | Run 'grep -nP' on input file for search pattern                                |
 
 <br>
 
