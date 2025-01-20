@@ -2,7 +2,7 @@
 // the help screen
 // ignore SIGWINCH here
 //
-// Copyright (c) 2024 jjb
+// Copyright (c) 2024-2025 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -28,11 +28,12 @@ func (x *browseObj) printHelp() {
 		"  + [RIGHT] [ENTER]  - [LEFT]   Scroll one line down/up                ",
 		"  d [DOWN]  u [UP]              Continuous scroll mode                 ",
 		"  > [TAB]  < [BACKSPACE] [DEL]  Scroll 4 characters right/left         ",
-		"  ^                             Scroll to column 1                     ",
+		"  ^ $                           Scroll to column 1, scroll to EOL      ",
 		"  #                             Line numbers                           ",
 		"  % ^G                          Page position                          ",
 		"  j                             Jump to line number                    ",
-		"  0 [HOME]  G $                 Jump to line 1, column 1               ",
+		"  0 [HOME]                      Jump to line 1, column 1               ",
+		"  G                             Jump to EOF                            ",
 		"  m                             Mark a page with number 1-9            ",
 		"  1-9                           Jump to mark                           ",
 		"  / ?                           Regex search forward/reverse           ",
