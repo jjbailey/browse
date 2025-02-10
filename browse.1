@@ -3,7 +3,7 @@
 .\"
 .\" Define V font for inline verbatim, using C font in formats
 .\" that render this, and otherwise B font.
-.ie "\f[CB]x\f[]"x" \{\
+.ie "x\f[]"x" \{\
 . ftr V B
 . ftr VI BI
 . ftr VB B
@@ -118,7 +118,7 @@ in \[ti]/.browserc.
 .SS Usage
 .IP
 .nf
-\f[C]
+
 Usage: browse [-finv] [-p pattern] [-t title] [filename...]
  -f, --follow       follow file
  -i, --ignore-case  search ignores case
