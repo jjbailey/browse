@@ -1,7 +1,7 @@
 // rcfile.go
 // write and read the .browserc session file
 //
-// Copyright (c) 2024 jjb
+// Copyright (c) 2024-2025 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -21,7 +21,7 @@ import (
 
 const RCFILENAME = ".browserc"
 
-func writeRcFile(br *browseObj) bool {
+func (br *browseObj) writeRcFile() bool {
 	var data strings.Builder
 
 	filePath := filepath.Join(os.Getenv("HOME"), RCFILENAME)
@@ -51,7 +51,7 @@ func writeRcFile(br *browseObj) bool {
 	return err == nil
 }
 
-func readRcFile(br *browseObj) bool {
+func (br *browseObj) readRcFile() bool {
 	filePath := path.Join(os.Getenv("HOME"), RCFILENAME)
 	filePath = os.ExpandEnv(filePath)
 

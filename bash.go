@@ -16,11 +16,11 @@ import (
 
 var prevCommand string
 
-func (x *browseObj) bashCommand() bool {
+func (br *browseObj) bashCommand() bool {
 	// run a command with bash
 
 	fmt.Print(LINEWRAPON)
-	input, cancel := x.userInput("!")
+	input, cancel := br.userInput("!")
 
 	if len(input) == 0 {
 		cancel = true
@@ -34,16 +34,16 @@ func (x *browseObj) bashCommand() bool {
 		prevCommand = bangbuf
 
 		// substitute % with the current file name
-		cmdbuf := subCommandChars(bangbuf, "%", `'`+x.fileName+`'`)
+		cmdbuf := subCommandChars(bangbuf, "%", `'`+br.fileName+`'`)
 
 		// substitute & with the current search pattern
-		if len(x.pattern) > 0 {
-			cmdbuf = subCommandChars(cmdbuf, "&", `'`+x.pattern+`'`)
+		if len(br.pattern) > 0 {
+			cmdbuf = subCommandChars(cmdbuf, "&", `'`+br.pattern+`'`)
 		}
 
 		if len(cmdbuf) > 0 {
 			// feedback
-			moveCursor(x.dispHeight, 1, true)
+			moveCursor(br.dispHeight, 1, true)
 			fmt.Print("---\n")
 			fmt.Printf("$ %s\n", cmdbuf)
 
@@ -51,18 +51,18 @@ func (x *browseObj) bashCommand() bool {
 			fmt.Print(LINEWRAPON) // again
 			resetScrRegion()
 
-			moveCursor(x.dispHeight, 1, true)
-			x.runInPty(cmdbuf)
+			moveCursor(br.dispHeight, 1, true)
+			br.runInPty(cmdbuf)
 		}
 
 		cancel = false
 	}
 
 	if cancel {
-		x.restoreLast()
+		br.restoreLast()
 		moveCursor(2, 1, false)
 	} else {
-		x.resizeWindow()
+		br.resizeWindow()
 	}
 
 	return cancel

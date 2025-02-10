@@ -1,7 +1,7 @@
 // scroll.go
 // scrolling functions
 //
-// Copyright (c) 2024 jjb
+// Copyright (c) 2024-2025 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -13,41 +13,41 @@ import (
 	"fmt"
 )
 
-func (x *browseObj) scrollDown(count int) {
+func (br *browseObj) scrollDown(count int) {
 	// scroll down, toward EOF, stop at EOF
 	// there's more hand-waving here than meets the eye
 
-	if x.shownMsg {
+	if br.shownMsg {
 		// the last line contains a message
-		x.restoreLast()
+		br.restoreLast()
 	}
 
-	if x.lastRow > x.mapSiz || x.hitEOF {
+	if br.lastRow > br.mapSiz || br.hitEOF {
 		// nothing more to show
 		return
 	}
 
-	for i := 0; i < count && !x.hitEOF; i++ {
+	for i := 0; i < count && !br.hitEOF; i++ {
 		// printLine finds EOF, sets hitEOF
 		// add line -- +1 for header
-		moveCursor(x.lastRow+1, 1, false)
+		moveCursor(br.lastRow+1, 1, false)
 
-		if x.shownEOF {
+		if br.shownEOF {
 			// print previous line before printing the current line
 			fmt.Printf("%s%s", CURRESTORE, CURUP)
-			x.printLine(x.lastRow - 1)
+			br.printLine(br.lastRow - 1)
 		}
 
-		x.printLine(x.lastRow)
+		br.printLine(br.lastRow)
 
-		if x.lastRow >= x.dispRows {
-			x.firstRow++
+		if br.lastRow >= br.dispRows {
+			br.firstRow++
 		}
 
-		x.lastRow++
+		br.lastRow++
 	}
 
-	if x.inMotion() {
+	if br.inMotion() {
 		// in one of the follow modes
 		fmt.Print(CURRESTORE)
 	} else {
@@ -56,35 +56,35 @@ func (x *browseObj) scrollDown(count int) {
 	}
 }
 
-func (x *browseObj) scrollUp(count int) {
-	if x.firstRow <= 0 {
-		x.modeScroll = MODE_SCROLL_NONE
+func (br *browseObj) scrollUp(count int) {
+	if br.firstRow <= 0 {
+		br.modeScroll = MODE_SCROLL_NONE
 		return
 	}
 
-	rowsToScroll := minimum(count, x.firstRow)
+	rowsToScroll := minimum(count, br.firstRow)
 
-	if x.shownEOF {
+	if br.shownEOF {
 		// cursor is on the bottom line
 		moveCursor(2, 1, false)
 	}
 
 	for i := 0; i < rowsToScroll; i++ {
-		x.firstRow--
-		x.lastRow--
+		br.firstRow--
+		br.lastRow--
 
 		// add line
 		fmt.Print(SCROLLREV)
 		moveCursor(1, 1, false)
-		x.printLine(x.firstRow)
+		br.printLine(br.firstRow)
 	}
 
-	if !x.inMotion() {
+	if !br.inMotion() {
 		moveCursor(2, 1, false)
 	}
 }
 
-func (x *browseObj) toggleMode(mode int) {
+func (br *browseObj) toggleMode(mode int) {
 	// arrows and function keys toggle modes, with some
 	// exceptions required for modes to work as users expect
 
@@ -94,32 +94,32 @@ func (x *browseObj) toggleMode(mode int) {
 
 	case MODE_SCROLL_UP:
 		// toggle
-		needsScrollCancel = x.modeScroll == mode
+		needsScrollCancel = br.modeScroll == mode
 
 	case MODE_SCROLL_DN:
 		// cancel down or either follow mode, else start this mode
-		needsScrollCancel = x.inFollow()
+		needsScrollCancel = br.inFollow()
 
 	case MODE_SCROLL_TAIL, MODE_SCROLL_FOLLOW:
 		// cancel either follow mode at EOF, else start this mode
-		needsScrollCancel = x.inFollow() && x.shownEOF
+		needsScrollCancel = br.inFollow() && br.shownEOF
 	}
 
 	if needsScrollCancel {
-		x.modeScroll = MODE_SCROLL_NONE
+		br.modeScroll = MODE_SCROLL_NONE
 	} else {
-		x.modeScroll = mode
+		br.modeScroll = mode
 	}
 }
 
-func (x *browseObj) inMotion() bool {
-	return x.modeScroll != MODE_SCROLL_NONE
+func (br *browseObj) inMotion() bool {
+	return br.modeScroll != MODE_SCROLL_NONE
 }
 
-func (x *browseObj) inFollow() bool {
-	return (x.modeScroll == MODE_SCROLL_DN ||
-		x.modeScroll == MODE_SCROLL_TAIL ||
-		x.modeScroll == MODE_SCROLL_FOLLOW)
+func (br *browseObj) inFollow() bool {
+	return (br.modeScroll == MODE_SCROLL_DN ||
+		br.modeScroll == MODE_SCROLL_TAIL ||
+		br.modeScroll == MODE_SCROLL_FOLLOW)
 }
 
 // vim: set ts=4 sw=4 noet:

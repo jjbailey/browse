@@ -1,7 +1,7 @@
 // search.go
 // search the file for a given regex
 //
-// Copyright (c) 2024 jjb
+// Copyright (c) 2024-2025 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -21,7 +21,7 @@ const (
 	NUMCOLWIDTH = 7
 )
 
-func (x *browseObj) searchFile(pattern string, searchDir, next bool) bool {
+func (br *browseObj) searchFile(pattern string, searchDir, next bool) bool {
 	var sop, eop int
 	var wrapped, warned bool
 	var firstMatch, lastMatch int
@@ -29,63 +29,63 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) bool {
 	// to suppress S1002
 	searchFwd := searchDir
 
-	if pattern != x.pattern {
+	if pattern != br.pattern {
 		// reset on first search
-		x.lastMatch = SEARCH_RESET
+		br.lastMatch = SEARCH_RESET
 		next = false
 	}
 
-	patternLen, err := x.reCompile(pattern)
+	patternLen, err := br.reCompile(pattern)
 
 	if err != nil {
-		x.printMessage(fmt.Sprintf("%v", err), MSG_ORANGE)
+		br.printMessage(fmt.Sprintf("%v", err), MSG_ORANGE)
 		return false
 	}
 
 	if patternLen == 0 {
-		x.printMessage("No search pattern", MSG_ORANGE)
+		br.printMessage("No search pattern", MSG_ORANGE)
 		return false
 	}
 
 	// where to start search
 
-	if x.lastMatch == SEARCH_RESET {
+	if br.lastMatch == SEARCH_RESET {
 		// new search
-		sop = x.firstRow
-		eop = sop + x.dispRows
+		sop = br.firstRow
+		eop = sop + br.dispRows
 	} else if next {
-		sop, eop, wrapped = x.setNextPage(searchDir, x.firstRow)
+		sop, eop, wrapped = br.setNextPage(searchDir, br.firstRow)
 	}
 
 	warned = false
 
 	for {
-		firstMatch, lastMatch = x.pageIsMatch(sop, eop)
+		firstMatch, lastMatch = br.pageIsMatch(sop, eop)
 
 		if wrapped {
 			if warned {
-				x.printMessage("Pattern not found: "+x.pattern, MSG_ORANGE)
+				br.printMessage("Pattern not found: "+br.pattern, MSG_ORANGE)
 				return false
 			}
 
 			if searchFwd {
-				x.timedMessage("Resuming search from SOF", MSG_GREEN)
+				br.timedMessage("Resuming search from SOF", MSG_GREEN)
 			} else {
-				x.timedMessage("Resuming search from EOF", MSG_GREEN)
+				br.timedMessage("Resuming search from EOF", MSG_GREEN)
 			}
 
 			warned = true
 		}
 
 		if firstMatch == 0 || lastMatch == 0 {
-			sop, eop, wrapped = x.setNextPage(searchDir, sop)
+			sop, eop, wrapped = br.setNextPage(searchDir, sop)
 			continue
 		}
 
 		// display strategy: go to the page wherever the next match occurs
 
-		if x.lastMatch == SEARCH_RESET {
-			x.printPage(sop)
+		if br.lastMatch == SEARCH_RESET {
+			br.printPage(sop)
 			return true
 		}
 
@@ -93,16 +93,16 @@ func (x *browseObj) searchFile(pattern string, searchDir, next bool) bool {
 		// 1/8 forward, 7/8 reverse
 
 		if searchFwd {
-			x.printPage(firstMatch - (x.dispRows >> 3))
+			br.printPage(firstMatch - (br.dispRows >> 3))
 		} else {
-			x.printPage(lastMatch - (x.dispRows>>3)*7)
+			br.printPage(lastMatch - (br.dispRows>>3)*7)
 		}
 
 		return true
 	}
 }
 
-func (x *browseObj) pageIsMatch(sop, eop int) (int, int) {
+func (br *browseObj) pageIsMatch(sop, eop int) (int, int) {
 	// return the first and last regex match on the page
 
 	firstMatch := 0
@@ -110,7 +110,7 @@ func (x *browseObj) pageIsMatch(sop, eop int) (int, int) {
 	foundMatch := false
 
 	for lineno := sop; lineno < eop; lineno++ {
-		if matches, _ := x.lineIsMatch(lineno); matches > 0 {
+		if matches, _ := br.lineIsMatch(lineno); matches > 0 {
 			if !foundMatch {
 				firstMatch = lineno
 				foundMatch = true
@@ -127,21 +127,21 @@ func (x *browseObj) pageIsMatch(sop, eop int) (int, int) {
 	return firstMatch, lastMatch
 }
 
-func (x *browseObj) lineIsMatch(lineno int) (int, string) {
+func (br *browseObj) lineIsMatch(lineno int) (int, string) {
 	// check if this line has a regex match
 
-	input := string(x.readFromMap(lineno))
+	input := string(br.readFromMap(lineno))
 
-	if x.noSearchPattern() {
+	if br.noSearchPattern() {
 		// no regex
 		return 0, input
 	}
 
-	matches := x.re.FindAllStringIndex(input, -1)
+	matches := br.re.FindAllStringIndex(input, -1)
 	return len(matches), input
 }
 
-func (x *browseObj) setNextPage(searchDir bool, sop int) (int, int, bool) {
+func (br *browseObj) setNextPage(searchDir bool, sop int) (int, int, bool) {
 	// figure out which page to search next
 
 	var eop int
@@ -151,41 +151,41 @@ func (x *browseObj) setNextPage(searchDir bool, sop int) (int, int, bool) {
 	searchFwd := searchDir
 
 	if searchFwd {
-		sop += x.dispRows
-		if sop >= x.mapSiz {
+		sop += br.dispRows
+		if sop >= br.mapSiz {
 			sop = 0
 			wrapped = true
 		}
 	} else {
-		sop -= x.dispRows
-		if (sop + x.dispRows) < 0 {
-			sop = maximum(x.mapSiz-x.dispRows, 0)
+		sop -= br.dispRows
+		if (sop + br.dispRows) < 0 {
+			sop = maximum(br.mapSiz-br.dispRows, 0)
 			wrapped = true
 		}
 	}
 
 	// sop may be a negative number
-	eop = sop + x.dispRows
+	eop = sop + br.dispRows
 	return sop, eop, wrapped
 }
 
-func (x *browseObj) replaceMatch(lineno int, input string) string {
+func (br *browseObj) replaceMatch(lineno int, input string) string {
 	// make the regex replacements
 	// return the new line with or without line numbers as necessary
 
 	var line string
-	sol := x.shiftWidth
+	sol := br.shiftWidth
 
 	if sol >= len(input) {
-		if x.modeNumbers {
+		if br.modeNumbers {
 			return fmt.Sprintf(LINENUMBERS, lineno, "")
 		}
 
 		return ""
 	}
 
-	if x.noSearchPattern() {
-		if x.modeNumbers {
+	if br.noSearchPattern() {
+		if br.modeNumbers {
 			return fmt.Sprintf(LINENUMBERS, lineno, input[sol:])
 		}
 
@@ -193,74 +193,74 @@ func (x *browseObj) replaceMatch(lineno int, input string) string {
 	}
 
 	// regex
-	leftMatch, rightMatch := x.undisplayedMatches(input, sol)
+	leftMatch, rightMatch := br.undisplayedMatches(input, sol)
 
 	if leftMatch || rightMatch {
-		line = _VID_GREEN_FG + x.re.ReplaceAllString(input[sol:], x.replstr+_VID_GREEN_FG)
+		line = _VID_GREEN_FG + br.re.ReplaceAllString(input[sol:], br.replstr+_VID_GREEN_FG)
 	} else {
-		line = x.re.ReplaceAllString(input[sol:], x.replstr)
+		line = br.re.ReplaceAllString(input[sol:], br.replstr)
 	}
 
-	if x.modeNumbers {
+	if br.modeNumbers {
 		return fmt.Sprintf(LINENUMBERS, lineno, line)
 	}
 
 	return line
 }
 
-func (x *browseObj) noSearchPattern() bool {
-	return x.re == nil || len(x.re.String()) == 0
+func (br *browseObj) noSearchPattern() bool {
+	return br.re == nil || len(br.re.String()) == 0
 }
 
-func (x *browseObj) doSearch(oldDir, newDir bool) bool {
+func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 	prompt, message := "/", "Searching forward"
 
 	if !newDir {
 		prompt, message = "?", "Searching reverse"
 	}
 
-	patbuf, cancel := x.userInput(prompt)
+	patbuf, cancel := br.userInput(prompt)
 
 	if cancel {
-		x.restoreLast()
+		br.restoreLast()
 		moveCursor(2, 1, false)
 		return oldDir
 	}
 
-	if oldDir != newDir && (len(patbuf) > 0 || len(x.pattern) > 0) {
+	if oldDir != newDir && (len(patbuf) > 0 || len(br.pattern) > 0) {
 		// print direction
-		x.timedMessage(message, MSG_GREEN)
+		br.timedMessage(message, MSG_GREEN)
 	}
 
 	if len(patbuf) == 0 {
 		// null -- change direction
-		x.searchFile(x.pattern, newDir, true)
+		br.searchFile(br.pattern, newDir, true)
 	} else {
 		// search this page
-		x.lastMatch = SEARCH_RESET
-		x.searchFile(patbuf, newDir, false)
+		br.lastMatch = SEARCH_RESET
+		br.searchFile(patbuf, newDir, false)
 	}
 
 	return newDir
 }
 
-func (x *browseObj) reCompile(pattern string) (int, error) {
+func (br *browseObj) reCompile(pattern string) (int, error) {
 	var cp string
 
 	if len(pattern) == 0 {
-		if len(x.pattern) == 0 {
+		if len(br.pattern) == 0 {
 			return 0, nil
 		}
 
-		pattern = x.pattern
+		pattern = br.pattern
 	}
 
 	if strings.HasPrefix(pattern, "(?i)") {
-		x.ignoreCase = true
+		br.ignoreCase = true
 		pattern = strings.TrimPrefix(pattern, "(?i)")
 	}
 
-	if x.ignoreCase {
+	if br.ignoreCase {
 		cp = "(?i)" + pattern
 	} else {
 		cp = pattern
@@ -272,30 +272,30 @@ func (x *browseObj) reCompile(pattern string) (int, error) {
 		return 0, err
 	}
 
-	x.pattern = pattern
-	x.re = re
-	x.replstr = fmt.Sprintf("%s%s%s", MSG_GREEN, "$0", VIDOFF)
+	br.pattern = pattern
+	br.re = re
+	br.replstr = fmt.Sprintf("%s%s%s", MSG_GREEN, "$0", VIDOFF)
 
 	return len(pattern), nil
 }
 
-func (x *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
+func (br *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
 	// check for matches to the left and right of the line as displayed
 
 	leftMatch := false
 	rightMatch := false
 
-	newWidth := x.dispWidth
+	newWidth := br.dispWidth
 
-	if x.modeNumbers {
+	if br.modeNumbers {
 		newWidth -= NUMCOLWIDTH
 	}
 
-	for _, index := range x.re.FindAllStringSubmatchIndex(input, -1) {
+	for _, index := range br.re.FindAllStringSubmatchIndex(input, -1) {
 		if index[0] < sol {
 			leftMatch = true
 		} else {
-			newIndex := index[0] - x.shiftWidth
+			newIndex := index[0] - br.shiftWidth
 
 			if newIndex+2 > newWidth {
 				// NB: off by two

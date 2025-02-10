@@ -1,7 +1,7 @@
 // tty.go
 // tty line discipline functions
 //
-// Copyright (c) 2024 jjb
+// Copyright (c) 2024-2025 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found

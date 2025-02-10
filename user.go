@@ -18,7 +18,7 @@ import (
 	"time"
 )
 
-func (x *browseObj) userAnyKey(prompt string) {
+func (br *browseObj) userAnyKey(prompt string) {
 	// wait for a key press
 
 	const timeout = 500 * time.Millisecond
@@ -31,7 +31,7 @@ func (x *browseObj) userAnyKey(prompt string) {
 	if prompt == "" {
 		moveCursor(2, 1, false)
 	} else {
-		moveCursor(x.dispHeight, 1, true)
+		moveCursor(br.dispHeight, 1, true)
 		ttyBrowser()
 		fmt.Print(prompt)
 	}
@@ -39,7 +39,7 @@ func (x *browseObj) userAnyKey(prompt string) {
 	b := make([]byte, 1)
 
 	for {
-		if n, err := x.tty.Read(b); err != nil {
+		if n, err := br.tty.Read(b); err != nil {
 			if err != io.EOF {
 				errorExit(err)
 			}
@@ -50,10 +50,10 @@ func (x *browseObj) userAnyKey(prompt string) {
 		time.Sleep(timeout)
 	}
 
-	x.restoreLast()
+	br.restoreLast()
 }
 
-func (x *browseObj) userInput(prompt string) (string, bool) {
+func (br *browseObj) userInput(prompt string) (string, bool) {
 	const (
 		NEWLINE   = '\n'
 		CARRETURN = '\r'
@@ -72,13 +72,13 @@ func (x *browseObj) userInput(prompt string) (string, bool) {
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT)
 	defer signal.Reset(syscall.SIGINT, syscall.SIGQUIT)
 	ttyPrompter()
-	moveCursor(x.dispHeight, 1, true)
+	moveCursor(br.dispHeight, 1, true)
 	fmt.Printf("%s", prompt)
-	x.shownMsg = true
+	br.shownMsg = true
 
 	for {
 		b := make([]byte, 1)
-		_, err := x.tty.Read(b)
+		_, err := br.tty.Read(b)
 
 		if err != nil {
 			errorExit(err)
@@ -95,7 +95,7 @@ func (x *browseObj) userInput(prompt string) (string, bool) {
 		case BACKSPACE, DELETE:
 			if len(linebuf) > 0 {
 				linebuf = strings.TrimSuffix(linebuf, string(linebuf[len(linebuf)-1]))
-				moveCursor(x.dispHeight, 1, true)
+				moveCursor(br.dispHeight, 1, true)
 				fmt.Printf("%s%s", prompt, linebuf)
 			} else {
 				cancel = true
@@ -108,12 +108,12 @@ func (x *browseObj) userInput(prompt string) (string, bool) {
 				linebuf = ""
 			}
 
-			moveCursor(x.dispHeight, 1, true)
+			moveCursor(br.dispHeight, 1, true)
 			fmt.Printf("%s%s", prompt, linebuf)
 
 		case ERASELINE:
 			linebuf = ""
-			moveCursor(x.dispHeight, 1, true)
+			moveCursor(br.dispHeight, 1, true)
 			fmt.Printf("%s%s", prompt, linebuf)
 
 		default:
@@ -127,7 +127,7 @@ func (x *browseObj) userInput(prompt string) (string, bool) {
 	}
 
 	ttyBrowser()
-	x.restoreLast()
+	br.restoreLast()
 
 	return linebuf, cancel
 }

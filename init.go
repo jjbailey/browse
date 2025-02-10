@@ -1,7 +1,7 @@
 // init.go
 // functions to initialize objects
 //
-// Copyright (c) 2024 jjb
+// Copyright (c) 2024-2025 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -15,48 +15,48 @@ import (
 	"golang.org/x/term"
 )
 
-func (x *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin bool) {
-	x.fp = fp
-	x.fileName = fileName
-	x.title = title
-	x.fromStdin = fromStdin
+func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin bool) {
+	br.fp = fp
+	br.fileName = fileName
+	br.title = title
+	br.fromStdin = fromStdin
 
-	x.seekMap = map[int]int64{0: 0}
-	x.sizeMap = map[int]int64{0: 0}
-	x.mapSiz = 1
+	br.seekMap = map[int]int64{0: 0}
+	br.sizeMap = map[int]int64{0: 0}
+	br.mapSiz = 1
 
-	x.newFileSiz = 0
-	x.savFileSiz = 0
+	br.newFileSiz = 0
+	br.savFileSiz = 0
 }
 
-func (x *browseObj) browseInit() {
-	x.ignoreCase = false
-	x.lastMatch = SEARCH_RESET
-	x.hitEOF = false
-	x.shownEOF = false
-	x.shownMsg = false
-	x.shiftWidth = 0
-	x.modeNumbers = false
-	x.modeScroll = MODE_SCROLL_NONE
+func (br *browseObj) browseInit() {
+	br.ignoreCase = false
+	br.lastMatch = SEARCH_RESET
+	br.hitEOF = false
+	br.shownEOF = false
+	br.shownMsg = false
+	br.shiftWidth = 0
+	br.modeNumbers = false
+	br.modeScroll = MODE_SCROLL_NONE
 
-	x.saveRC = false
-	x.exit = false
+	br.saveRC = false
+	br.exit = false
 }
 
-func (x *browseObj) screenInit(tty *os.File) {
-	x.tty = tty
+func (br *browseObj) screenInit(tty *os.File) {
+	br.tty = tty
 
 	width, height, err := term.GetSize(int(tty.Fd()))
 
 	if err != nil {
-		x.dispWidth = 80
-		x.dispHeight = 25
+		br.dispWidth = 80
+		br.dispHeight = 25
 	} else {
-		x.dispWidth = width
-		x.dispHeight = height
+		br.dispWidth = width
+		br.dispHeight = height
 	}
 
-	x.dispRows = x.dispHeight - 1
+	br.dispRows = br.dispHeight - 1
 }
 
 // vim: set ts=4 sw=4 noet:
