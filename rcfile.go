@@ -72,7 +72,7 @@ func (br *browseObj) readRcFile() bool {
 			return true
 		}
 
-		line := strings.TrimSpace(scanner.Text())
+		line := strings.TrimRight(scanner.Text(), "\r\n")
 
 		switch i {
 
