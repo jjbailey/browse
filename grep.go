@@ -1,7 +1,7 @@
 // grep.go
 // pipe the current search to grep -nP
 //
-// Copyright (c) 2024 jjb
+// Copyright (c) 2024-2025 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -14,15 +14,15 @@ import (
 	"os/exec"
 )
 
-func (x *browseObj) grep() {
-	if len(x.pattern) == 0 {
-		x.printMessage("No search pattern", MSG_ORANGE)
+func (br *browseObj) grep() {
+	if len(br.pattern) == 0 {
+		br.printMessage("No search pattern", MSG_ORANGE)
 		return
 	}
 
 	brPath, err := exec.LookPath("browse")
 	if len(brPath) == 0 || err != nil {
-		x.printMessage("Cannot find browse in $PATH", MSG_ORANGE)
+		br.printMessage("Cannot find browse in $PATH", MSG_ORANGE)
 		return
 	}
 
@@ -30,27 +30,27 @@ func (x *browseObj) grep() {
 	grepOpts := "-nP"
 	brOpts := ""
 
-	if x.ignoreCase {
+	if br.ignoreCase {
 		grepOpts = "-inP"
 		brOpts = "-i"
 	}
 
-	title := fmt.Sprintf("grep %s -e \"%s\"", grepOpts, x.pattern)
+	title := fmt.Sprintf("grep %s -e \"%s\"", grepOpts, br.pattern)
 
 	cmdbuf := fmt.Sprintf("grep %s -e '%s' %s | %s %s -p '%s' -t '%s'",
-		grepOpts, x.pattern, x.fileName, brPath, brOpts, x.pattern, title)
+		grepOpts, br.pattern, br.fileName, brPath, brOpts, br.pattern, title)
 
 	fmt.Print(LINEWRAPON)
 
 	// feedback
-	moveCursor(x.dispHeight, 1, true)
+	moveCursor(br.dispHeight, 1, true)
 	fmt.Print("---\n")
 	fmt.Printf("$ %s\n", cmdbuf)
 
 	// set up env, run
 	resetScrRegion()
-	x.runInPty(cmdbuf)
-	x.resizeWindow()
+	br.runInPty(cmdbuf)
+	br.resizeWindow()
 }
 
 // vim: set ts=4 sw=4 noet:

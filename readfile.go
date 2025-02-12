@@ -1,7 +1,7 @@
 // readfile.go
 // the go routine for reading files
 //
-// Copyright (c) 2024 jjb
+// Copyright (c) 2024-2025 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -122,7 +122,7 @@ func getFileSize(fp *os.File) (int64, error) {
 	return fInfo.Size(), nil
 }
 
-func (x *browseObj) readStdin(fin, fout *os.File) {
+func (br *browseObj) readStdin(fin, fout *os.File) {
 	// read from stdin, write to temp file
 
 	r := bufio.NewReader(fin)
@@ -132,7 +132,7 @@ func (x *browseObj) readStdin(fin, fout *os.File) {
 		line, err := r.ReadString('\n')
 
 		if errors.Is(err, syscall.EPIPE) {
-			x.saneExit()
+			br.saneExit()
 		}
 
 		if err == io.EOF {
@@ -144,19 +144,19 @@ func (x *browseObj) readStdin(fin, fout *os.File) {
 	}
 }
 
-func (x *browseObj) readFromMap(lineno int) []byte {
+func (br *browseObj) readFromMap(lineno int) []byte {
 	// use the maps to read a line from the file
 
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	if lineno >= x.mapSiz {
+	if lineno >= br.mapSiz {
 		// should not happen
 		return nil
 	}
 
-	data := make([]byte, x.sizeMap[lineno])
-	_, err := x.fp.ReadAt(data, x.seekMap[lineno])
+	data := make([]byte, br.sizeMap[lineno])
+	_, err := br.fp.ReadAt(data, br.seekMap[lineno])
 
 	if err != nil || len(data) == 0 {
 		return nil

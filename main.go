@@ -1,7 +1,7 @@
 // main.go
 // start here
 //
-// Copyright (c) 2024 jjb
+// Copyright (c) 2024-2025 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -52,7 +52,7 @@ func main() {
 
 	if fromStdin = !term.IsTerminal(int(os.Stdin.Fd())); !fromStdin {
 		if argc == 0 {
-			if !readRcFile(&br) {
+			if !br.readRcFile() {
 				usageMessage()
 				os.Exit(1)
 			}
@@ -152,7 +152,7 @@ func browseFile(br *browseObj, fileName, title string, fromStdin bool) {
 	}
 
 	if !br.fromStdin && br.saveRC {
-		writeRcFile(br)
+		br.writeRcFile()
 	}
 
 	fp.Close()

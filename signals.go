@@ -18,7 +18,7 @@ import (
 	"golang.org/x/term"
 )
 
-func (x *browseObj) catchSignals() {
+func (br *browseObj) catchSignals() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGWINCH)
 	signal.Ignore(syscall.SIGALRM, syscall.SIGCHLD, syscall.SIGURG)
@@ -30,45 +30,46 @@ func (x *browseObj) catchSignals() {
 			switch sig {
 
 			case syscall.SIGWINCH:
-				x.resizeWindow()
+				br.resizeWindow()
 
 			default:
-				x.printMessage(fmt.Sprintf("%v \n", sig), MSG_RED)
-				x.saneExit()
+				br.printMessage(fmt.Sprintf("%v \n", sig), MSG_RED)
+				br.saneExit()
 			}
 		}
 	}()
 }
 
-func (x *browseObj) resizeWindow() {
+func (br *browseObj) resizeWindow() {
 	// process window size changes
 
-	x.dispWidth, x.dispHeight, _ = term.GetSize(int(x.tty.Fd()))
-	x.dispRows = x.dispHeight - 1
-	x.lastMatch = SEARCH_RESET
+	br.dispWidth, br.dispHeight, _ = term.GetSize(int(br.tty.Fd()))
+	br.dispRows = br.dispHeight - 1
+	br.lastMatch = SEARCH_RESET
 
-	x.pageHeader()
-	x.pageCurrent()
+	br.pageHeader()
+	br.pageCurrent()
 
-	if x.inMotion() {
+	if br.inMotion() {
 		fmt.Print(CURRESTORE)
 	}
 }
 
-func (x *browseObj) saneExit() {
+func (br *browseObj) saneExit() {
 	// clean up
 
 	ttyRestore()
 	resetScrRegion()
 	fmt.Print(LINEWRAPON)
-	moveCursor(x.dispHeight, 1, true)
+	moveCursor(br.dispHeight, 1, true)
 
-	if x.fromStdin {
-		os.Remove(x.fileName)
+	if br.fromStdin {
+		os.Remove(br.fileName)
 	}
 
-	if !x.fromStdin && x.saveRC {
-		writeRcFile(x)
+	if !br.fromStdin && br.saveRC {
+		// writeRcFile(x)
+		br.writeRcFile()
 	}
 
 	os.Exit(0)

@@ -1,7 +1,7 @@
 // page.go
 // paging and some support functions
 //
-// Copyright (c) 2024 jjb
+// Copyright (c) 2024-2025 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -14,31 +14,31 @@ import (
 	"strings"
 )
 
-func (x *browseObj) pageUp() {
-	x.printPage(x.firstRow - x.dispRows)
+func (br *browseObj) pageUp() {
+	br.printPage(br.firstRow - br.dispRows)
 }
 
-func (x *browseObj) pageCurrent() {
-	x.printPage(x.firstRow)
+func (br *browseObj) pageCurrent() {
+	br.printPage(br.firstRow)
 }
 
-func (x *browseObj) pageDown() {
-	x.printPage(x.firstRow + x.dispRows)
+func (br *browseObj) pageDown() {
+	br.printPage(br.firstRow + br.dispRows)
 }
 
-func (x *browseObj) pageHeader() {
+func (br *browseObj) pageHeader() {
 	// print the header line
 
 	// if the title is too long, fit to size, include ellipsis
-	dispTitle := x.title
-	lenDiff := (len(x.title) - x.dispWidth) + 6 + 3
+	dispTitle := br.title
+	lenDiff := (len(br.title) - br.dispWidth) + 6 + 3
 
 	if lenDiff > 0 {
-		dispTitle = "..." + x.title[lenDiff:]
+		dispTitle = "..." + br.title[lenDiff:]
 	}
 
 	// minus tees and spaces
-	lineLen := x.dispWidth - 4
+	lineLen := br.dispWidth - 4
 	oneSide := (lineLen - len(dispTitle)) >> 1
 
 	// -----| title |-----
@@ -52,15 +52,15 @@ func (x *browseObj) pageHeader() {
 	fmt.Print(CLEARSCREEN)
 	fmt.Print(LINEWRAPOFF)
 	fmt.Print(header)
-	setScrRegion(2, x.dispHeight)
+	setScrRegion(2, br.dispHeight)
 }
 
-func (x *browseObj) pageLast() {
-	x.printPage(x.mapSiz)
+func (br *browseObj) pageLast() {
+	br.printPage(br.mapSiz)
 }
 
-func (x *browseObj) pageMarked(lineno int) {
-	x.printPage(x.marks[lineno])
+func (br *browseObj) pageMarked(lineno int) {
+	br.printPage(br.marks[lineno])
 }
 
 // vim: set ts=4 sw=4 noet:

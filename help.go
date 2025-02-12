@@ -17,7 +17,7 @@ import (
 	"syscall"
 )
 
-func (x *browseObj) printHelp() {
+func (br *browseObj) printHelp() {
 	var i int
 
 	lines := []string{
@@ -58,13 +58,13 @@ func (x *browseObj) printHelp() {
 	helpHeight := len(lines)
 	helpWidth := len(lines[0])
 
-	if x.dispHeight < (helpHeight+4) || x.dispWidth < (helpWidth+2) {
-		x.printMessage("Screen is too small", MSG_ORANGE)
+	if br.dispHeight < (helpHeight+4) || br.dispWidth < (helpWidth+2) {
+		br.printMessage("Screen is too small", MSG_ORANGE)
 		return
 	}
 
 	// top line
-	col := int((x.dispWidth - helpWidth) / 2)
+	col := int((br.dispWidth - helpWidth) / 2)
 	fmt.Print(VIDHELP)
 	moveCursor(3, col, false)
 	fmt.Printf(ENTERGRAPHICS + UPPERLEFT)
@@ -98,13 +98,13 @@ func (x *browseObj) printHelp() {
 	signal.Ignore(syscall.SIGWINCH)
 
 	// prompt is in the body of the help screen
-	x.userAnyKey("")
+	br.userAnyKey("")
 
 	// restore and reset window size
-	x.resizeWindow()
+	br.resizeWindow()
 
 	// reset signals
-	x.catchSignals()
+	br.catchSignals()
 }
 
 // vim: set ts=4 sw=4 noet:
