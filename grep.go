@@ -14,9 +14,15 @@ import (
 	"os/exec"
 )
 
-func (br *browseObj) grep() {
+func (br *browseObj) runGrep() {
 	if len(br.pattern) == 0 {
 		br.printMessage("No search pattern", MSG_ORANGE)
+		return
+	}
+
+	grepPath, err := exec.LookPath("grep")
+	if len(grepPath) == 0 || err != nil {
+		br.printMessage("Cannot find grep in $PATH", MSG_ORANGE)
 		return
 	}
 
@@ -37,8 +43,8 @@ func (br *browseObj) grep() {
 
 	title := fmt.Sprintf("grep %s -e \"%s\"", grepOpts, br.pattern)
 
-	cmdbuf := fmt.Sprintf("grep %s -e '%s' %s | %s %s -p '%s' -t '%s'",
-		grepOpts, br.pattern, br.fileName, brPath, brOpts, br.pattern, title)
+	cmdbuf := fmt.Sprintf("%s %s -e '%s' %s | %s %s -p '%s' -t '%s'",
+		grepPath, grepOpts, br.pattern, br.fileName, brPath, brOpts, br.pattern, title)
 
 	fmt.Print(LINEWRAPON)
 

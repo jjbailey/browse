@@ -333,7 +333,7 @@ func commands(br *browseObj) {
 
 		case CMD_GREP:
 			// grep -nP pattern
-			br.grep()
+			br.runGrep()
 
 		case CMD_SEARCH_CLEAR:
 			// clear the search pattern
