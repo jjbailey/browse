@@ -83,29 +83,9 @@ func main() {
 	br.catchSignals()
 
 	if fromStdin {
-		// input is a pipeline
-
-		tmpfp, err := os.CreateTemp("", "browse")
-		errorExit(err)
-
-		go br.readStdin(os.Stdin, tmpfp)
-		browseFile(&br, tmpfp.Name(), setTitle(br.title, "          "), true)
+		processPipeInput(&br)
 	} else {
-		// input is a tty
-
-		if argc == 0 {
-			browseFile(&br, br.fileName, setTitle(br.title, br.fileName), false)
-		} else {
-			for _, fileName := range args {
-				browseFile(&br, fileName, setTitle(*titleStr, fileName), false)
-
-				if br.exit {
-					break
-				}
-
-				resetState(&br)
-			}
-		}
+		processFileList(&br, argc, args)
 	}
 
 	// done
@@ -162,6 +142,7 @@ func resetState(br *browseObj) {
 	br.firstRow = 0
 	br.lastRow = 0
 	br.shiftWidth = 0
+	br.modeScroll = MODE_SCROLL_NONE
 }
 
 func setTitle(primary, fallback string) string {
@@ -176,6 +157,34 @@ func preInitialization(br *browseObj) {
 	ttySaveTerm()
 	syscall.Umask(077)
 	br.browseInit()
+}
+
+func processPipeInput(br *browseObj) {
+	fpStdin, err := os.CreateTemp("", "browse")
+	errorExit(err)
+
+	go br.readStdin(os.Stdin, fpStdin)
+	browseFile(br, fpStdin.Name(), setTitle(br.title, "          "), true)
+	fpStdin.Close()
+	os.Remove(fpStdin.Name())
+}
+
+func processFileList(br *browseObj, argc int, args []string) {
+	if argc == 0 {
+		browseFile(br, br.fileName, setTitle(br.title, br.fileName), false)
+	} else {
+		for index, fileName := range args {
+			browseFile(br, fileName, setTitle(fileName, fileName), false)
+
+			if br.exit {
+				break
+			}
+
+			if index < len(args)-1 {
+				resetState(br)
+			}
+		}
+	}
 }
 
 // vim: set ts=4 sw=4 noet:

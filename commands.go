@@ -12,6 +12,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"time"
 	"unicode"
@@ -41,6 +42,7 @@ func commands(br *browseObj) {
 		CMD_SHIFT_RIGHT_1   = '\011'
 		CMD_SHIFT_ZERO      = '^'
 		CMD_SHIFT_LONGEST   = '$'
+		CMD_NEWFILE         = 'B'
 		CMD_QUIT            = 'q'
 		CMD_QUIT_NO_SAVE    = 'Q'
 		CMD_EXIT            = 'x'
@@ -370,6 +372,19 @@ func commands(br *browseObj) {
 			br.printMessage(fmt.Sprintf("\"%s\" %d lines --%1.1f%%--",
 				filepath.Base(br.fileName), br.mapSiz-1, t), MSG_GREEN)
 
+		case CMD_NEWFILE:
+			// browse a new file
+			if lbuf, cancel := br.userInput("File: "); cancel || len(lbuf) == 0 {
+				br.restoreLast()
+			} else if fp, err := os.Open(lbuf); err != nil {
+				br.timedMessage(fmt.Sprintf("%v", err), MSG_RED)
+			} else {
+				fp.Close()
+				resetState(br)
+				browseFile(br, lbuf, setTitle(lbuf, lbuf), false)
+				return
+			}
+
 		case CMD_QUIT:
 			br.saveRC = true
 			br.exit = false
@@ -424,21 +439,24 @@ func shiftLongest(br *browseObj) int {
 	// shift to show the end of the longest line on the page
 
 	longest := 0
+	lastRow := minimum(br.firstRow+br.dispRows, br.mapSiz)
 
-	for i := br.firstRow; i < br.firstRow+br.dispRows && i < br.mapSiz; i++ {
-		longest = maximum(longest, len(string(br.readFromMap(i))))
+	for i := br.firstRow; i < lastRow; i++ {
+		lineLength := len(br.readFromMap(i))
+		if lineLength > longest {
+			longest = lineLength
+		}
 	}
 
 	if br.modeNumbers {
 		longest += NUMCOLWIDTH
 	}
 
-	if longest < br.dispWidth {
+	if longest <= br.dispWidth {
 		return 0
 	}
 
-	longest -= br.dispWidth
-	return (int(longest/TABWIDTH) + 1) * TABWIDTH
+	return ((longest - br.dispWidth + TABWIDTH) / TABWIDTH) * TABWIDTH
 }
 
 func handlePanic(br *browseObj) {

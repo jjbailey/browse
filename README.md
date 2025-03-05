@@ -127,6 +127,7 @@ When a filename is absent, browse attempts to restore the session saved in ~/.br
 | #                      | Toggle line numbers on and off        |
 | %<br> ^G               | Page position                         |
 | !                      | Run a bash command (expands !, %, &)  |
+| B                      | Browse another file                   |
 | q                      | Quit, save .browserc, next file       |
 | Q                      | Quit, don't save .browserc, next file |
 | x                      | Exit, save .browserc                  |
