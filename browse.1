@@ -113,10 +113,17 @@ horizontal scroll
 .IP \[bu] 2
 follow/tail mode
 .PP
-When a filename is absent, browse attempts to restore the session saved
-in \[ti]/.browserc.
+When advancing to the next filename in a list of filenames, browse:
+.IP \[bu] 2
+starts at the first page
+.IP \[bu] 2
+resets the horizontal shift to column 1
+.IP \[bu] 2
+turns off follow/tail mode
+.PP
+When browse is called with no filenames, browse attempts to restore the
+session saved in \[ti]/.browserc.
 .SS Usage
-.IP
 .nf
 
 Usage: browse [-finv] [-p pattern] [-t title] [filename...]
