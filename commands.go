@@ -423,15 +423,16 @@ func commands(br *browseObj) {
 func waitForInput(br *browseObj, lineno int) {
 	// wait for input, up to lineno
 
+	const maxAttempts = 10
 	var saveSiz int
 
-	for i := 0; i < 10; i++ {
-		if br.mapSiz > lineno || (i > 3 && br.mapSiz == saveSiz) {
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		if br.mapSiz > lineno || (attempt > 3 && br.mapSiz == saveSiz) {
 			break
 		}
 
 		saveSiz = br.mapSiz
-		time.Sleep(200 * time.Millisecond)
+		<-time.After(200 * time.Millisecond)
 	}
 }
 

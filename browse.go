@@ -21,29 +21,28 @@ func browseFile(br *browseObj, fileName, title string, fromStdin bool) {
 	fp, err := os.Open(fileName)
 
 	if err != nil {
-		br.timedMessage(fmt.Sprintf("%v", err), MSG_RED)
+		br.timedMessage(fmt.Sprintf("Error opening file: %v", err), MSG_RED)
 		return
 	}
+
+	defer fp.Close()
 
 	br.fileInit(fp, fileName, title, fromStdin)
 
 	// start a reader
-	syncOK := make(chan bool)
+
+	syncOK := make(chan bool, 1)
 	go readFile(br, syncOK)
-	readerOK := <-syncOK
-	close(syncOK)
 
 	// process commands
 
-	if readerOK {
+	if readerOK := <-syncOK; readerOK {
 		commands(br)
 	}
 
 	if !br.fromStdin && br.saveRC {
 		br.writeRcFile()
 	}
-
-	fp.Close()
 }
 
 func resetState(br *browseObj) {
@@ -54,7 +53,7 @@ func resetState(br *browseObj) {
 }
 
 func setTitle(primary, fallback string) string {
-	if len(primary) > 0 {
+	if primary != "" {
 		return primary
 	}
 
@@ -69,12 +68,17 @@ func preInitialization(br *browseObj) {
 
 func processPipeInput(br *browseObj) {
 	fpStdin, err := os.CreateTemp("", "browse")
-	errorExit(err)
+
+	if err != nil {
+		errorExit(fmt.Errorf("Error creating temporary file: %v", err))
+		return
+	}
+
+	defer os.Remove(fpStdin.Name())
+	defer fpStdin.Close()
 
 	go br.readStdin(os.Stdin, fpStdin)
 	browseFile(br, fpStdin.Name(), setTitle(br.title, "          "), true)
-	fpStdin.Close()
-	os.Remove(fpStdin.Name())
 }
 
 func processFileList(br *browseObj, argc int, args []string) {
