@@ -21,7 +21,7 @@ func browseFile(br *browseObj, fileName, title string, fromStdin bool) {
 	fp, err := os.Open(fileName)
 
 	if err != nil {
-		br.timedMessage(fmt.Sprintf("Error opening file: %v", err), MSG_RED)
+		br.timedMessage(fmt.Sprintf("error opening file: %v", err), MSG_RED)
 		return
 	}
 
@@ -70,7 +70,7 @@ func processPipeInput(br *browseObj) {
 	fpStdin, err := os.CreateTemp("", "browse")
 
 	if err != nil {
-		errorExit(fmt.Errorf("Error creating temporary file: %v", err))
+		errorExit(fmt.Errorf("error creating temporary file: %v", err))
 		return
 	}
 
