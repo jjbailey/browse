@@ -249,7 +249,6 @@ func commands(br *browseObj) {
 		case CMD_SCROLL_UP:
 			// scroll backward/up
 			br.scrollUp(1)
-			moveCursor(2, 1, false)
 
 		case CMD_SHIFT_LEFT, CMD_SHIFT_LEFT_1, CMD_SHIFT_LEFT_2:
 			// horizontal scroll left
@@ -257,6 +256,7 @@ func commands(br *browseObj) {
 				br.shiftWidth -= TABWIDTH
 				br.pageCurrent()
 			}
+			moveCursor(2, 1, false)
 
 		case CMD_SHIFT_RIGHT, CMD_SHIFT_RIGHT_1:
 			// horizontal scroll right
@@ -264,6 +264,7 @@ func commands(br *browseObj) {
 				br.shiftWidth += TABWIDTH
 				br.pageCurrent()
 			}
+			moveCursor(2, 1, false)
 
 		case CMD_SHIFT_ZERO:
 			// horizontal scroll left to column 1
@@ -271,11 +272,13 @@ func commands(br *browseObj) {
 				br.shiftWidth = 0
 				br.pageCurrent()
 			}
+			moveCursor(2, 1, false)
 
 		case CMD_SHIFT_LONGEST:
 			// horizontal scroll longest
 			br.shiftWidth = shiftLongest(br)
 			br.pageCurrent()
+			moveCursor(2, 1, false)
 
 		case CMD_SOF:
 			// beginning of file at column 1
