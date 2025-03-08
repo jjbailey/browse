@@ -301,9 +301,7 @@ func commands(br *browseObj) {
 		case CMD_JUMP:
 			// jump to line
 			lbuf, cancel := br.userInput("Junp: ")
-			if cancel || len(lbuf) == 0 {
-				br.restoreLast()
-			} else {
+			if !cancel && len(lbuf) > 0 {
 				var n int
 				fmt.Sscanf(lbuf, "%d", &n)
 				br.printPage(n)
@@ -346,11 +344,11 @@ func commands(br *browseObj) {
 		case CMD_MARK:
 			// mark page
 			lbuf, cancel := br.userInput("Mark: ")
-			if cancel {
-				br.restoreLast()
-			} else if m := getMark(lbuf); m != 0 {
-				br.marks[m] = br.firstRow
-				br.printMessage(fmt.Sprintf("Mark %d at line %d", m, br.marks[m]), MSG_GREEN)
+			if !cancel && len(lbuf) > 0 {
+				if m := getMark(lbuf); m != 0 {
+					br.marks[m] = br.firstRow
+					br.printMessage(fmt.Sprintf("Mark %d at line %d", m, br.marks[m]), MSG_GREEN)
+				}
 			}
 
 		case CMD_BASH:
@@ -374,15 +372,16 @@ func commands(br *browseObj) {
 
 		case CMD_NEWFILE:
 			// browse a new file
-			if lbuf, cancel := br.userInput("File: "); cancel || len(lbuf) == 0 {
-				br.restoreLast()
-			} else if fp, err := os.Open(lbuf); err != nil {
-				br.timedMessage(fmt.Sprintf("%v", err), MSG_RED)
-			} else {
-				fp.Close()
-				resetState(br)
-				browseFile(br, lbuf, setTitle(lbuf, lbuf), false)
-				return
+			lbuf, cancel := br.userInput("File: ")
+			if !cancel && len(lbuf) > 0 {
+				if fp, err := os.Open(lbuf); err != nil {
+					br.timedMessage(fmt.Sprintf("%v", err), MSG_RED)
+				} else {
+					fp.Close()
+					resetState(br)
+					browseFile(br, lbuf, setTitle(lbuf, lbuf), false)
+					return
+				}
 			}
 
 		case CMD_QUIT:
