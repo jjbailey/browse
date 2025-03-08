@@ -129,6 +129,7 @@ func (br *browseObj) userInput(prompt string) (string, bool) {
 
 	ttyBrowser()
 	br.restoreLast()
+	moveCursor(2, 1, false)
 
 	return linebuf, cancel
 }
