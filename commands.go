@@ -12,6 +12,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"time"
 	"unicode"
@@ -41,6 +42,7 @@ func commands(br *browseObj) {
 		CMD_SHIFT_RIGHT_1   = '\011'
 		CMD_SHIFT_ZERO      = '^'
 		CMD_SHIFT_LONGEST   = '$'
+		CMD_NEWFILE         = 'B'
 		CMD_QUIT            = 'q'
 		CMD_QUIT_NO_SAVE    = 'Q'
 		CMD_EXIT            = 'x'
@@ -247,7 +249,6 @@ func commands(br *browseObj) {
 		case CMD_SCROLL_UP:
 			// scroll backward/up
 			br.scrollUp(1)
-			moveCursor(2, 1, false)
 
 		case CMD_SHIFT_LEFT, CMD_SHIFT_LEFT_1, CMD_SHIFT_LEFT_2:
 			// horizontal scroll left
@@ -255,6 +256,7 @@ func commands(br *browseObj) {
 				br.shiftWidth -= TABWIDTH
 				br.pageCurrent()
 			}
+			moveCursor(2, 1, false)
 
 		case CMD_SHIFT_RIGHT, CMD_SHIFT_RIGHT_1:
 			// horizontal scroll right
@@ -262,6 +264,7 @@ func commands(br *browseObj) {
 				br.shiftWidth += TABWIDTH
 				br.pageCurrent()
 			}
+			moveCursor(2, 1, false)
 
 		case CMD_SHIFT_ZERO:
 			// horizontal scroll left to column 1
@@ -269,11 +272,13 @@ func commands(br *browseObj) {
 				br.shiftWidth = 0
 				br.pageCurrent()
 			}
+			moveCursor(2, 1, false)
 
 		case CMD_SHIFT_LONGEST:
 			// horizontal scroll longest
 			br.shiftWidth = shiftLongest(br)
 			br.pageCurrent()
+			moveCursor(2, 1, false)
 
 		case CMD_SOF:
 			// beginning of file at column 1
@@ -299,9 +304,7 @@ func commands(br *browseObj) {
 		case CMD_JUMP:
 			// jump to line
 			lbuf, cancel := br.userInput("Junp: ")
-			if cancel || len(lbuf) == 0 {
-				br.restoreLast()
-			} else {
+			if !cancel && len(lbuf) > 0 {
 				var n int
 				fmt.Sscanf(lbuf, "%d", &n)
 				br.printPage(n)
@@ -333,7 +336,7 @@ func commands(br *browseObj) {
 
 		case CMD_GREP:
 			// grep -nP pattern
-			br.grep()
+			br.runGrep()
 
 		case CMD_SEARCH_CLEAR:
 			// clear the search pattern
@@ -344,11 +347,11 @@ func commands(br *browseObj) {
 		case CMD_MARK:
 			// mark page
 			lbuf, cancel := br.userInput("Mark: ")
-			if cancel {
-				br.restoreLast()
-			} else if m := getMark(lbuf); m != 0 {
-				br.marks[m] = br.firstRow
-				br.printMessage(fmt.Sprintf("Mark %d at line %d", m, br.marks[m]), MSG_GREEN)
+			if !cancel && len(lbuf) > 0 {
+				if m := getMark(lbuf); m != 0 {
+					br.marks[m] = br.firstRow
+					br.printMessage(fmt.Sprintf("Mark %d at line %d", m, br.marks[m]), MSG_GREEN)
+				}
 			}
 
 		case CMD_BASH:
@@ -369,6 +372,20 @@ func commands(br *browseObj) {
 			t := float32(br.firstRow) / float32(br.mapSiz-1) * 100.0
 			br.printMessage(fmt.Sprintf("\"%s\" %d lines --%1.1f%%--",
 				filepath.Base(br.fileName), br.mapSiz-1, t), MSG_GREEN)
+
+		case CMD_NEWFILE:
+			// browse a new file
+			lbuf, cancel := br.userInput("File: ")
+			if !cancel && len(lbuf) > 0 {
+				if fp, err := os.Open(lbuf); err != nil {
+					br.timedMessage(fmt.Sprintf("%v", err), MSG_RED)
+				} else {
+					fp.Close()
+					resetState(br)
+					browseFile(br, lbuf, setTitle(lbuf, lbuf), false)
+					return
+				}
+			}
 
 		case CMD_QUIT:
 			br.saveRC = true
@@ -408,15 +425,16 @@ func commands(br *browseObj) {
 func waitForInput(br *browseObj, lineno int) {
 	// wait for input, up to lineno
 
+	const maxAttempts = 10
 	var saveSiz int
 
-	for i := 0; i < 10; i++ {
-		if br.mapSiz > lineno || (i > 3 && br.mapSiz == saveSiz) {
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		if br.mapSiz > lineno || (attempt > 3 && br.mapSiz == saveSiz) {
 			break
 		}
 
 		saveSiz = br.mapSiz
-		time.Sleep(200 * time.Millisecond)
+		<-time.After(200 * time.Millisecond)
 	}
 }
 
@@ -424,21 +442,24 @@ func shiftLongest(br *browseObj) int {
 	// shift to show the end of the longest line on the page
 
 	longest := 0
+	lastRow := minimum(br.firstRow+br.dispRows, br.mapSiz)
 
-	for i := br.firstRow; i < br.firstRow+br.dispRows && i < br.mapSiz; i++ {
-		longest = maximum(longest, len(string(br.readFromMap(i))))
+	for i := br.firstRow; i < lastRow; i++ {
+		lineLength := len(br.readFromMap(i))
+		if lineLength > longest {
+			longest = lineLength
+		}
 	}
 
 	if br.modeNumbers {
 		longest += NUMCOLWIDTH
 	}
 
-	if longest < br.dispWidth {
+	if longest <= br.dispWidth {
 		return 0
 	}
 
-	longest -= br.dispWidth
-	return (int(longest/TABWIDTH) + 1) * TABWIDTH
+	return ((longest - br.dispWidth + TABWIDTH) / TABWIDTH) * TABWIDTH
 }
 
 func handlePanic(br *browseObj) {

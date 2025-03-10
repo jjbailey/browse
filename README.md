@@ -56,7 +56,13 @@ The session attributes not saved:
 - horizontal scroll
 - follow/tail mode
 
-When a filename is absent, browse attempts to restore the session saved in ~/.browserc.
+When advancing to the next filename in a list of filenames, browse:
+
+- starts at the first page
+- resets the horizontal shift to column 1
+- turns off follow/tail mode
+
+When browse is called with no filenames, browse attempts to restore the session saved in ~/.browserc.
 
 ## Usage
 
@@ -127,6 +133,7 @@ When a filename is absent, browse attempts to restore the session saved in ~/.br
 | #                      | Toggle line numbers on and off        |
 | %<br> ^G               | Page position                         |
 | !                      | Run a bash command (expands !, %, &)  |
+| B                      | Browse another file                   |
 | q                      | Quit, save .browserc, next file       |
 | Q                      | Quit, don't save .browserc, next file |
 | x                      | Exit, save .browserc                  |

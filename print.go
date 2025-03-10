@@ -57,35 +57,14 @@ func (br *browseObj) printPage(lineno int) {
 	// print a page -- full screen if possible
 	// lineno is the top line
 
-	var i int
-
-	if lineno+br.dispRows > br.mapSiz {
-		// beyond EOF
-		lineno -= (lineno - br.mapSiz)
-		lineno -= br.dispRows
-		// +1 for EOF
-		lineno++
-	}
-
-	if lineno < 0 {
-		lineno = 0
-	} else if lineno > br.mapSiz {
-		lineno = br.mapSiz
-	}
+	lineno = adjustLineNumber(lineno, br.dispRows, br.mapSiz)
 
 	sop := lineno
 	// +1 for EOF
-	eop := minimum((sop + br.dispRows), br.mapSiz+1)
+	eop := minimum(sop+br.dispRows, br.mapSiz+1)
 
-	// scroll if
-	//   - more than one page of data
-	//   - current position is <= 1/4 page to target
 	if br.mapSiz > br.dispRows {
-		if sop > br.firstRow && sop-br.firstRow <= (br.dispRows>>2) {
-			br.scrollDown(sop - br.firstRow)
-			return
-		} else if br.firstRow > sop && br.firstRow-sop <= (br.dispRows>>2) {
-			br.scrollUp(br.firstRow - sop)
+		if br.tryScroll(sop) {
 			return
 		}
 	}
@@ -94,15 +73,43 @@ func (br *browseObj) printPage(lineno int) {
 	// printLine starts with \n
 	moveCursor(1, 1, false)
 
-	for i = sop; i < eop; i++ {
+	for i := sop; i < eop; i++ {
 		br.printLine(i)
 	}
 
 	moveCursor(2, 1, false)
 
 	// reset these
-	br.firstRow = sop
-	br.lastRow = i
+	br.firstRow, br.lastRow = sop, eop
+}
+
+func adjustLineNumber(lineno, dispRows, mapSiz int) int {
+	if lineno+dispRows > mapSiz {
+		lineno = mapSiz - dispRows + 1
+	}
+
+	// Ensure lineno is within valid range
+	if lineno < 0 {
+		return 0
+	} else if lineno > mapSiz {
+		return mapSiz
+	}
+
+	return lineno
+}
+
+func (br *browseObj) tryScroll(sop int) bool {
+	// attempt to scroll based on current position and target position
+
+	if sop > br.firstRow && sop-br.firstRow <= br.dispRows>>2 {
+		br.scrollDown(sop - br.firstRow)
+		return true
+	} else if br.firstRow > sop && br.firstRow-sop <= br.dispRows>>2 {
+		br.scrollUp(br.firstRow - sop)
+		return true
+	}
+
+	return false
 }
 
 func (br *browseObj) timedMessage(msg string, color string) {

@@ -72,6 +72,7 @@ func (br *browseObj) userInput(prompt string) (string, bool) {
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT)
 	defer signal.Reset(syscall.SIGINT, syscall.SIGQUIT)
 	ttyPrompter()
+	fmt.Printf("\r%s", CURSAVE)
 	moveCursor(br.dispHeight, 1, true)
 	fmt.Printf("%s", prompt)
 	br.shownMsg = true
@@ -128,6 +129,7 @@ func (br *browseObj) userInput(prompt string) (string, bool) {
 
 	ttyBrowser()
 	br.restoreLast()
+	moveCursor(2, 1, false)
 
 	return linebuf, cancel
 }

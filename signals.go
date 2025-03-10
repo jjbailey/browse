@@ -68,7 +68,6 @@ func (br *browseObj) saneExit() {
 	}
 
 	if !br.fromStdin && br.saveRC {
-		// writeRcFile(x)
 		br.writeRcFile()
 	}
 

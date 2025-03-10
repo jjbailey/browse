@@ -12,7 +12,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"syscall"
 
 	"github.com/pborman/getopt/v2"
 	"golang.org/x/term"
@@ -83,29 +82,9 @@ func main() {
 	br.catchSignals()
 
 	if fromStdin {
-		// input is a pipeline
-
-		tmpfp, err := os.CreateTemp("", "browse")
-		errorExit(err)
-
-		go br.readStdin(os.Stdin, tmpfp)
-		browseFile(&br, tmpfp.Name(), setTitle(br.title, "          "), true)
+		processPipeInput(&br)
 	} else {
-		// input is a tty
-
-		if argc == 0 {
-			browseFile(&br, br.fileName, setTitle(br.title, br.fileName), false)
-		} else {
-			for _, fileName := range args {
-				browseFile(&br, fileName, setTitle(*titleStr, fileName), false)
-
-				if br.exit {
-					break
-				}
-
-				resetState(&br)
-			}
-		}
+		processFileList(&br, argc, args)
 	}
 
 	// done
@@ -125,57 +104,6 @@ func usageMessage() {
 	fmt.Print(" -t, --title        page title\n")
 	fmt.Print(" -v, --version      print version number\n")
 	fmt.Print(" -?, --help         this message\n")
-}
-
-func browseFile(br *browseObj, fileName, title string, fromStdin bool) {
-	// init
-
-	fp, err := os.Open(fileName)
-
-	if err != nil {
-		br.timedMessage(fmt.Sprintf("%v", err), MSG_RED)
-		return
-	}
-
-	br.fileInit(fp, fileName, title, fromStdin)
-
-	// start a reader
-	syncOK := make(chan bool)
-	go readFile(br, syncOK)
-	readerOK := <-syncOK
-	close(syncOK)
-
-	// process commands
-
-	if readerOK {
-		commands(br)
-	}
-
-	if !br.fromStdin && br.saveRC {
-		br.writeRcFile()
-	}
-
-	fp.Close()
-}
-
-func resetState(br *browseObj) {
-	br.firstRow = 0
-	br.lastRow = 0
-	br.shiftWidth = 0
-}
-
-func setTitle(primary, fallback string) string {
-	if len(primary) > 0 {
-		return primary
-	}
-
-	return fallback
-}
-
-func preInitialization(br *browseObj) {
-	ttySaveTerm()
-	syscall.Umask(077)
-	br.browseInit()
 }
 
 // vim: set ts=4 sw=4 noet:

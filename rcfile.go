@@ -42,8 +42,12 @@ func (br *browseObj) writeRcFile() bool {
 	}
 	data.WriteString("\n")
 
-	// title
-	data.WriteString(br.title + "\n")
+	// title, cosmetics debatable
+	title := br.title
+	if strings.HasPrefix(title, "./") || strings.HasPrefix(title, "../") {
+		title = filepath.Base(title)
+	}
+	data.WriteString(title + "\n")
 
 	// save
 	err := os.WriteFile(filePath, []byte(data.String()), 0644)
