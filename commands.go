@@ -91,7 +91,7 @@ func commands(br *browseObj) {
 	br.reCompile(br.pattern)
 
 	// wait for a full page
-	waitForInput(br, br.dispHeight)
+	waitForInput(br)
 
 	ttyBrowser()
 	br.pageHeader()
@@ -422,18 +422,23 @@ func commands(br *browseObj) {
 	}
 }
 
-func waitForInput(br *browseObj, lineno int) {
-	// wait for input, up to lineno
+func waitForInput(br *browseObj) {
+	const (
+		maxAttempts    = 10
+		stableAttempts = 3
+		waitTime       = 200 * time.Millisecond
+	)
 
-	const maxAttempts = 10
-	var saveSiz int
+	var lastMapSize int
+
+	targetSize := br.firstRow + br.dispHeight
 
 	for attempt := 0; attempt < maxAttempts; attempt++ {
-		if br.mapSiz > lineno || (attempt > 3 && br.mapSiz == saveSiz) {
+		if br.mapSiz > targetSize || (attempt > stableAttempts && br.mapSiz == lastMapSize) {
 			break
 		}
 
-		saveSiz = br.mapSiz
+		lastMapSize = br.mapSiz
 		<-time.After(200 * time.Millisecond)
 	}
 }
@@ -446,6 +451,7 @@ func shiftLongest(br *browseObj) int {
 
 	for i := br.firstRow; i < lastRow; i++ {
 		lineLength := len(br.readFromMap(i))
+
 		if lineLength > longest {
 			longest = lineLength
 		}
