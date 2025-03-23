@@ -424,7 +424,10 @@ func commands(br *browseObj) {
 		default:
 			// if digit, go to marked page
 			if unicode.IsDigit(rune(b[0])) {
-				br.pageMarked(getMark(string(b)))
+				m := getMark(string(b))
+				if br.marks[m] > 0 {
+					br.printPage(br.marks[m])
+				}
 			}
 			// no modes active
 			moveCursor(2, 1, false)
@@ -435,7 +438,7 @@ func commands(br *browseObj) {
 func waitForInput(br *browseObj) {
 	const (
 		maxAttempts    = 10
-		stableAttempts = 3
+		stableAttempts = 5
 		waitTime       = 200 * time.Millisecond
 	)
 
