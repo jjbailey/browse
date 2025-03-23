@@ -344,7 +344,7 @@ func commands(br *browseObj) {
 			if len(br.pattern) == 0 {
 				br.printMessage("No search pattern", MSG_ORANGE)
 			} else {
-				br.printMessage(fmt.Sprintf("%s", br.pattern), MSG_GREEN)
+				br.printMessage(br.pattern, MSG_GREEN)
 			}
 
 		case CMD_SEARCH_CLEAR:
@@ -386,12 +386,13 @@ func commands(br *browseObj) {
 			// browse a new file
 			lbuf, cancel := br.userInput("File: ")
 			if !cancel && len(lbuf) > 0 {
-				if fp, err := os.Open(lbuf); err != nil {
-					br.timedMessage(fmt.Sprintf("%v", err), MSG_RED)
+				sbuf := subCommandChars(lbuf, "%", br.fileName)
+				if fp, err := os.Open(sbuf); err != nil {
+					br.timedMessage(err.Error(), MSG_RED)
 				} else {
 					fp.Close()
 					resetState(br)
-					browseFile(br, lbuf, setTitle(lbuf, lbuf), false)
+					browseFile(br, sbuf, setTitle(sbuf, sbuf), false)
 					return
 				}
 			}
