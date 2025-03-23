@@ -12,27 +12,29 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"math"
 	"os"
 )
 
 func expandTabs(data []byte) []byte {
-	var buf []byte
-	var tab []byte
-
 	if !bytes.ContainsAny(data, "\t\r") {
 		return data
 	}
+
+	tabCount := bytes.Count(data, []byte{'\t'})
+	crCount := bytes.Count(data, []byte{'\r'})
+	capacity := len(data) + tabCount*(TABWIDTH-1) + crCount
+
+	buf := make([]byte, 0, capacity)
 
 	for _, b := range data {
 		switch b {
 
 		case '\r':
-			// Silently map CR to space
+			// silently map CR to space
 			buf = append(buf, ' ')
 
 		case '\t':
-			tab = bytes.Repeat([]byte{' '}, TABWIDTH-len(buf)%TABWIDTH)
+			tab := bytes.Repeat([]byte{' '}, TABWIDTH-len(buf)%TABWIDTH)
 			buf = append(buf, tab...)
 
 		default:
@@ -65,11 +67,17 @@ func windowAtEOF(lineno int, mapsiz int) bool {
 }
 
 func maximum(a int, b int) int {
-	return int(math.Max(float64(a), float64(b)))
+	if a > b {
+		return a
+	}
+	return b
 }
 
 func minimum(a int, b int) int {
-	return int(math.Min(float64(a), float64(b)))
+	if a < b {
+		return a
+	}
+	return b
 }
 
 func setScrRegion(top int, bot int) {
@@ -92,16 +100,13 @@ func getMark(buf string) int {
 	// scan a mark digit from the buffer
 	// valid marks are 1 - 9
 
-	var mark int
-
-	if _, err := fmt.Sscanf(buf, "%d", &mark); err != nil {
-		return 0
+	for i := 0; i < len(buf); i++ {
+		if buf[i] >= '1' && buf[i] <= '9' {
+			return int(buf[i] - '0')
+		}
 	}
 
-	mark = int(math.Max(float64(mark), 1))
-	mark = int(math.Min(float64(mark), 9))
-
-	return mark
+	return 0
 }
 
 // vim: set ts=4 sw=4 noet:
