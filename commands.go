@@ -253,7 +253,7 @@ func commands(br *browseObj) {
 
 		case CMD_SHIFT_LEFT, CMD_SHIFT_LEFT_1, CMD_SHIFT_LEFT_2:
 			// horizontal scroll left
-			if br.shiftWidth > 0 {
+			if br.shiftWidth >= TABWIDTH {
 				br.shiftWidth -= TABWIDTH
 				br.pageCurrent()
 			}
@@ -453,7 +453,7 @@ func waitForInput(br *browseObj) {
 }
 
 func shiftLongest(br *browseObj) int {
-	// shift to show the end of the longest line on the page
+	// shift to the end of the longest line on the page
 
 	longest := 0
 	lastRow := minimum(br.firstRow+br.dispRows, br.mapSiz)
