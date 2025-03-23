@@ -123,6 +123,7 @@ func (br *browseObj) printMessage(msg string, color string) {
 
 	moveCursor(br.dispHeight, 1, true)
 	fmt.Printf("%s %s %s", color, msg, VIDOFF)
+	fmt.Print(LINEWRAPOFF)
 	moveCursor(2, 1, false)
 
 	// scrollDown needs this
