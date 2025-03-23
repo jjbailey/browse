@@ -63,7 +63,8 @@ func commands(br *browseObj) {
 		CMD_GREP            = '&'
 		CMD_PERCENT         = '%'
 		CMD_PERCENT_1       = '\007'
-		CMD_SEARCH_CLEAR    = 'C'
+		CMD_SEARCH_PRINT    = 'p'
+		CMD_SEARCH_CLEAR    = 'P'
 
 		VK_UP    = "\033[A\000"
 		VK_DOWN  = "\033[B\000"
@@ -337,6 +338,14 @@ func commands(br *browseObj) {
 		case CMD_GREP:
 			// grep -nP pattern
 			br.runGrep()
+
+		case CMD_SEARCH_PRINT:
+			// print the search pattern
+			if len(br.pattern) == 0 {
+				br.printMessage("No search pattern", MSG_ORANGE)
+			} else {
+				br.printMessage(fmt.Sprintf("%s", br.pattern), MSG_GREEN)
+			}
 
 		case CMD_SEARCH_CLEAR:
 			// clear the search pattern

@@ -123,7 +123,8 @@ When browse is called with no filenames, browse attempts to restore the session 
 | n                 | Repeat search in the current search direction                                  |
 | N                 | Repeat search in the opposite search direction                                 |
 | i                 | Toggle between case-sensitive and case-insensitive searches                    |
-| C                 | Clear the search pattern                                                       |
+| p                 | Print the search pattern                                                       |
+| P                 | Clear the search pattern                                                       |
 | &                 | Run 'grep -nP' on input file for search pattern                                |
 
 <br>
