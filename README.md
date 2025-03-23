@@ -26,17 +26,17 @@ A simple, unconventional file browser.
 
 browse includes several scrolling and following modes:
 
-- Scrolling up and down is a continuous process that provides a seamless browsing experience. Once you start scrolling, browse will continue until you decide to stop it. You can think of the scroll and tail commands as toggle switches.
+- Scrolling up and down is a continuous process that provides a seamless browsing experience. Once scrolling starts, browse will continue until you decide to stop it. Think of the scroll and tail commands as toggle switches.
 
-- When you scroll down and reach the end of the file (EOF), the browse mode switches to "follow" mode. In this mode, it reads and displays two lines of the input file at a time.
+- When scrolling down reaches the end of the file (EOF), the browse mode switches to "follow" mode. In this mode, it reads and displays two lines of the input file at a time.
 
-- The tail command allows you to jump to and follow EOF, enabling the system to read and display the input file as quickly as possible.
+- The tail command jumps to and follows EOF, enabling the system to read and display the input file as quickly as possible.
 
 - The cursor position indicates whether the browse mode is following the file. If the cursor is in the lower left-hand corner, browsing is in follow mode. If the cursor is in the upper left-hand corner, browsing is idle.
 
 ## Searching
 
-browse utilizes the RE2 regular expression syntax for pattern matching, highlighting all the matches on a line. When browse finds matches not on the visible screen, browse highlights the entire line. Scroll right or left to highlight the match(es).
+browse utilizes the RE2 regular expression syntax for pattern matching, highlighting all the matches on a line. When browse finds matches not on the visible screen, browse highlights the entire line. Scroll right or left to highlight matches.
 
 ## Saved Sessions
 
