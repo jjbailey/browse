@@ -46,17 +46,17 @@ func (br *browseObj) runGrep() {
 	cmdbuf := fmt.Sprintf("%s %s -e '%s' %s | %s %s -p '%s' -t '%s'",
 		grepPath, grepOpts, br.pattern, br.fileName, brPath, brOpts, br.pattern, title)
 
-	fmt.Print(LINEWRAPON)
-
 	// feedback
 	moveCursor(br.dispHeight, 1, true)
 	fmt.Print("---\n")
+	fmt.Print(LINEWRAPON)
 	fmt.Printf("$ %s\n", cmdbuf)
 
 	// set up env, run
 	resetScrRegion()
 	br.runInPty(cmdbuf)
 	br.resizeWindow()
+	fmt.Print(LINEWRAPOFF)
 }
 
 // vim: set ts=4 sw=4 noet:

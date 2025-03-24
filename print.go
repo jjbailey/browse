@@ -38,6 +38,7 @@ func (br *browseObj) printLine(lineno int) {
 		output := br.replaceMatch(lineno, input)
 		// depends on linewrap=false
 		fmt.Printf("\n%s%s%s", output, VIDOFF, CLEARLINE)
+		fmt.Print(LINEWRAPOFF)
 	}
 
 	if lineno < br.dispRows {
@@ -69,7 +70,6 @@ func (br *browseObj) printPage(lineno int) {
 		}
 	}
 
-	fmt.Print(LINEWRAPOFF)
 	// printLine starts with \n
 	moveCursor(1, 1, false)
 

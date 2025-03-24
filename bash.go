@@ -19,7 +19,6 @@ var prevCommand string
 func (br *browseObj) bashCommand() {
 	// run a command with bash
 
-	fmt.Print(LINEWRAPON)
 	input, cancel := br.userInput("!")
 
 	if cancel || len(input) == 0 {
@@ -39,19 +38,21 @@ func (br *browseObj) bashCommand() {
 		cmdbuf = subCommandChars(cmdbuf, "&", `'`+br.pattern+`'`)
 	}
 
-	if len(cmdbuf) > 0 {
-		// feedback
-		moveCursor(br.dispHeight, 1, true)
-		fmt.Print("---\n")
-		fmt.Printf("$ %s\n", cmdbuf)
-
-		// set up env, run
-		fmt.Print(LINEWRAPON)
-		resetScrRegion()
-		moveCursor(br.dispHeight, 1, true)
-		br.runInPty(cmdbuf)
-		br.resizeWindow()
+	if len(cmdbuf) == 0 {
+		return
 	}
+
+	// feedback
+	moveCursor(br.dispHeight, 1, true)
+	fmt.Print("---\n")
+	fmt.Print(LINEWRAPON)
+	fmt.Printf("$ %s\n", cmdbuf)
+
+	// set up env, run
+	resetScrRegion()
+	br.runInPty(cmdbuf)
+	br.resizeWindow()
+	fmt.Print(LINEWRAPOFF)
 }
 
 func subCommandChars(input, char, repl string) string {
