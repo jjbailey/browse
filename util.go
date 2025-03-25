@@ -13,6 +13,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"strings"
 )
 
 func expandTabs(data []byte) []byte {
@@ -96,17 +97,22 @@ func errorExit(err error) {
 	}
 }
 
-func getMark(buf string) int {
-	// scan a mark digit from the buffer
-	// valid marks are 1 - 9
+func isValidMark(r rune) bool {
+	return r >= '1' && r <= '9'
+}
 
-	for i := 0; i < len(buf); i++ {
-		if buf[i] >= '1' && buf[i] <= '9' {
-			return int(buf[i] - '0')
-		}
+func getMark(buf string) int {
+	if len(buf) == 0 {
+		return 0
 	}
 
-	return 0
+	idx := strings.IndexFunc(buf, isValidMark)
+
+	if idx == -1 {
+		return 0
+	}
+
+	return int(buf[idx] - '0')
 }
 
 // vim: set ts=4 sw=4 noet:
