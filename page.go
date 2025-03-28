@@ -59,8 +59,4 @@ func (br *browseObj) pageLast() {
 	br.printPage(br.mapSiz)
 }
 
-func (br *browseObj) pageMarked(lineno int) {
-	br.printPage(br.marks[lineno])
-}
-
 // vim: set ts=4 sw=4 noet:

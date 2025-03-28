@@ -62,17 +62,16 @@ browse includes several scrolling and following modes:
 .IP \[bu] 2
 Scrolling up and down is a continuous process that provides a seamless
 browsing experience.
-Once you start scrolling, browse will continue until you decide to stop
-it.
-You can think of the scroll and tail commands as toggle switches.
+Once scrolling starts, browse will continue until you decide to stop it.
+Think of the scroll and tail commands as toggle switches.
 .IP \[bu] 2
-When you scroll down and reach the end of the file (EOF), the browse
-mode switches to \[lq]follow\[rq] mode.
+When scrolling down reaches the end of the file (EOF), the browse mode
+switches to \[lq]follow\[rq] mode.
 In this mode, it reads and displays two lines of the input file at a
 time.
 .IP \[bu] 2
-The tail command allows you to jump to and follow EOF, enabling the
-system to read and display the input file as quickly as possible.
+The tail command jumps to and follows EOF, enabling the system to read
+and display the input file as quickly as possible.
 .IP \[bu] 2
 The cursor position indicates whether the browse mode is following the
 file.
@@ -85,7 +84,7 @@ browse utilizes the RE2 regular expression syntax for pattern matching,
 highlighting all the matches on a line.
 When browse finds matches not on the visible screen, browse highlights
 the entire line.
-Scroll right or left to highlight the match(es).
+Scroll right or left to highlight matches.
 .SS Saved Sessions
 .PP
 browse saves sessions in \[ti]/.browserc.
@@ -340,7 +339,12 @@ T}@T{
 Toggle between case-sensitive and case-insensitive searches
 T}
 T{
-C
+p
+T}@T{
+Print the search pattern
+T}
+T{
+P
 T}@T{
 Clear the search pattern
 T}

@@ -40,7 +40,7 @@ func (br *browseObj) printHelp() {
 		"  n N                           Repeat search forward/reverse          ",
 		"  i                             Case-sensitive search                  ",
 		"  &                             Run 'grep -nP' for pattern             ",
-		"  C                             Clear search pattern                   ",
+		"  p  P                          Print/Clear search pattern             ",
 		"  e [END]                       Follow mode                            ",
 		"  t                             Tail mode                              ",
 		"  !                             bash command                           ",

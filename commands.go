@@ -63,7 +63,8 @@ func commands(br *browseObj) {
 		CMD_GREP            = '&'
 		CMD_PERCENT         = '%'
 		CMD_PERCENT_1       = '\007'
-		CMD_SEARCH_CLEAR    = 'C'
+		CMD_SEARCH_PRINT    = 'p'
+		CMD_SEARCH_CLEAR    = 'P'
 
 		VK_UP    = "\033[A\000"
 		VK_DOWN  = "\033[B\000"
@@ -91,7 +92,7 @@ func commands(br *browseObj) {
 	br.reCompile(br.pattern)
 
 	// wait for a full page
-	waitForInput(br, br.dispHeight)
+	waitForInput(br)
 
 	ttyBrowser()
 	br.pageHeader()
@@ -252,7 +253,7 @@ func commands(br *browseObj) {
 
 		case CMD_SHIFT_LEFT, CMD_SHIFT_LEFT_1, CMD_SHIFT_LEFT_2:
 			// horizontal scroll left
-			if br.shiftWidth > 0 {
+			if br.shiftWidth >= TABWIDTH {
 				br.shiftWidth -= TABWIDTH
 				br.pageCurrent()
 			}
@@ -338,6 +339,14 @@ func commands(br *browseObj) {
 			// grep -nP pattern
 			br.runGrep()
 
+		case CMD_SEARCH_PRINT:
+			// print the search pattern
+			if len(br.pattern) == 0 {
+				br.printMessage("No search pattern", MSG_ORANGE)
+			} else {
+				br.printMessage(br.pattern, MSG_GREEN)
+			}
+
 		case CMD_SEARCH_CLEAR:
 			// clear the search pattern
 			br.re = nil
@@ -377,12 +386,13 @@ func commands(br *browseObj) {
 			// browse a new file
 			lbuf, cancel := br.userInput("File: ")
 			if !cancel && len(lbuf) > 0 {
-				if fp, err := os.Open(lbuf); err != nil {
-					br.timedMessage(fmt.Sprintf("%v", err), MSG_RED)
+				sbuf := subCommandChars(lbuf, "%", br.fileName)
+				if fp, err := os.Open(sbuf); err != nil {
+					br.timedMessage(err.Error(), MSG_RED)
 				} else {
 					fp.Close()
 					resetState(br)
-					browseFile(br, lbuf, setTitle(lbuf, lbuf), false)
+					browseFile(br, sbuf, setTitle(sbuf, sbuf), false)
 					return
 				}
 			}
@@ -414,7 +424,10 @@ func commands(br *browseObj) {
 		default:
 			// if digit, go to marked page
 			if unicode.IsDigit(rune(b[0])) {
-				br.pageMarked(getMark(string(b)))
+				m := getMark(string(b))
+				if br.marks[m] > 0 {
+					br.printPage(br.marks[m])
+				}
 			}
 			// no modes active
 			moveCursor(2, 1, false)
@@ -422,30 +435,36 @@ func commands(br *browseObj) {
 	}
 }
 
-func waitForInput(br *browseObj, lineno int) {
-	// wait for input, up to lineno
+func waitForInput(br *browseObj) {
+	const (
+		maxAttempts    = 10
+		stableAttempts = 5
+		waitTime       = 200 * time.Millisecond
+	)
 
-	const maxAttempts = 10
-	var saveSiz int
+	var lastMapSize int
+
+	targetSize := br.firstRow + br.dispHeight
 
 	for attempt := 0; attempt < maxAttempts; attempt++ {
-		if br.mapSiz > lineno || (attempt > 3 && br.mapSiz == saveSiz) {
+		if br.mapSiz > targetSize || (attempt > stableAttempts && br.mapSiz == lastMapSize) {
 			break
 		}
 
-		saveSiz = br.mapSiz
+		lastMapSize = br.mapSiz
 		<-time.After(200 * time.Millisecond)
 	}
 }
 
 func shiftLongest(br *browseObj) int {
-	// shift to show the end of the longest line on the page
+	// shift to the end of the longest line on the page
 
 	longest := 0
 	lastRow := minimum(br.firstRow+br.dispRows, br.mapSiz)
 
 	for i := br.firstRow; i < lastRow; i++ {
 		lineLength := len(br.readFromMap(i))
+
 		if lineLength > longest {
 			longest = lineLength
 		}
