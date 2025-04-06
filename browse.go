@@ -81,20 +81,27 @@ func processPipeInput(br *browseObj) {
 	browseFile(br, fpStdin.Name(), setTitle(br.title, "          "), true)
 }
 
-func processFileList(br *browseObj, argc int, args []string) {
-	if argc == 0 {
+func processFileList(br *browseObj, args []string) {
+	if len(args) == 0 {
 		browseFile(br, br.fileName, setTitle(br.title, br.fileName), false)
-	} else {
-		for index, fileName := range args {
-			browseFile(br, fileName, setTitle(fileName, fileName), false)
+		return
+	}
 
-			if br.exit {
-				break
-			}
+	for index, fileName := range args {
+		title := br.title
 
-			if index < len(args)-1 {
-				resetState(br)
-			}
+		if index != 0 || title == "" {
+			title = fileName
+		}
+
+		browseFile(br, fileName, setTitle(title, fileName), false)
+
+		if br.exit {
+			break
+		}
+
+		if index < len(args)-1 {
+			resetState(br)
 		}
 	}
 }
