@@ -196,9 +196,9 @@ func (br *browseObj) replaceMatch(lineno int, input string) string {
 	leftMatch, rightMatch := br.undisplayedMatches(input, sol)
 
 	if leftMatch || rightMatch {
-		line = _VID_GREEN_FG + br.re.ReplaceAllString(input[sol:], br.replstr+_VID_GREEN_FG)
+		line = _VID_GREEN_FG + br.re.ReplaceAllString(input[sol:], br.replace+_VID_GREEN_FG)
 	} else {
-		line = br.re.ReplaceAllString(input[sol:], br.replstr)
+		line = br.re.ReplaceAllString(input[sol:], br.replace)
 	}
 
 	if br.modeNumbers {
@@ -274,7 +274,7 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 
 	br.pattern = pattern
 	br.re = re
-	br.replstr = fmt.Sprintf("%s%s%s", MSG_GREEN, "$0", VIDOFF)
+	br.replace = fmt.Sprintf("%s%s%s", MSG_GREEN, "$0", VIDOFF)
 
 	return len(pattern), nil
 }

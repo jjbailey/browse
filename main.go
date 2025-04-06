@@ -84,7 +84,7 @@ func main() {
 	if fromStdin {
 		processPipeInput(&br)
 	} else {
-		processFileList(&br, argc, args)
+		processFileList(&br, args)
 	}
 
 	// done

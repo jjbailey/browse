@@ -60,7 +60,7 @@ func subCommandChars(input, char, repl string) string {
 	// pattern := `(?<!\\)%`
 
 	pattern := `(^|[^\\])` + regexp.QuoteMeta(char)
-	replstr := `${1}` + repl
+	replace := `${1}` + repl
 
 	re, err := regexp.Compile(pattern)
 
@@ -68,7 +68,7 @@ func subCommandChars(input, char, repl string) string {
 		return ""
 	}
 
-	return re.ReplaceAllString(input, replstr)
+	return re.ReplaceAllString(input, replace)
 }
 
 // vim: set ts=4 sw=4 noet:
