@@ -53,14 +53,15 @@ The session attributes not saved:
 - search direction
 - numbers
 - bash command
-- horizontal scroll
+- horizontal shift
 - follow/tail mode
 
-When advancing to the next filename in a list of filenames, browse:
+When advancing to the next file in a list of files, browse:
 
 - starts at the first page
 - resets the horizontal shift to column 1
 - turns off follow/tail mode
+- sets the page title
 
 When browse is called with no filenames, browse attempts to restore the session saved in ~/.browserc.
 
