@@ -40,43 +40,37 @@ func readFile(br *browseObj, ch chan bool) {
 	br.newFileSiz, br.savFileSiz = 0, 0
 
 	for {
+		// Get file size with minimal mutex lock
 		mutex.Lock()
 		br.newFileSiz, err = getFileSize(br.fp)
-
 		if err != nil {
-			// fatal
-
 			if !notified {
 				ch <- false
 			}
-
 			mutex.Unlock()
 			return
 		}
+		mutex.Unlock()
 
+		// Handle file truncation
 		if br.newFileSiz < br.savFileSiz {
-			// file shrunk -- reinitialize
+			mutex.Lock()
 			br.fileInit(br.fp, br.fileName, br.title, br.fromStdin)
 			br.printMessage("File truncated", MSG_RED)
-
-			// need to show the user
 			br.modeScroll = MODE_SCROLL_NONE
 			br.shownMsg = false
-
-			// reset and fall through
 			br.savFileSiz, bytesRead = 0, 0
+			mutex.Unlock()
 		}
 
+		// Read new content if file grew
 		if br.savFileSiz == 0 || br.savFileSiz < br.newFileSiz {
-			// file unread or grew
-			// read and map the new lines
-
+			mutex.Lock()
 			br.fp.Seek(br.seekMap[br.mapSiz], io.SeekStart)
 
 			for {
 				br.seekMap[br.mapSiz] = bytesRead
 				line, err := reader.ReadString('\n')
-
 				if err != nil {
 					break
 				}
@@ -88,24 +82,13 @@ func readFile(br *browseObj, ch chan bool) {
 			}
 
 			br.hitEOF = false
+			br.savFileSiz = br.newFileSiz
 
 			if !notified {
 				ch <- true
 				notified = true
 			}
-		}
-
-		br.savFileSiz, err = getFileSize(br.fp)
-		mutex.Unlock()
-
-		if err != nil {
-			// fatal
-
-			if !notified {
-				ch <- false
-			}
-
-			return
+			mutex.Unlock()
 		}
 
 		time.Sleep(time.Second)
