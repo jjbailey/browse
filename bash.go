@@ -26,6 +26,12 @@ func (br *browseObj) bashCommand() {
 		moveCursor(2, 1, false)
 	}
 
+	// limit input length to prevent buffer overflows
+	if len(input) > READBUFSIZ {
+		br.printMessage("Command too long", MSG_RED)
+		return
+	}
+
 	// substitute ! with the previous command
 	bangbuf := subCommandChars(input, "!", prevCommand)
 	prevCommand = bangbuf
