@@ -32,6 +32,7 @@ func (br *browseObj) searchFile(pattern string, searchDir, next bool) bool {
 	if pattern != br.pattern {
 		// reset on first search
 		br.lastMatch = SEARCH_RESET
+		br.re = nil
 		next = false
 	}
 
