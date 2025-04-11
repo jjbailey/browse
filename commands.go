@@ -452,7 +452,7 @@ func waitForInput(br *browseObj) {
 		}
 
 		lastMapSize = br.mapSiz
-		<-time.After(200 * time.Millisecond)
+		<-time.After(waitTime)
 	}
 }
 
