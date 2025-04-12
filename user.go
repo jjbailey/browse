@@ -69,7 +69,7 @@ func (br *browseObj) userInput(prompt string) (string, bool) {
 		cancel  bool
 	)
 
-	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT)
+	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
 	defer signal.Reset(syscall.SIGINT, syscall.SIGQUIT)
 	ttyPrompter()
 	fmt.Printf("\r%s", CURSAVE)
