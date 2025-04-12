@@ -108,17 +108,19 @@ numbers
 .IP \[bu] 2
 bash command
 .IP \[bu] 2
-horizontal scroll
+horizontal shift
 .IP \[bu] 2
 follow/tail mode
 .PP
-When advancing to the next filename in a list of filenames, browse:
+When advancing to the next file in a list of files, browse:
 .IP \[bu] 2
 starts at the first page
 .IP \[bu] 2
 resets the horizontal shift to column 1
 .IP \[bu] 2
 turns off follow/tail mode
+.IP \[bu] 2
+sets the page title
 .PP
 When browse is called with no filenames, browse attempts to restore the
 session saved in \[ti]/.browserc.
@@ -292,12 +294,17 @@ T}
 T{
 m
 T}@T{
-Assign top line to mark 1 through 9
+Assign top line to mark 1 - 9
 T}
 T{
-1 - 9
+1
 T}@T{
-Jump to marked line, default to SOF
+Jump to mark 1, default to line 1
+T}
+T{
+2 - 9
+T}@T{
+Jump to mark 2 - 9, default to noop
 T}
 .TE
 .PP

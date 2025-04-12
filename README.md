@@ -112,8 +112,9 @@ When browse is called with no filenames, browse attempts to restore the session 
 | <h4>Jumps/Marks</h4> | <h4>Function</h4>                   |
 | :------------------- | :---------------------------------- |
 | j                    | Jump to a line                      |
-| m                    | Assign top line to mark 1 through 9 |
-| 1 - 9                | Jump to marked line, default to SOF |
+| m                    | Assign top line to mark 1 - 9       |
+| 1                    | Jump to mark 1, default to line 1   |
+| 2 - 9                | Jump to mark 2 - 9, default to noop |
 
 <br>
 
