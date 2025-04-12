@@ -102,7 +102,7 @@ When browse is called with no filenames, browse attempts to restore the session 
 | <<br> [BACKSPACE]<br> [DEL]   | Scroll 4 characters left                           |
 | ^                             | Scroll to column 1                                 |
 | $                             | Scroll to EOL                                      |
-| 0<br> [HOME]                  | Jump to line 1, column 1                           |
+| 0<br> [HOME]                  | Jump to SOF, column 1                              |
 | G                             | Jump to EOF                                        |
 | e<br> [END]                   | Jump to EOF, follow at EOF                         |
 | t                             | Jump to EOF, tail at EOF                           |
