@@ -127,20 +127,20 @@ When browse is called with no filenames, browse attempts to restore the session 
 | i                 | Toggle between case-sensitive and case-insensitive searches                    |
 | p                 | Print the search pattern                                                       |
 | P                 | Clear the search pattern                                                       |
-| &                 | Run 'grep -nP' on input file for search pattern                                |
+| &                 | Run 'grep -nP' on the current file for search pattern                          |
 
 <br>
 
-| <h4>Miscellaneous</h4> | <h4>Function</h4>                     |
-| :--------------------- | :------------------------------------ |
-| #                      | Toggle line numbers on and off        |
-| %<br> ^G               | Page position                         |
-| !                      | Run a bash command (expands !, %, &)  |
-| B                      | Browse another file                   |
-| q                      | Quit, save .browserc, next file       |
-| Q                      | Quit, don't save .browserc, next file |
-| x                      | Exit, save .browserc                  |
-| X                      | Exit, don't save .browserc            |
+| <h4>Miscellaneous</h4> | <h4>Function</h4>                             |
+| :--------------------- | :-------------------------------------------- |
+| #                      | Toggle line numbers on and off                |
+| %<br> ^G               | Page position                                 |
+| !                      | Run a bash command (expands !, %, &)          |
+| B                      | Browse another file                           |
+| q                      | Quit, save .browserc, next file in list       |
+| Q                      | Quit, don't save .browserc, next file in list |
+| x                      | Exit list, save .browserc                     |
+| X                      | Exit list, don't save .browserc               |
 
 <br>
 
