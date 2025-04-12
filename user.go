@@ -23,7 +23,7 @@ func (br *browseObj) userAnyKey(prompt string) {
 
 	const timeout = 500 * time.Millisecond
 
-	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT)
+	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
 	defer signal.Reset(syscall.SIGINT, syscall.SIGQUIT)
 
 	// prompt is optional

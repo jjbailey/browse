@@ -12,9 +12,7 @@ package main
 
 import (
 	"fmt"
-	"os/signal"
 	"strings"
-	"syscall"
 )
 
 func (br *browseObj) printHelp() {
@@ -94,9 +92,6 @@ func (br *browseObj) printHelp() {
 	fmt.Print(strings.Repeat(HORIZLINE, helpWidth))
 	fmt.Printf(LOWERRIGHT + EXITGRAPHICS)
 	fmt.Print(VIDOFF)
-
-	// signals
-	signal.Ignore(syscall.SIGWINCH)
 
 	// prompt is in the body of the help screen
 	br.userAnyKey("")
