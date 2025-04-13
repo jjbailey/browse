@@ -25,7 +25,7 @@ func (br *browseObj) userAnyKey(prompt string) {
 	const timeout = 500 * time.Millisecond
 
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
-	defer signal.Reset(syscall.SIGINT, syscall.SIGQUIT)
+	defer signal.Reset(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
 
 	// prompt is optional
 
@@ -71,7 +71,7 @@ func (br *browseObj) userInput(prompt string) (string, bool) {
 	)
 
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
-	defer signal.Reset(syscall.SIGINT, syscall.SIGQUIT)
+	defer signal.Reset(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
 
 	// prompt
 
@@ -129,8 +129,6 @@ func (br *browseObj) userInput(prompt string) (string, bool) {
 				linebuf = strings.TrimSuffix(linebuf, string(linebuf[len(linebuf)-1]))
 				moveCursor(br.dispHeight, 1, true)
 				fmt.Printf("%s%s", prompt, linebuf)
-			} else {
-				cancel = true
 			}
 
 		case ERASEWORD:
