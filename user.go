@@ -12,6 +12,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"os"
 	"os/signal"
 	"strings"
 	"syscall"
@@ -49,8 +50,6 @@ func (br *browseObj) userAnyKey(prompt string) {
 
 		time.Sleep(timeout)
 	}
-
-	br.restoreLast()
 }
 
 func (br *browseObj) userInput(prompt string) (string, bool) {
@@ -65,12 +64,20 @@ func (br *browseObj) userInput(prompt string) (string, bool) {
 	)
 
 	var (
-		linebuf string
-		cancel  bool
+		linebuf     string
+		cancel      bool
+		done        bool
+		winchCaught bool
 	)
 
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
 	defer signal.Reset(syscall.SIGINT, syscall.SIGQUIT)
+
+	// prompt
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGWINCH)
+
 	ttyPrompter()
 	fmt.Printf("\r%s", CURSAVE)
 	moveCursor(br.dispHeight, 1, true)
@@ -78,8 +85,28 @@ func (br *browseObj) userInput(prompt string) (string, bool) {
 	br.shownMsg = true
 
 	for {
+		go func() {
+			for sig := range sigChan {
+				switch sig {
+
+				case syscall.SIGWINCH:
+					winchCaught = true
+
+				default:
+					// do nothing
+				}
+			}
+		}()
+
 		b := make([]byte, 1)
 		_, err := br.tty.Read(b)
+		fmt.Printf("%s", CURSAVE)
+
+		if winchCaught {
+			// restore and reset window size
+			br.resizeWindow()
+			moveCursor(br.dispHeight, 1, true)
+		}
 
 		if err != nil {
 			errorExit(err)
@@ -91,7 +118,11 @@ func (br *browseObj) userInput(prompt string) (string, bool) {
 		switch inputChar {
 
 		case NEWLINE, CARRETURN, ESCAPE:
-			// ignore for now
+			if len(linebuf) == 0 {
+				cancel = true
+			} else {
+				done = true
+			}
 
 		case BACKSPACE, DELETE:
 			if len(linebuf) > 0 {
@@ -122,14 +153,22 @@ func (br *browseObj) userInput(prompt string) (string, bool) {
 			fmt.Print(string(inputChar))
 		}
 
-		if cancel || inputChar == NEWLINE || inputChar == CARRETURN {
+		if cancel {
+			br.restoreLast()
+			moveCursor(2, 1, false)
+			break
+		}
+
+		if done {
 			break
 		}
 	}
 
+	// reset signals
+	br.catchSignals()
+
+	// reset tty
 	ttyBrowser()
-	br.restoreLast()
-	moveCursor(2, 1, false)
 
 	return linebuf, cancel
 }
