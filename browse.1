@@ -108,17 +108,19 @@ numbers
 .IP \[bu] 2
 bash command
 .IP \[bu] 2
-horizontal scroll
+horizontal shift
 .IP \[bu] 2
 follow/tail mode
 .PP
-When advancing to the next filename in a list of filenames, browse:
+When advancing to the next file in a list of files, browse:
 .IP \[bu] 2
 starts at the first page
 .IP \[bu] 2
 resets the horizontal shift to column 1
 .IP \[bu] 2
 turns off follow/tail mode
+.IP \[bu] 2
+sets the page title
 .PP
 When browse is called with no filenames, browse attempts to restore the
 session saved in \[ti]/.browserc.
@@ -146,37 +148,37 @@ Function
 T}
 _
 T{
--f, \[en]follow
+-f, \--follow
 T}@T{
 follow file changes
 T}
 T{
--i, \[en]ignore-case
+-i, \--ignore-case
 T}@T{
 search ignores case
 T}
 T{
--n, \[en]numbers
+-n, \--numbers
 T}@T{
 start with line numbers turned on
 T}
 T{
--p, \[en]pattern
+-p, \--pattern
 T}@T{
 initial search pattern
 T}
 T{
--t, \[en]title
+-t, \--title
 T}@T{
 page title, default is filename, blank for stdin
 T}
 T{
--v, \[en]version
+-v, \--version
 T}@T{
 print browse version number
 T}
 T{
--?, \[en]help
+-?, \--help
 T}@T{
 print browse command line options
 T}
@@ -255,7 +257,7 @@ T}
 T{
 0 [HOME]
 T}@T{
-Jump to line 1, column 1
+Jump to SOF, column 1
 T}
 T{
 G
@@ -292,12 +294,17 @@ T}
 T{
 m
 T}@T{
-Assign top line to mark 1 through 9
+Assign top line to mark 1 - 9
 T}
 T{
-1 - 9
+1
 T}@T{
-Jump to marked line, default to SOF
+Jump to mark 1, default to line 1
+T}
+T{
+2 - 9
+T}@T{
+Jump to mark 2 - 9, default to noop
 T}
 .TE
 .PP
@@ -351,7 +358,7 @@ T}
 T{
 &
 T}@T{
-Run `grep -nP' on input file for search pattern
+Run `grep -nP' on the current file for search pattern
 T}
 .TE
 .PP
@@ -388,22 +395,22 @@ T}
 T{
 q
 T}@T{
-Quit, save .browserc, next file
+Quit, save .browserc, next file in list
 T}
 T{
 Q
 T}@T{
-Quit, don\[cq]t save .browserc, next file
+Quit, don\[cq]t save .browserc, next file in list
 T}
 T{
 x
 T}@T{
-Exit, save .browserc
+Exit list, save .browserc
 T}
 T{
 X
 T}@T{
-Exit, don\[cq]t save .browserc
+Exit list, don\[cq]t save .browserc
 T}
 .TE
 .PP

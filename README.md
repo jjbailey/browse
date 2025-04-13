@@ -53,14 +53,15 @@ The session attributes not saved:
 - search direction
 - numbers
 - bash command
-- horizontal scroll
+- horizontal shift
 - follow/tail mode
 
-When advancing to the next filename in a list of filenames, browse:
+When advancing to the next file in a list of files, browse:
 
 - starts at the first page
 - resets the horizontal shift to column 1
 - turns off follow/tail mode
+- sets the page title
 
 When browse is called with no filenames, browse attempts to restore the session saved in ~/.browserc.
 
@@ -101,7 +102,7 @@ When browse is called with no filenames, browse attempts to restore the session 
 | <<br> [BACKSPACE]<br> [DEL]   | Scroll 4 characters left                           |
 | ^                             | Scroll to column 1                                 |
 | $                             | Scroll to EOL                                      |
-| 0<br> [HOME]                  | Jump to line 1, column 1                           |
+| 0<br> [HOME]                  | Jump to SOF, column 1                              |
 | G                             | Jump to EOF                                        |
 | e<br> [END]                   | Jump to EOF, follow at EOF                         |
 | t                             | Jump to EOF, tail at EOF                           |
@@ -111,8 +112,9 @@ When browse is called with no filenames, browse attempts to restore the session 
 | <h4>Jumps/Marks</h4> | <h4>Function</h4>                   |
 | :------------------- | :---------------------------------- |
 | j                    | Jump to a line                      |
-| m                    | Assign top line to mark 1 through 9 |
-| 1 - 9                | Jump to marked line, default to SOF |
+| m                    | Assign top line to mark 1 - 9       |
+| 1                    | Jump to mark 1, default to line 1   |
+| 2 - 9                | Jump to mark 2 - 9, default to noop |
 
 <br>
 
@@ -125,20 +127,20 @@ When browse is called with no filenames, browse attempts to restore the session 
 | i                 | Toggle between case-sensitive and case-insensitive searches                    |
 | p                 | Print the search pattern                                                       |
 | P                 | Clear the search pattern                                                       |
-| &                 | Run 'grep -nP' on input file for search pattern                                |
+| &                 | Run 'grep -nP' on the current file for search pattern                          |
 
 <br>
 
-| <h4>Miscellaneous</h4> | <h4>Function</h4>                     |
-| :--------------------- | :------------------------------------ |
-| #                      | Toggle line numbers on and off        |
-| %<br> ^G               | Page position                         |
-| !                      | Run a bash command (expands !, %, &)  |
-| B                      | Browse another file                   |
-| q                      | Quit, save .browserc, next file       |
-| Q                      | Quit, don't save .browserc, next file |
-| x                      | Exit, save .browserc                  |
-| X                      | Exit, don't save .browserc            |
+| <h4>Miscellaneous</h4> | <h4>Function</h4>                             |
+| :--------------------- | :-------------------------------------------- |
+| #                      | Toggle line numbers on and off                |
+| %<br> ^G               | Page position                                 |
+| !                      | Run a bash command (expands !, %, &)          |
+| B                      | Browse another file                           |
+| q                      | Quit, save .browserc, next file in list       |
+| Q                      | Quit, don't save .browserc, next file in list |
+| x                      | Exit list, save .browserc                     |
+| X                      | Exit list, don't save .browserc               |
 
 <br>
 

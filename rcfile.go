@@ -13,6 +13,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -22,12 +23,14 @@ import (
 const RCFILENAME = ".browserc"
 
 func (br *browseObj) writeRcFile() bool {
+	var absPath string
 	var data strings.Builder
+	var err error
 
-	filePath := filepath.Join(os.Getenv("HOME"), RCFILENAME)
+	rcFileName := filepath.Join(os.Getenv("HOME"), RCFILENAME)
+	absPath = resolveSymlink(br.fileName)
 
 	// fileName
-	absPath, _ := filepath.Abs(br.fileName)
 	data.WriteString(absPath + "\n")
 
 	// firstRow
@@ -42,25 +45,20 @@ func (br *browseObj) writeRcFile() bool {
 	}
 	data.WriteString("\n")
 
-	// title, cosmetics debatable
-	title := br.title
-	if strings.HasPrefix(title, "./") || strings.HasPrefix(title, "../") {
-		title = filepath.Base(title)
-	}
-	data.WriteString(title + "\n")
+	// title
+	data.WriteString(br.title + "\n")
 
 	// save
-	err := os.WriteFile(filePath, []byte(data.String()), 0644)
+	err = os.WriteFile(rcFileName, []byte(data.String()), 0644)
 
 	return err == nil
 }
 
 func (br *browseObj) readRcFile() bool {
-	filePath := path.Join(os.Getenv("HOME"), RCFILENAME)
-	filePath = os.ExpandEnv(filePath)
+	rcFileName := path.Join(os.Getenv("HOME"), RCFILENAME)
+	rcFileName = os.ExpandEnv(rcFileName)
 
-	fp, err := os.Open(filePath)
-
+	fp, err := os.Open(rcFileName)
 	if err != nil {
 		fmt.Println(err)
 		return false
@@ -86,11 +84,11 @@ func (br *browseObj) readRcFile() bool {
 
 		case 1:
 			// firstRow
-			if firstRow, err := strconv.Atoi(line); err != nil {
+			firstRow, err := strconv.Atoi(line)
+			if err != nil {
 				return false
-			} else {
-				br.firstRow = firstRow
 			}
+			br.firstRow = firstRow
 
 		case 2:
 			// pattern
@@ -105,11 +103,11 @@ func (br *browseObj) readRcFile() bool {
 			}
 
 			for i, markString := range markStrings {
-				if mark, err := strconv.Atoi(markString); err != nil {
+				mark, err := strconv.Atoi(markString)
+				if err != nil {
 					return false
-				} else {
-					br.marks[i+1] = mark
 				}
+				br.marks[i+1] = mark
 			}
 
 		case 4:
@@ -119,6 +117,18 @@ func (br *browseObj) readRcFile() bool {
 	}
 
 	return true
+}
+
+func resolveSymlink(path string) string {
+	rlPath, err := exec.LookPath("readlink")
+	if len(rlPath) == 0 || err != nil {
+		return path
+	}
+
+	cmdbuf := exec.Command(rlPath, "-fn", path)
+	output, _ := cmdbuf.Output()
+
+	return string(output)
 }
 
 // vim: set ts=4 sw=4 noet:

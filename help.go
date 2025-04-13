@@ -12,9 +12,7 @@ package main
 
 import (
 	"fmt"
-	"os/signal"
 	"strings"
-	"syscall"
 )
 
 func (br *browseObj) printHelp() {
@@ -32,7 +30,7 @@ func (br *browseObj) printHelp() {
 		"  #                             Line numbers                           ",
 		"  % ^G                          Page position                          ",
 		"  j                             Jump to line number                    ",
-		"  0 [HOME]                      Jump to line 1, column 1               ",
+		"  0 [HOME]                      Jump to SOF, column 1                  ",
 		"  G                             Jump to EOF                            ",
 		"  m                             Mark a page with number 1-9            ",
 		"  1-9                           Jump to mark                           ",
@@ -47,8 +45,8 @@ func (br *browseObj) printHelp() {
 		"  B                             Browse another file                    ",
 		"  q                             Quit, save .browserc, next file        ",
 		"  Q                             Quit, don't save .browserc, next file  ",
-		"  x                             Exit, save .browserc                   ",
-		"  X                             Exit, don't save .browserc             ",
+		"  x                             Exit list, save .browserc              ",
+		"  X                             Exit list, don't save .browserc        ",
 		"                                                                       ",
 		"  Press any key to continue browsing...                                ",
 		"                                                                       ",
@@ -94,9 +92,6 @@ func (br *browseObj) printHelp() {
 	fmt.Print(strings.Repeat(HORIZLINE, helpWidth))
 	fmt.Printf(LOWERRIGHT + EXITGRAPHICS)
 	fmt.Print(VIDOFF)
-
-	// signals
-	signal.Ignore(syscall.SIGWINCH)
 
 	// prompt is in the body of the help screen
 	br.userAnyKey("")

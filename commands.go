@@ -436,6 +436,8 @@ func commands(br *browseObj) {
 }
 
 func waitForInput(br *browseObj) {
+	// attempt to read the entire page which starts at firstRow
+
 	const (
 		maxAttempts    = 10
 		stableAttempts = 5
@@ -452,7 +454,13 @@ func waitForInput(br *browseObj) {
 		}
 
 		lastMapSize = br.mapSiz
-		<-time.After(200 * time.Millisecond)
+		<-time.After(waitTime)
+	}
+
+	if br.mapSiz < targetSize {
+		// did not get a full read -- reset
+		// +2 for header, EOF
+		br.firstRow = maximum(0, br.mapSiz-br.dispHeight+2)
 	}
 }
 

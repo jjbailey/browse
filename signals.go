@@ -18,28 +18,6 @@ import (
 	"golang.org/x/term"
 )
 
-func (br *browseObj) catchSignals() {
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGWINCH)
-	signal.Ignore(syscall.SIGALRM, syscall.SIGCHLD, syscall.SIGURG)
-
-	go func() {
-		for {
-			sig := <-sigChan
-
-			switch sig {
-
-			case syscall.SIGWINCH:
-				br.resizeWindow()
-
-			default:
-				br.printMessage(fmt.Sprintf("%v \n", sig), MSG_RED)
-				br.saneExit()
-			}
-		}
-	}()
-}
-
 func (br *browseObj) resizeWindow() {
 	// process window size changes
 
@@ -72,6 +50,26 @@ func (br *browseObj) saneExit() {
 	}
 
 	os.Exit(0)
+}
+
+func (br *browseObj) catchSignals() {
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGWINCH)
+	signal.Ignore(syscall.SIGALRM, syscall.SIGCHLD, syscall.SIGURG)
+
+	go func() {
+		for sig := range sigChan {
+			switch sig {
+
+			case syscall.SIGWINCH:
+				br.resizeWindow()
+
+			default:
+				br.printMessage(fmt.Sprintf("%v \n", sig), MSG_RED)
+				br.saneExit()
+			}
+		}
+	}()
 }
 
 // vim: set ts=4 sw=4 noet:

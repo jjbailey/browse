@@ -32,6 +32,7 @@ func (br *browseObj) searchFile(pattern string, searchDir, next bool) bool {
 	if pattern != br.pattern {
 		// reset on first search
 		br.lastMatch = SEARCH_RESET
+		br.re = nil
 		next = false
 	}
 
@@ -280,26 +281,36 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 }
 
 func (br *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
-	// check for matches to the left and right of the line as displayed
+	matches := br.re.FindAllStringSubmatchIndex(input, -1)
+
+	if len(matches) == 0 {
+		return false, false
+	}
 
 	leftMatch := false
 	rightMatch := false
-
-	newWidth := br.dispWidth
+	displayWidth := br.dispWidth
 
 	if br.modeNumbers {
-		newWidth -= NUMCOLWIDTH
+		displayWidth -= NUMCOLWIDTH
 	}
 
-	for _, index := range br.re.FindAllStringSubmatchIndex(input, -1) {
+	for _, index := range matches {
 		if index[0] < sol {
 			leftMatch = true
-		} else {
-			newIndex := index[0] - br.shiftWidth
 
-			if newIndex+2 > newWidth {
-				// NB: off by two
-				rightMatch = true
+			if rightMatch {
+				break
+			}
+
+			continue
+		}
+
+		if index[0]-br.shiftWidth+2 > displayWidth {
+			// NB: off by two
+			rightMatch = true
+
+			if leftMatch {
 				break
 			}
 		}

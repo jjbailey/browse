@@ -39,6 +39,10 @@ func (br *browseObj) browseInit() {
 	br.modeNumbers = false
 	br.modeScroll = MODE_SCROLL_NONE
 
+	if br.marks[1] == 0 {
+		br.marks[1] = 1
+	}
+
 	br.saveRC = false
 	br.exit = false
 }

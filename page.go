@@ -27,31 +27,50 @@ func (br *browseObj) pageDown() {
 }
 
 func (br *browseObj) pageHeader() {
-	// print the header line
+	// calculate available width for title
+	// account for tees and spaces
+	availableWidth := br.dispWidth - 4
 
-	// if the title is too long, fit to size, include ellipsis
+	// prepare title with ellipsis if needed
 	dispTitle := br.title
-	lenDiff := (len(br.title) - br.dispWidth) + 6 + 3
-
-	if lenDiff > 0 {
-		dispTitle = "..." + br.title[lenDiff:]
+	if len(br.title) > availableWidth {
+		// leave room for ellipsis
+		dispTitle = "..." + br.title[len(br.title)-availableWidth+4+3:]
 	}
 
-	// minus tees and spaces
-	lineLen := br.dispWidth - 4
-	oneSide := (lineLen - len(dispTitle)) >> 1
+	// calculate padding for centering
+	padding := (availableWidth - len(dispTitle)) >> 1
 
+	// build header
 	// -----| title |-----
-	header := fmt.Sprintf("%s%s%s%s%s %s %s%s%s%s%s",
-		ENTERGRAPHICS, strings.Repeat(HORIZLINE, oneSide), LEFTTEE, EXITGRAPHICS,
-		VIDBOLDREV, dispTitle, VIDOFF,
-		ENTERGRAPHICS, RIGHTTEE, strings.Repeat(HORIZLINE, oneSide+1), EXITGRAPHICS)
+	var sb strings.Builder
+	sb.Grow(br.dispWidth + 20) // Pre-allocate space
 
+	// left side
+	sb.WriteString(ENTERGRAPHICS)
+	sb.WriteString(strings.Repeat(HORIZLINE, padding))
+	sb.WriteString(LEFTTEE)
+	sb.WriteString(EXITGRAPHICS)
+
+	// title
+	sb.WriteString(VIDBOLDREV)
+	sb.WriteString(" ")
+	sb.WriteString(dispTitle)
+	sb.WriteString(" ")
+	sb.WriteString(VIDOFF)
+
+	// right side
+	sb.WriteString(ENTERGRAPHICS)
+	sb.WriteString(RIGHTTEE)
+	sb.WriteString(strings.Repeat(HORIZLINE, availableWidth-padding-len(dispTitle)))
+	sb.WriteString(EXITGRAPHICS)
+
+	// display header
 	resetScrRegion()
 	moveCursor(1, 1, true)
 	fmt.Print(CLEARSCREEN)
 	fmt.Print(LINEWRAPOFF)
-	fmt.Print(header)
+	fmt.Print(sb.String())
 	setScrRegion(2, br.dispHeight)
 }
 
