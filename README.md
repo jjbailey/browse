@@ -113,7 +113,6 @@ When browse is called with no filenames, browse attempts to restore the session 
 | :------------------- | :---------------------------------- |
 | j                    | Jump to a line                      |
 | m                    | Assign top line to mark 1-9         |
-| 0                    | Jump to SOF, column 1               |
 | 1-9                  | Jump to mark, default to line 0     |
 
 <br>
