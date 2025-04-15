@@ -182,22 +182,17 @@ func (br *browseObj) readStdin(fin, fout *os.File) error {
 		line, err := r.ReadString('\n')
 
 		if err != nil {
-			if errors.Is(err, syscall.EPIPE) {
-				br.saneExit()
-			}
-
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
 
-			return err
+			if errors.Is(err, syscall.EPIPE) ||
+				errors.Is(err, syscall.EINVAL) || errors.Is(err, io.ErrClosedPipe) {
+				br.saneExit()
+			}
 		}
 
 		if _, err := w.WriteString(line); err != nil {
-			return err
-		}
-
-		if err := w.Flush(); err != nil {
 			return err
 		}
 	}
