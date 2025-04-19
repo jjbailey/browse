@@ -424,10 +424,7 @@ func commands(br *browseObj) {
 		default:
 			// if digit, go to marked page
 			if unicode.IsDigit(rune(b[0])) {
-				m := getMark(string(b))
-				if br.marks[m] > 0 {
-					br.printPage(br.marks[m])
-				}
+				br.pageMarked(getMark(string(b)))
 			}
 			// no modes active
 			moveCursor(2, 1, false)
