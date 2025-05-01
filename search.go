@@ -220,7 +220,12 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 		prompt, message = "?", "Searching reverse"
 	}
 
-	patbuf, _ := br.userInput(prompt)
+	patbuf, _, ignore := br.userInput(prompt)
+
+	if ignore {
+		// user backed out of prompt
+		return oldDir
+	}
 
 	if oldDir != newDir && (len(patbuf) > 0 || len(br.pattern) > 0) {
 		// print direction

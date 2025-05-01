@@ -304,7 +304,7 @@ func commands(br *browseObj) {
 
 		case CMD_JUMP:
 			// jump to line
-			lbuf, cancel := br.userInput("Junp: ")
+			lbuf, cancel, _ := br.userInput("Junp: ")
 			if !cancel && len(lbuf) > 0 {
 				var n int
 				fmt.Sscanf(lbuf, "%d", &n)
@@ -355,7 +355,7 @@ func commands(br *browseObj) {
 
 		case CMD_MARK:
 			// mark page
-			lbuf, cancel := br.userInput("Mark: ")
+			lbuf, cancel, _ := br.userInput("Mark: ")
 			if !cancel && len(lbuf) > 0 {
 				if m := getMark(lbuf); m != 0 {
 					br.marks[m] = br.firstRow
@@ -384,7 +384,7 @@ func commands(br *browseObj) {
 
 		case CMD_NEWFILE:
 			// browse a new file
-			lbuf, cancel := br.userInput("File: ")
+			lbuf, cancel, _ := br.userInput("File: ")
 			if !cancel && len(lbuf) > 0 {
 				sbuf := subCommandChars(lbuf, "%", br.fileName)
 				if fp, err := os.Open(sbuf); err != nil {

@@ -52,7 +52,7 @@ func (br *browseObj) userAnyKey(prompt string) {
 	}
 }
 
-func (br *browseObj) userInput(prompt string) (string, bool) {
+func (br *browseObj) userInput(prompt string) (string, bool, bool) {
 	const (
 		NEWLINE   = '\n'
 		CARRETURN = '\r'
@@ -67,6 +67,7 @@ func (br *browseObj) userInput(prompt string) (string, bool) {
 		linebuf     string
 		cancel      bool
 		done        bool
+		ignore      bool
 		winchCaught bool
 	)
 
@@ -110,7 +111,7 @@ func (br *browseObj) userInput(prompt string) (string, bool) {
 
 		if err != nil {
 			errorExit(err)
-			return "", false
+			return "", false, false
 		}
 
 		inputChar := b[0]
@@ -129,6 +130,9 @@ func (br *browseObj) userInput(prompt string) (string, bool) {
 				linebuf = strings.TrimSuffix(linebuf, string(linebuf[len(linebuf)-1]))
 				moveCursor(br.dispHeight, 1, true)
 				fmt.Printf("%s%s", prompt, linebuf)
+			} else {
+				cancel = true
+				ignore = true
 			}
 
 		case ERASEWORD:
@@ -151,7 +155,7 @@ func (br *browseObj) userInput(prompt string) (string, bool) {
 			fmt.Print(string(inputChar))
 		}
 
-		if cancel {
+		if cancel || ignore {
 			br.restoreLast()
 			moveCursor(2, 1, false)
 			break
@@ -168,7 +172,7 @@ func (br *browseObj) userInput(prompt string) (string, bool) {
 	// reset tty
 	ttyBrowser()
 
-	return linebuf, cancel
+	return linebuf, cancel, ignore
 }
 
 // vim: set ts=4 sw=4 noet:
