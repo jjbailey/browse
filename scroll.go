@@ -93,16 +93,10 @@ func (br *browseObj) toggleMode(mode int) {
 	switch mode {
 
 	case MODE_SCROLL_UP:
-		// toggle
 		needsScrollCancel = br.modeScroll == mode
 
-	case MODE_SCROLL_DN:
-		// cancel down or either follow mode, else start this mode
-		needsScrollCancel = br.inFollow()
-
-	case MODE_SCROLL_TAIL, MODE_SCROLL_FOLLOW:
-		// cancel either follow mode at EOF, else start this mode
-		needsScrollCancel = br.inFollow() && br.shownEOF
+	case MODE_SCROLL_DN, MODE_SCROLL_TAIL, MODE_SCROLL_FOLLOW:
+		needsScrollCancel = br.inFollow() && (mode == MODE_SCROLL_DN || br.shownEOF)
 	}
 
 	if needsScrollCancel {
