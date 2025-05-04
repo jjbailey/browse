@@ -82,7 +82,7 @@ const (
 )
 
 type browseObj struct {
-	// screen vars
+	// Terminal display configuration
 	tty        *os.File
 	title      string
 	dispWidth  int
@@ -91,7 +91,7 @@ type browseObj struct {
 	firstRow   int
 	lastRow    int
 
-	// file vars
+	// File handling
 	fp         *os.File
 	fileName   string
 	fromStdin  bool
@@ -99,25 +99,27 @@ type browseObj struct {
 	seekMap    map[int]int64
 	sizeMap    map[int]int64
 	shiftWidth int
+
+	// Search configuration
 	pattern    string
 	re         *regexp.Regexp
 	replace    string
 	ignoreCase bool
 	lastMatch  int
-	hitEOF     bool
-	shownEOF   bool
-	shownMsg   bool
-	marks      [MAXMARKS]int
 
-	// quit, exit
-	saveRC bool
-	exit   bool
+	// State tracking
+	hitEOF   bool
+	shownEOF bool
+	shownMsg bool
+	marks    [MAXMARKS]int
+	saveRC   bool
+	exit     bool
 
-	// size vars
+	// File size tracking
 	newFileSiz int64
 	savFileSiz int64
 
-	// modes
+	// Display modes
 	modeNumbers bool
 	modeScroll  int
 }
