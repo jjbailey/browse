@@ -32,11 +32,6 @@ func readFile(br *browseObj, ch chan bool) {
 
 	reader := bufio.NewReader(br.fp)
 
-	if br.fromStdin {
-		// wait for some input from stdin
-		time.Sleep(time.Second)
-	}
-
 	br.newFileSiz, br.savFileSiz = 0, 0
 
 	for {
