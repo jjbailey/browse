@@ -109,11 +109,11 @@ When browse is called with no filenames, browse attempts to restore the session 
 
 <br>
 
-| <h4>Jumps/Marks</h4> | <h4>Function</h4>                   |
-| :------------------- | :---------------------------------- |
-| j                    | Jump to a line                      |
-| m                    | Assign top line to mark 1-9         |
-| 1-9                  | Jump to mark, default to line 0     |
+| <h4>Jumps/Marks</h4> | <h4>Function</h4>               |
+| :------------------- | :------------------------------ |
+| j                    | Jump to a line                  |
+| m                    | Assign top line to mark 1-9     |
+| 1-9                  | Jump to mark, default to line 0 |
 
 <br>
 
