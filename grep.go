@@ -12,10 +12,17 @@ package main
 import (
 	"fmt"
 	"os/exec"
+	"strings"
+)
+
+const (
+	grepDefaultOpts  = "-nP"
+	grepIgnoreCase   = "-inP"
+	browseIgnoreCase = "-i"
 )
 
 func (br *browseObj) runGrep() {
-	if len(br.pattern) == 0 {
+	if br.pattern == "" {
 		br.printMessage("No search pattern", MSG_ORANGE)
 		return
 	}
@@ -32,29 +39,36 @@ func (br *browseObj) runGrep() {
 		return
 	}
 
-	// run grep and browse in current search case mode
-	grepOpts := "-nP"
+	// case sensitivity
+	grepOpts := grepDefaultOpts
 	brOpts := ""
-
 	if br.ignoreCase {
-		grepOpts = "-inP"
-		brOpts = "-i"
+		grepOpts = grepIgnoreCase
+		brOpts = browseIgnoreCase
+	}
+
+	// build the command
+	var cmd strings.Builder
+	cmd.Grow(256)
+
+	fmt.Fprintf(&cmd, "%s %s -e '%s' %s | %s %s",
+		grepPath, grepOpts, br.pattern, br.fileName, brPath, brOpts)
+
+	if br.pattern != "" {
+		fmt.Fprintf(&cmd, " -p '%s'", br.pattern)
 	}
 
 	title := fmt.Sprintf("grep %s -e \"%s\"", grepOpts, br.pattern)
-
-	cmdbuf := fmt.Sprintf("%s %s -e '%s' %s | %s %s -p '%s' -t '%s'",
-		grepPath, grepOpts, br.pattern, br.fileName, brPath, brOpts, br.pattern, title)
+	fmt.Fprintf(&cmd, " -t '%s'", title)
 
 	// feedback
 	moveCursor(br.dispHeight, 1, true)
-	fmt.Print("---\n")
-	fmt.Print(LINEWRAPON)
-	fmt.Printf("$ %s\n", cmdbuf)
+	fmt.Print("---\n", LINEWRAPON)
+	fmt.Printf("$ %s\n", cmd.String())
 
 	// set up env, run
 	resetScrRegion()
-	br.runInPty(cmdbuf)
+	br.runInPty(cmd.String())
 	br.resizeWindow()
 	fmt.Print(LINEWRAPOFF)
 }
