@@ -18,76 +18,91 @@ import (
 	"unicode"
 )
 
+// Command groups
+const (
+	// Navigation commands
+	CMD_PAGE_DN        = 'f'
+	CMD_PAGE_DN_1      = ' '
+	CMD_PAGE_UP        = 'b'
+	CMD_HALF_PAGE_DN   = '\006'
+	CMD_HALF_PAGE_DN_1 = '\004'
+	CMD_HALF_PAGE_DN_2 = 'z'
+	CMD_HALF_PAGE_UP   = '\002'
+	CMD_HALF_PAGE_UP_1 = '\025'
+	CMD_HALF_PAGE_UP_2 = 'Z'
+	CMD_SCROLL_DN      = '+'
+	CMD_SCROLL_DN_1    = '\r'
+	CMD_SCROLL_UP      = '-'
+	CMD_MODE_DN        = 'd'
+	CMD_MODE_UP        = 'u'
+	CMD_MODE_TAIL      = 't'
+	CMD_MODE_FOLLOW    = 'e'
+	CMD_SOF            = '0'
+	CMD_EOF            = 'G'
+
+	// Search commands
+	CMD_SEARCH_FWD      = '/'
+	CMD_SEARCH_REV      = '?'
+	CMD_SEARCH_NEXT     = 'n'
+	CMD_SEARCH_NEXT_REV = 'N'
+	CMD_SEARCH_IGN_CASE = 'i'
+	CMD_GREP            = '&'
+	CMD_SEARCH_PRINT    = 'p'
+	CMD_SEARCH_CLEAR    = 'P'
+
+	// Horizontal scrolling commands
+	CMD_SHIFT_LEFT    = '<'
+	CMD_SHIFT_LEFT_1  = '\b'
+	CMD_SHIFT_LEFT_2  = '\177'
+	CMD_SHIFT_RIGHT   = '>'
+	CMD_SHIFT_RIGHT_1 = '\011'
+	CMD_SHIFT_ZERO    = '^'
+	CMD_SHIFT_LONGEST = '$'
+
+	// File operations
+	CMD_NEWFILE      = 'B'
+	CMD_QUIT         = 'q'
+	CMD_QUIT_NO_SAVE = 'Q'
+	CMD_EXIT         = 'x'
+	CMD_EXIT_NO_SAVE = 'X'
+
+	// Other commands
+	CMD_BASH      = '!'
+	CMD_HELP      = 'h'
+	CMD_JUMP      = 'j'
+	CMD_MARK      = 'm'
+	CMD_NUMBERS   = '#'
+	CMD_PERCENT   = '%'
+	CMD_PERCENT_1 = '\007'
+)
+
+// Virtual key mappings
+const (
+	VK_UP    = "\033[A\000"
+	VK_DOWN  = "\033[B\000"
+	VK_LEFT  = "\033[D\000"
+	VK_RIGHT = "\033[C\000"
+
+	VK_HOME   = "\033[1~"
+	VK_HOME_1 = "\033[H\000"
+	VK_END    = "\033[4~"
+	VK_END_1  = "\033[F\000"
+	VK_PRIOR  = "\033[5~"
+	VK_NEXT   = "\033[6~"
+)
+
+// Search and scroll constants
+const (
+	SEARCH_FWD  = true
+	SEARCH_REV  = false
+	SCROLL_TAIL = 256
+	SCROLL_CONT = 2
+)
+
+// searchDir controls the direction of search operations
+var searchDir bool = SEARCH_FWD
+
 func commands(br *browseObj) {
-	const (
-		CMD_BASH            = '!'
-		CMD_EOF             = 'G'
-		CMD_HELP            = 'h'
-		CMD_JUMP            = 'j'
-		CMD_MARK            = 'm'
-		CMD_NUMBERS         = '#'
-		CMD_PAGE_DN         = 'f'
-		CMD_PAGE_DN_1       = ' '
-		CMD_PAGE_UP         = 'b'
-		CMD_HALF_PAGE_DN    = '\006'
-		CMD_HALF_PAGE_DN_1  = '\004'
-		CMD_HALF_PAGE_DN_2  = 'z'
-		CMD_HALF_PAGE_UP    = '\002'
-		CMD_HALF_PAGE_UP_1  = '\025'
-		CMD_HALF_PAGE_UP_2  = 'Z'
-		CMD_SHIFT_LEFT      = '<'
-		CMD_SHIFT_LEFT_1    = '\b'
-		CMD_SHIFT_LEFT_2    = '\177'
-		CMD_SHIFT_RIGHT     = '>'
-		CMD_SHIFT_RIGHT_1   = '\011'
-		CMD_SHIFT_ZERO      = '^'
-		CMD_SHIFT_LONGEST   = '$'
-		CMD_NEWFILE         = 'B'
-		CMD_QUIT            = 'q'
-		CMD_QUIT_NO_SAVE    = 'Q'
-		CMD_EXIT            = 'x'
-		CMD_EXIT_NO_SAVE    = 'X'
-		CMD_SCROLL_DN       = '+'
-		CMD_SCROLL_DN_1     = '\r'
-		CMD_SCROLL_UP       = '-'
-		CMD_MODE_DN         = 'd'
-		CMD_MODE_UP         = 'u'
-		CMD_MODE_TAIL       = 't'
-		CMD_MODE_FOLLOW     = 'e'
-		CMD_SOF             = '0'
-		CMD_SEARCH_FWD      = '/'
-		CMD_SEARCH_REV      = '?'
-		CMD_SEARCH_NEXT     = 'n'
-		CMD_SEARCH_NEXT_REV = 'N'
-		CMD_SEARCH_IGN_CASE = 'i'
-		CMD_GREP            = '&'
-		CMD_PERCENT         = '%'
-		CMD_PERCENT_1       = '\007'
-		CMD_SEARCH_PRINT    = 'p'
-		CMD_SEARCH_CLEAR    = 'P'
-
-		VK_UP    = "\033[A\000"
-		VK_DOWN  = "\033[B\000"
-		VK_LEFT  = "\033[D\000"
-		VK_RIGHT = "\033[C\000"
-
-		VK_HOME   = "\033[1~"
-		VK_HOME_1 = "\033[H\000"
-		VK_END    = "\033[4~"
-		VK_END_1  = "\033[F\000"
-		VK_PRIOR  = "\033[5~"
-		VK_NEXT   = "\033[6~"
-	)
-
-	const (
-		SEARCH_FWD  = true
-		SEARCH_REV  = false
-		SCROLL_TAIL = 256
-		SCROLL_CONT = 2
-	)
-
-	var searchDir bool = SEARCH_FWD
-
 	// seed the saved search pattern
 	br.reCompile(br.pattern)
 
@@ -304,7 +319,7 @@ func commands(br *browseObj) {
 
 		case CMD_JUMP:
 			// jump to line
-			lbuf, cancel := br.userInput("Junp: ")
+			lbuf, cancel, _ := br.userInput("Junp: ")
 			if !cancel && len(lbuf) > 0 {
 				var n int
 				fmt.Sscanf(lbuf, "%d", &n)
@@ -355,7 +370,7 @@ func commands(br *browseObj) {
 
 		case CMD_MARK:
 			// mark page
-			lbuf, cancel := br.userInput("Mark: ")
+			lbuf, cancel, _ := br.userInput("Mark: ")
 			if !cancel && len(lbuf) > 0 {
 				if m := getMark(lbuf); m != 0 {
 					br.marks[m] = br.firstRow
@@ -384,7 +399,7 @@ func commands(br *browseObj) {
 
 		case CMD_NEWFILE:
 			// browse a new file
-			lbuf, cancel := br.userInput("File: ")
+			lbuf, cancel, _ := br.userInput("File: ")
 			if !cancel && len(lbuf) > 0 {
 				sbuf := subCommandChars(lbuf, "%", br.fileName)
 				if fp, err := os.Open(sbuf); err != nil {
