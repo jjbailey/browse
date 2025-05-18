@@ -132,7 +132,7 @@ func isBinaryFile(filename string) bool {
 	}
 	defer file.Close()
 
-	const sampleSize = 8 * 1024
+	const sampleSize = 4 * 1024
 	buffer := make([]byte, sampleSize)
 
 	bytesRead, err := file.Read(buffer)
@@ -140,8 +140,8 @@ func isBinaryFile(filename string) bool {
 		return false
 	}
 
-	for i := 0; i < bytesRead; i++ {
-		if buffer[i] == 0 {
+	for _, b := range buffer[:bytesRead] {
+		if b == 0 {
 			return true
 		}
 	}
