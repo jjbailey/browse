@@ -33,58 +33,64 @@ type completer struct {
 }
 
 func (c *completer) Do(line []rune, pos int) ([][]rune, int) {
-	var candidates [][]rune
-	var dir string
-	var filePrefix string
 	const maxCandidates = 50
-
+	var candidates [][]rune
 	input := string(line[:pos])
+	dir, filePrefix := filepath.Split(input)
+
+	if dir == "" {
+		dir = "."
+	}
 
 	if c.completionType == bashComplete {
 		// handle bash completion (executables in PATH)
-
-		for _, pathdir := range filepath.SplitList(os.Getenv("PATH")) {
-			dir, filePrefix = filepath.Split(input)
-			if dir == "" {
-				dir = "."
-			}
-
-			entries, err := filepath.Glob(filepath.Join(pathdir, filePrefix+"*"))
-			if err != nil {
-				continue
-			}
-
-			candidates = c.processEntries(entries, filePrefix, candidates, maxCandidates, false)
-			if len(candidates) >= maxCandidates {
-				break
-			}
-		}
+		candidates = c.completeBash(filePrefix, maxCandidates)
 	} else {
 		// file name completion
-
-		dir, filePrefix = filepath.Split(input)
-		if dir == "" {
-			dir = "."
-		}
-
-		entries, err := filepath.Glob(filepath.Join(dir, filePrefix+"*"))
-		if err != nil {
-			return nil, 0
-		}
-
-		candidates = c.processEntries(entries, filePrefix, candidates, maxCandidates, true)
+		candidates = c.completeFiles(dir, filePrefix, maxCandidates)
 	}
 
 	return candidates, len(filePrefix)
 }
 
+func (c *completer) completeBash(filePrefix string, maxCandidates int) [][]rune {
+	var candidates [][]rune
+
+	for _, pathdir := range filepath.SplitList(os.Getenv("PATH")) {
+		entries, err := filepath.Glob(filepath.Join(pathdir, filePrefix+"*"))
+		if err != nil {
+			continue
+		}
+
+		candidates = c.processEntries(entries, filePrefix, candidates, maxCandidates, false)
+	}
+
+	return candidates
+}
+
+func (c *completer) completeFiles(dir, filePrefix string, maxCandidates int) [][]rune {
+	entries, err := filepath.Glob(filepath.Join(dir, filePrefix+"*"))
+	if err != nil {
+		return nil
+	}
+
+	return c.processEntries(entries, filePrefix, nil, maxCandidates, true)
+}
+
 func (c *completer) processEntries(entries []string, filePrefix string, candidates [][]rune, maxCandidates int, isFileComplete bool) [][]rune {
+	if candidates == nil {
+		candidates = make([][]rune, 0, maxCandidates)
+	}
+
 	for _, entry := range entries {
 		if len(candidates) >= maxCandidates {
 			break
 		}
 
 		name := filepath.Base(entry)
+		if !strings.HasPrefix(name, filePrefix) {
+			continue
+		}
 
 		if stat, err := os.Stat(entry); err == nil {
 			if stat.IsDir() {
@@ -98,10 +104,8 @@ func (c *completer) processEntries(entries []string, filePrefix string, candidat
 			}
 		}
 
-		if strings.HasPrefix(name, filePrefix) {
-			suffix := name[len(filePrefix):]
-			candidates = append(candidates, []rune(suffix))
-		}
+		suffix := name[len(filePrefix):]
+		candidates = append(candidates, []rune(suffix))
 	}
 
 	return candidates
@@ -132,10 +136,12 @@ func isBinaryFile(filename string) bool {
 }
 
 func (br *browseObj) userBashComp(prompt string) (string, bool, bool) {
+	// userBashComp prompts the user with bash command completion
 	return br.promptWithCompletion(prompt, bashComplete)
 }
 
 func (br *browseObj) userFileComp(prompt string) (string, bool, bool) {
+	// userFileComp prompts the user with file name completion
 	return br.promptWithCompletion(prompt, fileComplete)
 }
 
@@ -155,13 +161,13 @@ func (br *browseObj) promptWithCompletion(prompt string, cType completeType) (st
 		AutoComplete:    &completer{completionType: cType},
 	}
 
+	// ignore signals that could interfere with readline
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
 	moveCursor(br.dispHeight, 1, true)
 
 	rl, err := readline.NewEx(cfg)
 	if err != nil {
 		errorExit(err)
-		return "", false, false
 	}
 
 	defer func() {
@@ -188,6 +194,7 @@ func (br *browseObj) promptWithCompletion(prompt string, cType completeType) (st
 
 	default:
 		errorExit(err)
+		// function needs to return something
 		return "", false, false
 	}
 }
