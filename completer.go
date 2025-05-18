@@ -36,28 +36,42 @@ func (c *completer) Do(line []rune, pos int) ([][]rune, int) {
 	const maxCandidates = 50
 	var candidates [][]rune
 	input := string(line[:pos])
-	dir, filePrefix := filepath.Split(input)
+	pathDir, filePrefix := filepath.Split(input)
 
-	if dir == "" {
-		dir = "."
+	if pathDir == "" {
+		pathDir = "."
 	}
 
 	if c.completionType == bashComplete {
 		// handle bash completion (executables in PATH)
-		candidates = c.completeBash(filePrefix, maxCandidates)
+		candidates = c.completeBash(pathDir, filePrefix, maxCandidates)
 	} else {
 		// file name completion
-		candidates = c.completeFiles(dir, filePrefix, maxCandidates)
+		candidates = c.completeFiles(pathDir, filePrefix, maxCandidates)
 	}
 
 	return candidates, len(filePrefix)
 }
 
-func (c *completer) completeBash(filePrefix string, maxCandidates int) [][]rune {
+func (c *completer) completeBash(pathDir, filePrefix string, maxCandidates int) [][]rune {
 	var candidates [][]rune
 
-	for _, pathdir := range filepath.SplitList(os.Getenv("PATH")) {
-		entries, err := filepath.Glob(filepath.Join(pathdir, filePrefix+"*"))
+	// absolute path
+	// readline does not glob directories
+
+	if strings.HasPrefix(pathDir, "/") {
+		entries, err := filepath.Glob(pathDir + "*")
+		if err != nil {
+			return nil
+		}
+
+		return c.processEntries(entries, filePrefix, nil, maxCandidates, false)
+	}
+
+	// search PATH
+
+	for _, pathDir := range filepath.SplitList(os.Getenv("PATH")) {
+		entries, err := filepath.Glob(filepath.Join(pathDir, filePrefix+"*"))
 		if err != nil {
 			continue
 		}
@@ -68,8 +82,8 @@ func (c *completer) completeBash(filePrefix string, maxCandidates int) [][]rune 
 	return candidates
 }
 
-func (c *completer) completeFiles(dir, filePrefix string, maxCandidates int) [][]rune {
-	entries, err := filepath.Glob(filepath.Join(dir, filePrefix+"*"))
+func (c *completer) completeFiles(pathDir, filePrefix string, maxCandidates int) [][]rune {
+	entries, err := filepath.Glob(filepath.Join(pathDir, filePrefix+"*"))
 	if err != nil {
 		return nil
 	}
