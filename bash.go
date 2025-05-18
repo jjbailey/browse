@@ -19,7 +19,7 @@ var prevCommand string
 func (br *browseObj) bashCommand() {
 	// run a command with bash
 
-	input, cancel, _ := br.userInput("!")
+	input, cancel, _ := br.userBashComp("!")
 
 	if cancel || len(input) == 0 {
 		br.restoreLast()

@@ -399,7 +399,7 @@ func commands(br *browseObj) {
 
 		case CMD_NEWFILE:
 			// browse a new file
-			lbuf, cancel, _ := br.userInput("File: ")
+			lbuf, cancel, _ := br.userFileComp("File: ")
 			if !cancel && len(lbuf) > 0 {
 				sbuf := subCommandChars(lbuf, "%", br.fileName)
 				if fp, err := os.Open(sbuf); err != nil {
@@ -448,25 +448,45 @@ func commands(br *browseObj) {
 }
 
 func waitForInput(br *browseObj) {
-	// attempt to read the entire page which starts at firstRow
+	// attempt to read an entire page
+	// strike a balance between waiting for a page and small files
 
 	const (
-		maxAttempts    = 10
-		stableAttempts = 5
-		waitTime       = 200 * time.Millisecond
+		maxAttempts      = 20
+		stableThreshold  = 10
+		waitInterval     = 100 * time.Millisecond
+		modTimeThreshold = 5 * time.Second
 	)
 
-	var lastMapSize int
-
 	targetSize := br.firstRow + br.dispHeight
+	lastMapSize := br.mapSiz
+	stableCount := 0
 
 	for attempt := 0; attempt < maxAttempts; attempt++ {
-		if br.mapSiz > targetSize || (attempt > stableAttempts && br.mapSiz == lastMapSize) {
+		info, err := os.Stat(br.fileName)
+		if err == nil {
+			if time.Since(info.ModTime()) > modTimeThreshold {
+				// don't wait for files unchanged in the last 5 seconds
+				return
+			}
+		}
+
+		if br.mapSiz >= targetSize {
 			break
 		}
 
-		lastMapSize = br.mapSiz
-		<-time.After(waitTime)
+		if br.mapSiz == lastMapSize {
+			stableCount++
+		} else {
+			stableCount = 0
+			lastMapSize = br.mapSiz
+		}
+
+		if stableCount > stableThreshold {
+			break
+		}
+
+		time.Sleep(waitInterval)
 	}
 
 	if br.mapSiz < targetSize {
