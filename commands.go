@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 	"unicode"
 )
@@ -400,8 +401,9 @@ func commands(br *browseObj) {
 		case CMD_NEWFILE:
 			// browse a new file
 			lbuf, cancel, _ := br.userFileComp("File: ")
-			if !cancel && len(lbuf) > 0 {
-				sbuf := subCommandChars(lbuf, "%", br.fileName)
+			file := strings.TrimSpace(lbuf)
+			if !cancel && len(file) > 0 {
+				sbuf := subCommandChars(file, "%", br.fileName)
 				if fp, err := os.Open(sbuf); err != nil {
 					br.timedMessage(err.Error(), MSG_RED)
 				} else {
