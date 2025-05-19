@@ -63,21 +63,21 @@ When advancing to the next file in a list of files, browse:
 - turns off follow/tail mode
 - sets the page title
 
-When browse is called with no filenames, browse attempts to restore the session saved in ~/.browserc.
+When browse is called with no file names, browse attempts to restore the session saved in ~/.browserc.
 
 ## Command-line completion (Tab completion)
 
-browse has support for command-line completion based on chzyer/readline. This feature allows users to type part of a program or filename and press the TAB key to have the browser automatically suggest possible completions. This feature is available for bash commands and for browsing another file.
+browse has support for command-line completion based on chzyer/readline. This feature allows users to type part of a program or file name and press the TAB key to have the browser automatically suggest possible completions. This feature is available for bash commands and for browsing another file.
 
 The readline package works well, with the following limitations:
 
 - readline does not glob directories, it simply descends into them
-- full pathnames do not match until readline finds a filename match
+- full pathnames do not match until readline finds a file name match
 - readline bug (#234) renders it non-functional when input to browse is a pipe
 
 At most, browse returns 50 results. More specific searches return better suggestions.
 
-browse does not suggest binary files in filename searches.
+browse does not suggest binary files in file name searches.
 
 ## Usage
 
