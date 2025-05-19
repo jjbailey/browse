@@ -108,11 +108,7 @@ func (c *completer) processEntries(entries []string, filePrefix string, candidat
 
 		if stat, err := os.Stat(entry); err == nil {
 			if stat.IsDir() {
-				if isFileComplete {
-					name += "/"
-				} else {
-					continue
-				}
+				name += "/"
 			} else if isFileComplete && isBinaryFile(entry) {
 				continue
 			}
@@ -175,7 +171,7 @@ func (br *browseObj) promptWithCompletion(prompt string, cType completeType) (st
 		AutoComplete:    &completer{completionType: cType},
 	}
 
-	// ignore signals that could interfere with readline
+	// don't allow readline to redraw the screen on sigwinch
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
 	moveCursor(br.dispHeight, 1, true)
 
