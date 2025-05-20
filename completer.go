@@ -57,9 +57,9 @@ func (c *completer) completeBash(pathDir, filePrefix string, maxCandidates int) 
 	var candidates [][]rune
 
 	// absolute path
-	// readline does not glob directories
 
 	if strings.HasPrefix(pathDir, "/") {
+		// glob directories
 		entries, err := filepath.Glob(pathDir + "*")
 		if err != nil {
 			return nil
@@ -106,16 +106,18 @@ func (c *completer) processEntries(entries []string, filePrefix string, candidat
 			continue
 		}
 
-		if stat, err := os.Stat(entry); err == nil {
-			if stat.IsDir() {
-				name += "/"
-			} else if isFileComplete && isBinaryFile(entry) {
-				continue
-			}
+		stat, err := os.Stat(entry)
+		if err != nil {
+			continue
 		}
 
-		suffix := name[len(filePrefix):]
-		candidates = append(candidates, []rune(suffix))
+		if stat.IsDir() {
+			name += "/"
+		} else if isFileComplete && isBinaryFile(entry) {
+			continue
+		}
+
+		candidates = append(candidates, []rune(name[len(filePrefix):]))
 	}
 
 	return candidates
