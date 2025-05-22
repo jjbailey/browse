@@ -54,7 +54,7 @@ func (c *completer) Do(line []rune, pos int) ([][]rune, int) {
 }
 
 func (c *completer) completeBash(pathDir, filePrefix string, maxCandidates int) [][]rune {
-	var candidates [][]rune
+	candidates := make([][]rune, 0, maxCandidates)
 
 	// absolute path
 
@@ -65,7 +65,8 @@ func (c *completer) completeBash(pathDir, filePrefix string, maxCandidates int) 
 			return nil
 		}
 
-		return c.processEntries(entries, filePrefix, nil, maxCandidates, false)
+		candidates = c.processEntries(entries, filePrefix, candidates, maxCandidates, false)
+		return candidates
 	}
 
 	// search PATH
@@ -83,18 +84,20 @@ func (c *completer) completeBash(pathDir, filePrefix string, maxCandidates int) 
 }
 
 func (c *completer) completeFiles(pathDir, filePrefix string, maxCandidates int) [][]rune {
+	// search dir
+
 	entries, err := filepath.Glob(filepath.Join(pathDir, filePrefix+"*"))
 	if err != nil {
 		return nil
 	}
 
-	return c.processEntries(entries, filePrefix, nil, maxCandidates, true)
+	candidates := make([][]rune, 0, maxCandidates)
+	candidates = c.processEntries(entries, filePrefix, candidates, maxCandidates, false)
+	return candidates
 }
 
 func (c *completer) processEntries(entries []string, filePrefix string, candidates [][]rune, maxCandidates int, isFileComplete bool) [][]rune {
-	if candidates == nil {
-		candidates = make([][]rune, 0, maxCandidates)
-	}
+	// processEntries
 
 	for _, entry := range entries {
 		if len(candidates) >= maxCandidates {
