@@ -92,7 +92,7 @@ func (c *completer) completeFiles(pathDir, filePrefix string, maxCandidates int)
 	}
 
 	candidates := make([][]rune, 0, maxCandidates)
-	candidates = c.processEntries(entries, filePrefix, candidates, maxCandidates, false)
+	candidates = c.processEntries(entries, filePrefix, candidates, maxCandidates, true)
 	return candidates
 }
 
