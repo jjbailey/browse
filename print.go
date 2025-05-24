@@ -37,8 +37,8 @@ func (br *browseObj) printLine(lineno int) {
 		// replaceMatch adds line numbers if applicable
 		output := br.replaceMatch(lineno, input)
 		// depends on linewrap=false
-		fmt.Printf("\n%s%s%s", output, VIDOFF, CLEARLINE)
 		fmt.Print(LINEWRAPOFF)
+		fmt.Printf("\n%s%s%s", output, VIDOFF, CLEARLINE)
 	}
 
 	if lineno < br.dispRows {
@@ -122,8 +122,8 @@ func (br *browseObj) printMessage(msg string, color string) {
 	// print a message on the bottom line of the display
 
 	moveCursor(br.dispHeight, 1, true)
-	fmt.Printf("%s %s %s", color, msg, VIDOFF)
 	fmt.Print(LINEWRAPOFF)
+	fmt.Printf("%s %s %s", color, msg, VIDOFF)
 	moveCursor(2, 1, false)
 
 	// scrollDown needs this
