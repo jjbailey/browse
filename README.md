@@ -160,4 +160,5 @@ browse does not suggest binary files in file name searches.
 - Probably US-centric
 - Can be confused by lines with non-printable characters
 - Tabs mapped to spaces
-- File completer does not suggest binary files
+- Command-line completion is non-functional when input to browse is a pipe
+- File completion does not suggest binary files for browsing
