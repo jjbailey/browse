@@ -35,9 +35,22 @@ type completer struct {
 func (c *completer) Do(line []rune, pos int) ([][]rune, int) {
 	const maxCandidates = 50
 	var candidates [][]rune
-	input := string(line[:pos])
-	pathDir, filePrefix := filepath.Split(input)
 
+	input := string(line[:pos])
+	tokens := strings.Fields(input)
+
+	var target string
+	if len(tokens) > 0 {
+		if strings.HasSuffix(input, " ") {
+			target = ""
+		} else {
+			target = tokens[len(tokens)-1]
+		}
+	} else {
+		target = ""
+	}
+
+	pathDir, filePrefix := filepath.Split(target)
 	if pathDir == "" {
 		pathDir = "."
 	}
@@ -56,49 +69,49 @@ func (c *completer) Do(line []rune, pos int) ([][]rune, int) {
 func (c *completer) completeBash(pathDir, filePrefix string, maxCandidates int) [][]rune {
 	candidates := make([][]rune, 0, maxCandidates)
 
-	// absolute path
+	// absolute/relative paths first
 
-	if strings.HasPrefix(pathDir, "/") {
-		// glob directories
-		entries, err := filepath.Glob(pathDir + "*")
+	if strings.HasPrefix(filePrefix, ".") || strings.HasPrefix(pathDir, "/") {
+		entries, err := filepath.Glob(filepath.Join(pathDir, filePrefix+"*"))
 		if err != nil {
 			return nil
 		}
 
-		candidates = c.processEntries(entries, filePrefix, candidates, maxCandidates, false)
-		return candidates
+		return c.processEntries(entries, filePrefix, candidates, maxCandidates, false)
 	}
 
-	// search PATH
+	paths := filepath.SplitList(os.Getenv("PATH"))
+	if len(paths) == 0 {
+		// fallback if PATH is empty
+		paths = []string{"/usr/bin", "/usr/sbin", "/usr/local/bin"}
+	}
 
-	for _, pathDir := range filepath.SplitList(os.Getenv("PATH")) {
+	for _, pathDir := range paths {
 		entries, err := filepath.Glob(filepath.Join(pathDir, filePrefix+"*"))
 		if err != nil {
 			continue
 		}
 
 		candidates = c.processEntries(entries, filePrefix, candidates, maxCandidates, false)
+		if len(candidates) >= maxCandidates {
+			break
+		}
 	}
 
 	return candidates
 }
 
 func (c *completer) completeFiles(pathDir, filePrefix string, maxCandidates int) [][]rune {
-	// search dir
-
 	entries, err := filepath.Glob(filepath.Join(pathDir, filePrefix+"*"))
 	if err != nil {
 		return nil
 	}
 
 	candidates := make([][]rune, 0, maxCandidates)
-	candidates = c.processEntries(entries, filePrefix, candidates, maxCandidates, true)
-	return candidates
+	return c.processEntries(entries, filePrefix, candidates, maxCandidates, true)
 }
 
 func (c *completer) processEntries(entries []string, filePrefix string, candidates [][]rune, maxCandidates int, isFileComplete bool) [][]rune {
-	// processEntries
-
 	for _, entry := range entries {
 		if len(candidates) >= maxCandidates {
 			break
@@ -162,8 +175,9 @@ func (br *browseObj) userFileComp(prompt string) (string, bool, bool) {
 
 func (br *browseObj) promptWithCompletion(prompt string, cType completeType) (string, bool, bool) {
 	if !term.IsTerminal(int(os.Stdin.Fd())) {
-		// readline does not support input from pipes
-		return br.userInput(prompt)
+		// readline doesn't support non-terminal input (e.g., from pipes)
+		// magenta prompt
+		return br.userInput(MSG_MAGENTA + prompt + VIDOFF)
 	}
 
 	cfg := &readline.Config{
@@ -184,7 +198,6 @@ func (br *browseObj) promptWithCompletion(prompt string, cType completeType) (st
 	if err != nil {
 		errorExit(err)
 	}
-
 	defer func() {
 		rl.Close()
 		ttyBrowser()
