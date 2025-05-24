@@ -30,6 +30,7 @@ var ptmx *os.File
 
 func (br *browseObj) runInPty(cmdbuf string) {
 	var err error
+	var ptySave *term.State
 
 	cmd := exec.Command("bash", "-c", cmdbuf)
 	// child signals
@@ -43,9 +44,21 @@ func (br *browseObj) runInPty(cmdbuf string) {
 	}
 
 	moveCursor(br.dispHeight, 1, true)
-	defer ptmx.Close()
+	defer func() {
+		if ptmx != nil {
+			ptmx.Close()
+		}
+		if ptySave != nil {
+			term.Restore(int(os.Stdout.Fd()), ptySave)
+		}
+	}()
+
 	pty.InheritSize(os.Stdout, ptmx)
-	ptySave, _ := term.MakeRaw(int(os.Stdout.Fd()))
+	ptySave, err = term.MakeRaw(int(os.Stdout.Fd()))
+	if err != nil {
+		br.printMessage(fmt.Sprintf("Failed to set terminal raw mode: %v\n", err), MSG_RED)
+		return
+	}
 
 	// parent signals
 	br.ptySignals(WAITSIGS)
@@ -54,6 +67,7 @@ func (br *browseObj) runInPty(cmdbuf string) {
 	go func(ch chan bool) {
 		io.Copy(ptmx, br.tty)
 		ch <- true
+		close(ch)
 	}(execOK)
 	io.Copy(os.Stdout, ptmx)
 	cmd.Wait()
@@ -61,7 +75,13 @@ func (br *browseObj) runInPty(cmdbuf string) {
 	// restore and reset window size
 	term.Restore(int(os.Stdout.Fd()), ptySave)
 	pty.InheritSize(os.Stdout, ptmx)
-	br.dispHeight, br.dispWidth, _ = pty.Getsize(ptmx)
+	height, width, err := pty.Getsize(ptmx)
+	if err != nil {
+		br.printMessage(fmt.Sprintf("Failed to get terminal size: %v\n", err), MSG_RED)
+		return
+	}
+
+	br.dispHeight, br.dispWidth = height, width
 	br.dispRows = br.dispHeight - 1
 
 	moveCursor(br.dispHeight, 1, true)
@@ -74,9 +94,9 @@ func (br *browseObj) runInPty(cmdbuf string) {
 
 func (br *browseObj) ptySignals(sigSet int) {
 	// signals for pty processing
-
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan)
+	defer signal.Stop(sigChan)
 
 	switch sigSet {
 
@@ -93,7 +113,9 @@ func (br *browseObj) ptySignals(sigSet int) {
 			switch sig {
 
 			case syscall.SIGWINCH:
-				pty.InheritSize(os.Stdout, ptmx)
+				if ptmx != nil {
+					pty.InheritSize(os.Stdout, ptmx)
+				}
 
 			default:
 				br.printMessage(fmt.Sprintf("%v \n", sig), MSG_RED)
