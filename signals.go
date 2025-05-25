@@ -39,6 +39,7 @@ func (br *browseObj) saneExit() {
 	ttyRestore()
 	resetScrRegion()
 	fmt.Print(LINEWRAPON)
+	fmt.Print(VIDOFF)
 	moveCursor(br.dispHeight, 1, true)
 
 	if br.fromStdin {
