@@ -33,16 +33,17 @@ type completer struct {
 }
 
 func (c *completer) Do(line []rune, pos int) ([][]rune, int) {
-	const maxCandidates = 50
+	const maxCandidates = 40
 	var candidates [][]rune
+	var target string
 
 	input := string(line[:pos])
 	tokens := strings.Fields(input)
 
-	var target string
 	if len(tokens) > 0 {
 		if strings.HasSuffix(input, " ") {
 			target = ""
+			c.completionType = fileComplete
 		} else {
 			target = tokens[len(tokens)-1]
 		}
@@ -112,6 +113,12 @@ func (c *completer) completeFiles(pathDir, filePrefix string, maxCandidates int)
 }
 
 func (c *completer) processEntries(entries []string, filePrefix string, candidates [][]rune, maxCandidates int, isFileComplete bool) [][]rune {
+	// pre-allocate the exact size
+	entryCount := len(entries)
+	if entryCount > maxCandidates {
+		entryCount = maxCandidates
+	}
+
 	for _, entry := range entries {
 		if len(candidates) >= maxCandidates {
 			break
@@ -146,7 +153,7 @@ func isBinaryFile(filename string) bool {
 	}
 	defer file.Close()
 
-	const sampleSize = 4 * 1024
+	const sampleSize = 1024
 	buffer := make([]byte, sampleSize)
 
 	bytesRead, err := file.Read(buffer)
@@ -154,8 +161,9 @@ func isBinaryFile(filename string) bool {
 		return false
 	}
 
-	for _, b := range buffer[:bytesRead] {
-		if b == 0 {
+	// Check for null bytes in the read data
+	for i := 0; i < bytesRead; i++ {
+		if buffer[i] == 0 {
 			return true
 		}
 	}
