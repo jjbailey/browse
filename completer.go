@@ -72,13 +72,26 @@ func (c *completer) completeBash(pathDir, filePrefix string, maxCandidates int) 
 
 	// absolute/relative paths first
 
-	if strings.HasPrefix(filePrefix, ".") || strings.HasPrefix(pathDir, "/") {
+	if strings.HasPrefix(pathDir, "/") {
 		entries, err := filepath.Glob(filepath.Join(pathDir, filePrefix+"*"))
 		if err != nil {
 			return nil
 		}
 
 		return c.processEntries(entries, filePrefix, candidates, maxCandidates, false)
+	}
+
+	// switch to file completion
+
+	if strings.Contains(filePrefix, " ") {
+		entries, err := filepath.Glob(filepath.Join(".", filePrefix+"*"))
+		if err != nil {
+			return nil
+		}
+
+		// reset the candidates list
+		candidates := make([][]rune, 0, maxCandidates)
+		return c.processEntries(entries, filePrefix, candidates, maxCandidates, true)
 	}
 
 	paths := filepath.SplitList(os.Getenv("PATH"))
@@ -153,7 +166,7 @@ func isBinaryFile(filename string) bool {
 	}
 	defer file.Close()
 
-	const sampleSize = 1024
+	const sampleSize = READBUFSIZ
 	buffer := make([]byte, sampleSize)
 
 	bytesRead, err := file.Read(buffer)
