@@ -12,6 +12,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"syscall"
 )
@@ -20,6 +21,7 @@ func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset boo
 	// init
 
 	targetFile := strings.TrimSuffix(fileName, "/")
+	basename := filepath.Base(targetFile)
 
 	stat, err := os.Stat(targetFile)
 	if err != nil {
@@ -28,13 +30,13 @@ func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset boo
 	}
 
 	if stat.IsDir() {
-		br.timedMessage(fmt.Sprintf("is directory: %s", targetFile), MSG_RED)
+		br.timedMessage(fmt.Sprintf("%s: is a directory", basename), MSG_RED)
 		return false
 	}
 
 	fp, err := os.Open(targetFile)
 	if err != nil {
-		br.timedMessage(fmt.Sprintf("error opening file: %v", err), MSG_RED)
+		br.timedMessage(fmt.Sprintf("open error: %v", err), MSG_RED)
 		return false
 	}
 
