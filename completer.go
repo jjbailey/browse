@@ -68,11 +68,10 @@ func (c *completer) Do(line []rune, pos int) ([][]rune, int) {
 }
 
 func (c *completer) completeBash(pathDir, filePrefix string, maxCandidates int) [][]rune {
-	candidates := make([][]rune, 0, maxCandidates)
-
-	// absolute/relative paths first
+	var candidates [][]rune
 
 	if strings.HasPrefix(pathDir, "/") {
+		// absolute/relative paths first
 		entries, err := filepath.Glob(filepath.Join(pathDir, filePrefix+"*"))
 		if err != nil {
 			return nil
@@ -81,17 +80,14 @@ func (c *completer) completeBash(pathDir, filePrefix string, maxCandidates int) 
 		return c.processEntries(entries, filePrefix, candidates, maxCandidates, false)
 	}
 
-	// switch to file completion
-
 	if strings.Contains(filePrefix, " ") {
+		// switch to file completion
 		entries, err := filepath.Glob(filepath.Join(".", filePrefix+"*"))
 		if err != nil {
 			return nil
 		}
 
-		// reset the candidates list
-		candidates := make([][]rune, 0, maxCandidates)
-		return c.processEntries(entries, filePrefix, candidates, maxCandidates, true)
+		return c.processEntries(entries, filePrefix, nil, maxCandidates, true)
 	}
 
 	paths := filepath.SplitList(os.Getenv("PATH"))
@@ -116,25 +112,38 @@ func (c *completer) completeBash(pathDir, filePrefix string, maxCandidates int) 
 }
 
 func (c *completer) completeFiles(pathDir, filePrefix string, maxCandidates int) [][]rune {
+	var candidates [][]rune
+
 	entries, err := filepath.Glob(filepath.Join(pathDir, filePrefix+"*"))
 	if err != nil {
 		return nil
 	}
 
-	candidates := make([][]rune, 0, maxCandidates)
 	return c.processEntries(entries, filePrefix, candidates, maxCandidates, true)
 }
 
 func (c *completer) processEntries(entries []string, filePrefix string, candidates [][]rune, maxCandidates int, isFileComplete bool) [][]rune {
-	// pre-allocate the exact size
 	entryCount := len(entries)
+
+	if entryCount == 0 {
+		return candidates
+	}
+
 	if entryCount > maxCandidates {
 		entryCount = maxCandidates
+	}
+
+	if candidates == nil {
+		candidates = make([][]rune, 0, entryCount)
 	}
 
 	for _, entry := range entries {
 		if len(candidates) >= maxCandidates {
 			break
+		}
+
+		if entry == "" {
+			continue
 		}
 
 		name := filepath.Base(entry)
@@ -153,7 +162,10 @@ func (c *completer) processEntries(entries []string, filePrefix string, candidat
 			continue
 		}
 
-		candidates = append(candidates, []rune(name[len(filePrefix):]))
+		suffix := name[len(filePrefix):]
+		if len(suffix) > 0 {
+			candidates = append(candidates, []rune(suffix))
+		}
 	}
 
 	return candidates
