@@ -17,6 +17,7 @@ A simple, unconventional file browser.
 - Mark pages
 - Forward and reverse searches by regular expression
 - Shell escape
+- Command-line (Tab) completion
 - tail -f
 - Line numbers
 - Save session
@@ -65,13 +66,13 @@ When advancing to the next file in a list of files, browse:
 
 When browse is called with no file names, browse attempts to restore the session saved in ~/.browserc.
 
-## Command-line completion (Tab completion)
+## Command-line (Tab) completion
 
 browse has support for command-line completion based on chzyer/readline. This feature allows users to type part of a program or file name and press the TAB key to have the browser automatically suggest possible completions. This feature is available for bash commands and for browsing another file.
 
 The readline package works well, with a limitation: readline bug #234 renders it non-functional when input to browse is a pipe.
 
-At most, browse returns 50 results. More specific searches return better suggestions.
+At most, browse returns 40 results. More specific searches return better suggestions.
 
 browse does not suggest binary files in file name searches.
 

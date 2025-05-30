@@ -408,9 +408,9 @@ func commands(br *browseObj) {
 					br.timedMessage(err.Error(), MSG_RED)
 				} else {
 					fp.Close()
-					resetState(br)
-					browseFile(br, sbuf, setTitle(sbuf, sbuf), false)
-					return
+					if browseFile(br, sbuf, setTitle(sbuf, sbuf), false, true) {
+						return
+					}
 				}
 			}
 

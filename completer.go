@@ -33,16 +33,17 @@ type completer struct {
 }
 
 func (c *completer) Do(line []rune, pos int) ([][]rune, int) {
-	const maxCandidates = 50
+	const maxCandidates = 40
 	var candidates [][]rune
+	var target string
 
 	input := string(line[:pos])
 	tokens := strings.Fields(input)
 
-	var target string
 	if len(tokens) > 0 {
 		if strings.HasSuffix(input, " ") {
 			target = ""
+			c.completionType = fileComplete
 		} else {
 			target = tokens[len(tokens)-1]
 		}
@@ -67,17 +68,26 @@ func (c *completer) Do(line []rune, pos int) ([][]rune, int) {
 }
 
 func (c *completer) completeBash(pathDir, filePrefix string, maxCandidates int) [][]rune {
-	candidates := make([][]rune, 0, maxCandidates)
+	var candidates [][]rune
 
-	// absolute/relative paths first
-
-	if strings.HasPrefix(filePrefix, ".") || strings.HasPrefix(pathDir, "/") {
+	if strings.HasPrefix(pathDir, "/") {
+		// absolute/relative paths first
 		entries, err := filepath.Glob(filepath.Join(pathDir, filePrefix+"*"))
 		if err != nil {
 			return nil
 		}
 
 		return c.processEntries(entries, filePrefix, candidates, maxCandidates, false)
+	}
+
+	if strings.Contains(filePrefix, " ") {
+		// switch to file completion
+		entries, err := filepath.Glob(filepath.Join(".", filePrefix+"*"))
+		if err != nil {
+			return nil
+		}
+
+		return c.processEntries(entries, filePrefix, nil, maxCandidates, true)
 	}
 
 	paths := filepath.SplitList(os.Getenv("PATH"))
@@ -102,19 +112,38 @@ func (c *completer) completeBash(pathDir, filePrefix string, maxCandidates int) 
 }
 
 func (c *completer) completeFiles(pathDir, filePrefix string, maxCandidates int) [][]rune {
+	var candidates [][]rune
+
 	entries, err := filepath.Glob(filepath.Join(pathDir, filePrefix+"*"))
 	if err != nil {
 		return nil
 	}
 
-	candidates := make([][]rune, 0, maxCandidates)
 	return c.processEntries(entries, filePrefix, candidates, maxCandidates, true)
 }
 
 func (c *completer) processEntries(entries []string, filePrefix string, candidates [][]rune, maxCandidates int, isFileComplete bool) [][]rune {
+	entryCount := len(entries)
+
+	if entryCount == 0 {
+		return candidates
+	}
+
+	if entryCount > maxCandidates {
+		entryCount = maxCandidates
+	}
+
+	if candidates == nil {
+		candidates = make([][]rune, 0, entryCount)
+	}
+
 	for _, entry := range entries {
 		if len(candidates) >= maxCandidates {
 			break
+		}
+
+		if entry == "" {
+			continue
 		}
 
 		name := filepath.Base(entry)
@@ -133,7 +162,10 @@ func (c *completer) processEntries(entries []string, filePrefix string, candidat
 			continue
 		}
 
-		candidates = append(candidates, []rune(name[len(filePrefix):]))
+		suffix := name[len(filePrefix):]
+		if len(suffix) > 0 {
+			candidates = append(candidates, []rune(suffix))
+		}
 	}
 
 	return candidates
@@ -146,7 +178,7 @@ func isBinaryFile(filename string) bool {
 	}
 	defer file.Close()
 
-	const sampleSize = 4 * 1024
+	const sampleSize = READBUFSIZ
 	buffer := make([]byte, sampleSize)
 
 	bytesRead, err := file.Read(buffer)
@@ -154,8 +186,9 @@ func isBinaryFile(filename string) bool {
 		return false
 	}
 
-	for _, b := range buffer[:bytesRead] {
-		if b == 0 {
+	// Check for null bytes in the read data
+	for i := 0; i < bytesRead; i++ {
+		if buffer[i] == 0 {
 			return true
 		}
 	}

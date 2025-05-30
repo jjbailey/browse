@@ -49,6 +49,8 @@ Forward and reverse searches by regular expression
 .IP \[bu] 2
 Shell escape
 .IP \[bu] 2
+Command-line (Tab) completion
+.IP \[bu] 2
 tail -f
 .IP \[bu] 2
 Line numbers
@@ -124,7 +126,7 @@ sets the page title
 .PP
 When browse is called with no file names, browse attempts to restore the
 session saved in \[ti]/.browserc.
-.SS Command-line completion (Tab completion)
+.SS Command-line (Tab) completion
 .PP
 browse has support for command-line completion based on chzyer/readline.
 This feature allows users to type part of a program or file name and
@@ -136,7 +138,7 @@ file.
 The readline package works well, with a limitation: readline bug #234
 renders it non-functional when input to browse is a pipe.
 .PP
-At most, browse returns 50 results.
+At most, browse returns 40 results.
 More specific searches return better suggestions.
 .PP
 browse does not suggest binary files in file name searches.

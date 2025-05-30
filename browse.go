@@ -12,22 +12,41 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"syscall"
 )
 
-func browseFile(br *browseObj, fileName, title string, fromStdin bool) {
+func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset bool) bool {
 	// init
 
-	fp, err := os.Open(fileName)
+	targetFile := strings.TrimSuffix(fileName, "/")
+	basename := filepath.Base(targetFile)
 
+	stat, err := os.Stat(targetFile)
 	if err != nil {
-		br.timedMessage(fmt.Sprintf("error opening file: %v", err), MSG_RED)
-		return
+		br.timedMessage(fmt.Sprintf("stat error: %v", err), MSG_RED)
+		return false
+	}
+
+	if stat.IsDir() {
+		br.timedMessage(fmt.Sprintf("%s: is a directory", basename), MSG_RED)
+		return false
+	}
+
+	fp, err := os.Open(targetFile)
+	if err != nil {
+		br.timedMessage(fmt.Sprintf("open error: %v", err), MSG_RED)
+		return false
 	}
 
 	defer fp.Close()
 
-	br.fileInit(fp, fileName, title, fromStdin)
+	if reset {
+		resetState(br)
+	}
+
+	br.fileInit(fp, targetFile, title, fromStdin)
 
 	// start a reader
 
@@ -43,6 +62,8 @@ func browseFile(br *browseObj, fileName, title string, fromStdin bool) {
 	if !br.fromStdin && br.saveRC {
 		br.writeRcFile()
 	}
+
+	return true
 }
 
 func resetState(br *browseObj) {
@@ -78,12 +99,12 @@ func processPipeInput(br *browseObj) {
 	defer fpStdin.Close()
 
 	go br.readStdin(os.Stdin, fpStdin)
-	browseFile(br, fpStdin.Name(), setTitle(br.title, "          "), true)
+	browseFile(br, fpStdin.Name(), setTitle(br.title, "          "), true, false)
 }
 
 func processFileList(br *browseObj, args []string) {
 	if len(args) == 0 {
-		browseFile(br, br.fileName, setTitle(br.title, br.fileName), false)
+		browseFile(br, br.fileName, setTitle(br.title, br.fileName), false, false)
 		return
 	}
 
@@ -94,7 +115,7 @@ func processFileList(br *browseObj, args []string) {
 			title = fileName
 		}
 
-		browseFile(br, fileName, setTitle(title, fileName), false)
+		browseFile(br, fileName, setTitle(title, fileName), false, false)
 
 		if br.exit {
 			break
