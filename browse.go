@@ -39,7 +39,6 @@ func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset boo
 		br.timedMessage(fmt.Sprintf("open error: %v", err), MSG_RED)
 		return false
 	}
-
 	defer fp.Close()
 
 	if reset {
@@ -94,11 +93,16 @@ func processPipeInput(br *browseObj) {
 		errorExit(fmt.Errorf("error creating temporary file: %v", err))
 		return
 	}
-
 	defer os.Remove(fpStdin.Name())
 	defer fpStdin.Close()
 
-	go br.readStdin(os.Stdin, fpStdin)
+	go func() {
+		empty := br.readStdin(os.Stdin, fpStdin)
+		if empty {
+			br.saneExit()
+		}
+	}()
+
 	browseFile(br, fpStdin.Name(), setTitle(br.title, "          "), true, false)
 }
 
