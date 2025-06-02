@@ -209,8 +209,8 @@ func (br *browseObj) userFileComp(prompt string) (string, bool, bool) {
 func (br *browseObj) promptWithCompletion(prompt string, cType completeType) (string, bool, bool) {
 	if !term.IsTerminal(int(os.Stdin.Fd())) {
 		// readline doesn't support non-terminal input (e.g., from pipes)
-		// magenta prompt
-		return br.userInput(MSG_MAGENTA + prompt + VIDOFF)
+		// orange (warning) prompt
+		return br.userInput(MSG_NO_COMPLETION + prompt + VIDOFF)
 	}
 
 	cfg := &readline.Config{
