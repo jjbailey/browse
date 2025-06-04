@@ -63,7 +63,6 @@ func (br *browseObj) readRcFile() bool {
 		fmt.Println(err)
 		return false
 	}
-
 	defer fp.Close()
 
 	scanner := bufio.NewScanner(fp)

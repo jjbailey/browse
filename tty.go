@@ -29,11 +29,12 @@ func ttyRestore() {
 
 func ttyBrowser() {
 	rawTerm = saneTerm
+	lflag := termios.ISIG | termios.ICANON | termios.ECHO | termios.ECHOK | termios.ECHONL
 
 	rawTerm.IFlag &= termios.INLCR
-	rawTerm.LFlag ^= termios.ISIG | termios.ICANON | termios.ECHO | termios.ECHOK | termios.ECHONL
-	rawTerm.CC[termios.VTIME] = 1
+	rawTerm.LFlag &^= termios.Flag(lflag)
 	rawTerm.CC[termios.VMIN] = 0
+	rawTerm.CC[termios.VTIME] = 1
 	// depends on key mapping
 	rawTerm.CC[termios.VERASE] = '\b'
 
@@ -42,12 +43,13 @@ func ttyBrowser() {
 
 func ttyPrompter() {
 	prmTerm = saneTerm
+	lflag := termios.ICANON | termios.ECHO | termios.ECHOK | termios.ECHONL
 
 	prmTerm.IFlag |= termios.INLCR
 	prmTerm.LFlag |= termios.ISIG
-	prmTerm.LFlag ^= termios.ICANON | termios.ECHO | termios.ECHOK | termios.ECHONL
-	prmTerm.CC[termios.VTIME] = 0
+	prmTerm.LFlag &^= termios.Flag(lflag)
 	prmTerm.CC[termios.VMIN] = 1
+	prmTerm.CC[termios.VTIME] = 0
 
 	prmTerm.SetAttr(termios.Stdout, termios.TCSAFLUSH)
 }

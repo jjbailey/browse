@@ -112,10 +112,16 @@ func (br *browseObj) tryScroll(sop int) bool {
 	return false
 }
 
-func (br *browseObj) timedMessage(msg string, color string) {
-	br.printMessage(msg, color)
-	// sleep time is arbitrary
-	time.Sleep(1500 * time.Millisecond)
+func (br *browseObj) timedMessage(msg, color string) {
+	// display a short-lived message on the bottom line of the display
+
+	moveCursor(br.dispHeight, 1, true)
+	fmt.Print(LINEWRAPOFF)
+	fmt.Printf("%s %s %s", color, msg, VIDOFF)
+	time.Sleep(1400 * time.Millisecond)
+
+	// scrollDown needs this
+	br.shownMsg = true
 }
 
 func (br *browseObj) printMessage(msg string, color string) {

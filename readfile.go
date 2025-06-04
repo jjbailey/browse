@@ -11,11 +11,9 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"io"
 	"os"
 	"sync"
-	"syscall"
 	"time"
 )
 
@@ -100,38 +98,31 @@ func getFileSize(fp *os.File) (int64, error) {
 	return fInfo.Size(), nil
 }
 
-func (br *browseObj) readStdin(fin, fout *os.File) error {
+func (br *browseObj) readStdin(fin, fout *os.File) bool {
 	// read from stdin, write to temp file
 
 	r := bufio.NewReader(fin)
 	w := bufio.NewWriter(fout)
 	defer w.Flush()
 
+	empty := true
+
 	for {
 		line, err := r.ReadString('\n')
-
-		if err != nil {
-			if errors.Is(err, syscall.EPIPE) {
-				br.saneExit()
-			}
-
-			if err == io.EOF {
-				break
-			}
-
-			return err
+		if err == io.EOF && empty {
+			return empty
 		}
 
 		if _, err := w.WriteString(line); err != nil {
-			return err
+			return empty
 		}
 
 		if err := w.Flush(); err != nil {
-			return err
+			return empty
 		}
-	}
 
-	return nil
+		empty = false
+	}
 }
 
 func (br *browseObj) readFromMap(lineno int) []byte {
