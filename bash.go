@@ -19,11 +19,11 @@ var prevCommand string
 func (br *browseObj) bashCommand() {
 	// run a command with bash
 
-	input, cancel, _ := br.userBashComp("!")
+	moveCursor(br.dispHeight, 1, true)
+	input, cancelled := userBashComp()
 
-	if cancel || len(input) == 0 {
-		br.restoreLast()
-		moveCursor(2, 1, false)
+	if cancelled || len(input) == 0 {
+		br.pageCurrent()
 	}
 
 	// limit input length to prevent buffer overflows
@@ -45,17 +45,25 @@ func (br *browseObj) bashCommand() {
 	}
 
 	if len(cmdbuf) == 0 {
+		br.pageCurrent()
 		return
 	}
 
+	// Save command to history
+	history := loadHistory(commHistory)
+	history = append(history, cmdbuf)
+	saveHistory(history, commHistory)
+
 	// feedback
-	moveCursor(br.dispHeight, 1, true)
+	fmt.Print(CURUP + CLEARLINE)
 	fmt.Print("---\n")
 	fmt.Print(LINEWRAPON)
 	fmt.Printf("$ %s\n", cmdbuf)
 
 	// set up env, run
+	fmt.Print(CURSAVE)
 	resetScrRegion()
+	fmt.Print(CURRESTORE)
 	br.runInPty(cmdbuf)
 	br.resizeWindow()
 	fmt.Print(LINEWRAPOFF)

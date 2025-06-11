@@ -19,7 +19,6 @@ import (
 
 func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset bool) bool {
 	// init
-
 	targetFile := strings.TrimSuffix(fileName, "/")
 	basename := filepath.Base(targetFile)
 
@@ -47,13 +46,18 @@ func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset boo
 
 	br.fileInit(fp, targetFile, title, fromStdin)
 
-	// start a reader
+	if !br.fromStdin && len(targetFile) > 0 {
+		// Save file name to history
+		history := loadHistory(fileHistory)
+		history = append(history, targetFile)
+		saveHistory(history, fileHistory)
+	}
 
+	// start a reader
 	syncOK := make(chan bool, 1)
 	go readFile(br, syncOK)
 
 	// process commands
-
 	if readerOK := <-syncOK; readerOK {
 		commands(br)
 	}

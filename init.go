@@ -16,17 +16,12 @@ import (
 )
 
 func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin bool) {
+	// file initializations
+
 	br.fp = fp
 	br.fileName = fileName
 	br.title = title
 	br.fromStdin = fromStdin
-
-	br.seekMap = map[int]int64{0: 0}
-	br.sizeMap = map[int]int64{0: 0}
-	br.mapSiz = 1
-
-	br.newFileSiz = 0
-	br.savFileSiz = 0
 }
 
 func (br *browseObj) browseInit() {

@@ -41,7 +41,7 @@ browse utilizes the RE2 regular expression syntax for pattern matching, highligh
 
 ## Saved Sessions
 
-browse saves sessions in ~/.browserc. The format of the file is plaintext containing the following lines:
+browse saves sessions in `~/.browserc`. The format of the file is plaintext containing the following lines:
 
 1. file name
 2. first line on page
@@ -64,17 +64,15 @@ When advancing to the next file in a list of files, browse:
 - turns off follow/tail mode
 - sets the page title
 
-When browse is called with no file names, browse attempts to restore the session saved in ~/.browserc.
+When browse is called with no file names, browse attempts to restore the session saved in `~/.browserc`.
 
-## Command-line (Tab) completion
+## Command-line (Tab) Completion
 
-browse has support for command-line completion based on chzyer/readline. This feature allows users to type part of a program or file name and press the TAB key to have the browser automatically suggest possible completions. This feature is available for bash commands and for browsing another file.
+browse has support for command-line completion based on c-bata/go-prompt. This feature enables users to type part of a program or file name and press the TAB key to have the browser automatically suggest possible completions. This feature is available for bash commands and for browsing other files.
 
-The readline package works well, with a limitation: readline bug #234 renders it non-functional when input to browse is a pipe.
+At most, browse returns 1000 results. More specific searches return better suggestions.
 
-At most, browse returns 40 results. More specific searches return better suggestions.
-
-browse does not suggest binary files in file name searches.
+browse maintains two history files, `~/.browse_shell` for command history, and `~/.browse_files` for file history. The history sizes are 500 entries maximum.
 
 ## Usage
 
@@ -154,12 +152,11 @@ browse does not suggest binary files in file name searches.
 
 <br>
 
-## Limitations
+## Limitations/Bugs
 
 - Xterm specific
 - Logical lines chopped to the screen width
 - Probably US-centric
 - Can be confused by lines with non-printable characters
 - Tabs mapped to spaces
-- Command-line completion is non-functional when input to browse is a pipe
-- File completion does not suggest binary files for browsing
+- c-bata/go-prompt insists on changing the terminal's title
