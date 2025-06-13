@@ -49,7 +49,9 @@ func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset boo
 	if !br.fromStdin && len(targetFile) > 0 {
 		// Save file name to history
 		history := loadHistory(fileHistory)
-		history = append(history, targetFile)
+		// unsure which is the preferred behavior
+		// history = append(history, targetFile)
+		history = append(history, resolveSymlink(targetFile))
 		saveHistory(history, fileHistory)
 	}
 
