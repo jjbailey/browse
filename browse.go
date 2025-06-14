@@ -40,6 +40,10 @@ func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset boo
 	}
 	defer fp.Close()
 
+	if isBinaryFile(targetFile) {
+		br.timedMessage(fmt.Sprintf("%s: is a binary file", basename), MSG_ORANGE)
+	}
+
 	if reset {
 		resetState(br)
 	}
