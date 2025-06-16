@@ -19,7 +19,6 @@ import (
 
 func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset bool) bool {
 	// init
-
 	targetFile := strings.TrimSuffix(fileName, "/")
 	basename := filepath.Base(targetFile)
 
@@ -41,19 +40,30 @@ func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset boo
 	}
 	defer fp.Close()
 
+	if isBinaryFile(targetFile) {
+		br.timedMessage(fmt.Sprintf("%s: is a binary file", basename), MSG_ORANGE)
+	}
+
 	if reset {
 		resetState(br)
 	}
 
 	br.fileInit(fp, targetFile, title, fromStdin)
 
-	// start a reader
+	if !br.fromStdin && len(targetFile) > 0 {
+		// Save file name to history
+		history := loadHistory(fileHistory)
+		// unsure which is the preferred behavior
+		// history = append(history, targetFile)
+		history = append(history, resolveSymlink(targetFile))
+		saveHistory(history, fileHistory)
+	}
 
+	// start a reader
 	syncOK := make(chan bool, 1)
 	go readFile(br, syncOK)
 
 	// process commands
-
 	if readerOK := <-syncOK; readerOK {
 		commands(br)
 	}

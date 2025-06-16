@@ -12,6 +12,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 )
@@ -113,6 +114,30 @@ func getMark(buf string) int {
 	}
 
 	return int(buf[idx] - '0')
+}
+
+func isBinaryFile(filename string) bool {
+	file, err := os.Open(filename)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+
+	const sampleSize = 4 * 1024
+	buffer := make([]byte, sampleSize)
+
+	bytesRead, err := file.Read(buffer)
+	if err != nil && err != io.EOF {
+		return false
+	}
+
+	for _, b := range buffer[:bytesRead] {
+		if b == 0 {
+			return true
+		}
+	}
+
+	return false
 }
 
 // vim: set ts=4 sw=4 noet:

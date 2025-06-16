@@ -42,7 +42,7 @@ func (br *browseObj) runInPty(cmdbuf string) {
 		return
 	}
 
-	moveCursor(br.dispHeight, 1, true)
+	// need CURSAVE and CURRESTORE before this point
 	defer ptmx.Close()
 	pty.InheritSize(os.Stdout, ptmx)
 	ptySave, _ := term.MakeRaw(int(os.Stdout.Fd()))

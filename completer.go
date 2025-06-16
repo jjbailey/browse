@@ -10,254 +10,236 @@
 package main
 
 import (
-	"io"
+	"context"
+	"fmt"
 	"os"
 	"os/signal"
+	"os/user"
 	"path/filepath"
 	"strings"
 	"syscall"
 
-	"github.com/chzyer/readline"
-	"golang.org/x/term"
+	"github.com/c-bata/go-prompt"
 )
-
-type completeType int
 
 const (
-	bashComplete completeType = iota
-	fileComplete
+	dispSuggestions = 5
+	maxSuggestions  = 1000
+	searchFiles     = 1
+	searchPath      = 2
 )
 
-type completer struct {
-	completionType completeType
+var searchType int
+
+func userBashComp() (string, bool) {
+	searchType = searchPath
+	input, flag := runCompleter("$ ", commHistory)
+	ttyBrowser()
+	return input, flag
 }
 
-func (c *completer) Do(line []rune, pos int) ([][]rune, int) {
-	const maxCandidates = 40
-	var candidates [][]rune
-	var target string
+func userFileComp() (string, bool) {
+	searchType = searchFiles
+	input, flag := runCompleter("File: ", fileHistory)
+	ttyBrowser()
+	return input, flag
+}
 
-	input := string(line[:pos])
-	tokens := strings.Fields(input)
+func runCompleter(promptStr, historyFile string) (string, bool) {
+	// Load history from file
+	history := loadHistory(historyFile)
 
-	if len(tokens) > 0 {
-		if strings.HasSuffix(input, " ") {
-			target = ""
-			c.completionType = fileComplete
-		} else {
-			target = tokens[len(tokens)-1]
-		}
+	// Can't prevent prompt.New from meddling with the title, so...
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = "unknown"
 	} else {
-		target = ""
-	}
-
-	pathDir, filePrefix := filepath.Split(target)
-	if pathDir == "" {
-		pathDir = "."
-	}
-
-	if c.completionType == bashComplete {
-		// handle bash completion (executables in PATH)
-		candidates = c.completeBash(pathDir, filePrefix, maxCandidates)
-	} else {
-		// file name completion
-		candidates = c.completeFiles(pathDir, filePrefix, maxCandidates)
-	}
-
-	return candidates, len(filePrefix)
-}
-
-func (c *completer) completeBash(pathDir, filePrefix string, maxCandidates int) [][]rune {
-	var candidates [][]rune
-
-	if strings.HasPrefix(pathDir, "/") {
-		// absolute/relative paths first
-		entries, err := filepath.Glob(filepath.Join(pathDir, filePrefix+"*"))
-		if err != nil {
-			return nil
-		}
-
-		return c.processEntries(entries, filePrefix, candidates, maxCandidates, false)
-	}
-
-	if strings.Contains(filePrefix, " ") {
-		// switch to file completion
-		entries, err := filepath.Glob(filepath.Join(".", filePrefix+"*"))
-		if err != nil {
-			return nil
-		}
-
-		return c.processEntries(entries, filePrefix, nil, maxCandidates, true)
-	}
-
-	paths := filepath.SplitList(os.Getenv("PATH"))
-	if len(paths) == 0 {
-		// fallback if PATH is empty
-		paths = []string{"/usr/bin", "/usr/sbin", "/usr/local/bin"}
-	}
-
-	for _, pathDir := range paths {
-		entries, err := filepath.Glob(filepath.Join(pathDir, filePrefix+"*"))
-		if err != nil {
-			continue
-		}
-
-		candidates = c.processEntries(entries, filePrefix, candidates, maxCandidates, false)
-		if len(candidates) >= maxCandidates {
-			break
+		if dotIndex := strings.Index(hostname, "."); dotIndex != -1 {
+			hostname = hostname[:dotIndex]
 		}
 	}
+	title := hostname
 
-	return candidates
-}
+	// Create a context that can be cancelled
+	ctx, cancelled := context.WithCancel(context.Background())
+	defer cancelled()
 
-func (c *completer) completeFiles(pathDir, filePrefix string, maxCandidates int) [][]rune {
-	var candidates [][]rune
+	// Set up signal handling
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT)
+	defer signal.Stop(sigChan)
 
-	entries, err := filepath.Glob(filepath.Join(pathDir, filePrefix+"*"))
-	if err != nil {
-		return nil
-	}
-
-	return c.processEntries(entries, filePrefix, candidates, maxCandidates, true)
-}
-
-func (c *completer) processEntries(entries []string, filePrefix string, candidates [][]rune, maxCandidates int, isFileComplete bool) [][]rune {
-	entryCount := len(entries)
-
-	if entryCount == 0 {
-		return candidates
-	}
-
-	if entryCount > maxCandidates {
-		entryCount = maxCandidates
-	}
-
-	if candidates == nil {
-		candidates = make([][]rune, 0, entryCount)
-	}
-
-	for _, entry := range entries {
-		if len(candidates) >= maxCandidates {
-			break
-		}
-
-		if entry == "" {
-			continue
-		}
-
-		name := filepath.Base(entry)
-		if !strings.HasPrefix(name, filePrefix) {
-			continue
-		}
-
-		stat, err := os.Stat(entry)
-		if err != nil {
-			continue
-		}
-
-		if stat.IsDir() {
-			name += "/"
-		} else if isFileComplete && isBinaryFile(entry) {
-			continue
-		}
-
-		suffix := name[len(filePrefix):]
-		if len(suffix) > 0 {
-			candidates = append(candidates, []rune(suffix))
-		}
-	}
-
-	return candidates
-}
-
-func isBinaryFile(filename string) bool {
-	file, err := os.Open(filename)
-	if err != nil {
-		return false
-	}
-	defer file.Close()
-
-	const sampleSize = READBUFSIZ
-	buffer := make([]byte, sampleSize)
-
-	bytesRead, err := file.Read(buffer)
-	if err != nil && err != io.EOF {
-		return false
-	}
-
-	// Check for null bytes in the read data
-	for i := 0; i < bytesRead; i++ {
-		if buffer[i] == 0 {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (br *browseObj) userBashComp(prompt string) (string, bool, bool) {
-	// userBashComp prompts the user with bash command completion
-	return br.promptWithCompletion(prompt, bashComplete)
-}
-
-func (br *browseObj) userFileComp(prompt string) (string, bool, bool) {
-	// userFileComp prompts the user with file name completion
-	return br.promptWithCompletion(prompt, fileComplete)
-}
-
-func (br *browseObj) promptWithCompletion(prompt string, cType completeType) (string, bool, bool) {
-	if !term.IsTerminal(int(os.Stdin.Fd())) {
-		// readline doesn't support non-terminal input (e.g., from pipes)
-		// orange (warning) prompt
-		return br.userInput(MSG_NO_COMPLETION + prompt + VIDOFF)
-	}
-
-	cfg := &readline.Config{
-		Prompt:          prompt,
-		InterruptPrompt: "^C",
-		EOFPrompt:       "^D",
-		HistoryLimit:    0,
-		Stdin:           br.tty,
-		Stdout:          os.Stdout,
-		AutoComplete:    &completer{completionType: cType},
-	}
-
-	// don't allow readline to redraw the screen on sigwinch
-	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
-	moveCursor(br.dispHeight, 1, true)
-
-	rl, err := readline.NewEx(cfg)
-	if err != nil {
-		errorExit(err)
-	}
-	defer func() {
-		rl.Close()
-		ttyBrowser()
-		br.catchSignals()
-		br.resizeWindow()
+	// Start a goroutine to handle Ctrl+C
+	go func() {
+		<-sigChan
+		fmt.Printf("Ctrl+C pressed\n")
+		cancelled()
 	}()
 
-	line, err := rl.Readline()
+	p := prompt.New(
+		func(in string) { /* no-op executor */ },
+		completer,
+		prompt.OptionDescriptionTextColor(prompt.Green),
+		prompt.OptionHistory(history),
+		prompt.OptionMaxSuggestion(dispSuggestions),
+		prompt.OptionPrefix(promptStr),
+		prompt.OptionPrefixTextColor(prompt.White),
+		prompt.OptionScrollbarBGColor(prompt.DefaultColor),
+		prompt.OptionScrollbarThumbColor(prompt.DefaultColor),
+		prompt.OptionSelectedSuggestionBGColor(prompt.DarkGray),
+		prompt.OptionSelectedSuggestionTextColor(prompt.Yellow),
+		prompt.OptionSuggestionTextColor(prompt.White),
+		prompt.OptionSwitchKeyBindMode(prompt.EmacsKeyBind),
+		prompt.OptionTitle(title),
+	)
 
-	switch err {
+	// Start a goroutine to handle input
+	inputChan := make(chan string)
+	go func() {
+		inputChan <- p.Input()
+	}()
 
-	case readline.ErrInterrupt:
-		// ctrl-c
-		return "", true, false
-
-	case io.EOF:
-		// ctrl-d
-		return "", true, true
-
-	case nil:
-		return line, false, false
-
-	default:
-		errorExit(err)
-		// function needs to return something
-		return "", false, false
+	// Wait for either input, Ctrl+C, or context cancellation
+	select {
+	case input := <-inputChan:
+		if len(input) == 0 {
+			return "", true
+		}
+		return input, false
+	case <-ctx.Done():
+		return "", true
 	}
+}
+
+func completer(d prompt.Document) []prompt.Suggest {
+	var suggestions []prompt.Suggest
+
+	// Get the word being completed
+	word := strings.ReplaceAll(d.GetWordBeforeCursor(), "//", "/")
+
+	// Handle home directory expansion
+	if strings.HasPrefix(word, "~") {
+		// Check if it's a user-specific home directory (e.g., ~jjb)
+		if len(word) > 1 && word[1] != '/' {
+			// Extract username (everything between ~ and / or end of string)
+			username := word[1:]
+			if idx := strings.Index(username, "/"); idx != -1 {
+				username = username[:idx]
+			}
+
+			// Look up the user
+			u, err := user.Lookup(username)
+			if err == nil {
+				// Replace ~username with the user's home directory
+				word = u.HomeDir + word[len(username)+1:]
+			}
+		} else {
+			// Regular home directory expansion
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				return suggestions
+			}
+
+			// Replace ~ with the home directory path
+			word = homeDir + word[1:]
+		}
+	}
+
+	// Handle absolute paths and relative paths
+	if strings.HasPrefix(word, "/") ||
+		strings.HasPrefix(word, ".") ||
+		strings.HasPrefix(word, "..") ||
+		strings.HasPrefix(word, "~") ||
+		strings.Contains(word, "/") {
+
+		// Get the directory part of the path
+		dir := filepath.Dir(word)
+		if dir == "." {
+			dir = "."
+		}
+
+		// List files in the specified directory
+		files, err := os.ReadDir(dir)
+		if err != nil {
+			return suggestions
+		}
+
+		// If the word ends with a slash, we're looking for everything in that directory
+		// Otherwise, we're looking for files/dirs that match the base name
+		var baseWord string
+		if strings.HasSuffix(word, "/") {
+			baseWord = ""
+		} else {
+			baseWord = filepath.Base(word)
+		}
+
+		for _, file := range files {
+			if len(suggestions) >= maxSuggestions {
+				break
+			}
+
+			if file.IsDir() {
+				if baseWord == "" || strings.HasPrefix(file.Name(), baseWord) {
+					suggestions = append(suggestions, prompt.Suggest{
+						Text: filepath.Join(dir, file.Name()),
+					})
+				}
+
+				continue
+			}
+
+			// Include all files
+			if baseWord == "" || strings.HasPrefix(file.Name(), baseWord) {
+				suggestions = append(suggestions, prompt.Suggest{
+					Text: filepath.Join(dir, file.Name()),
+				})
+			}
+		}
+
+		return suggestions
+	}
+
+	var pathDirs []string
+
+	if searchType == searchPath {
+		// Handle $PATH
+		pathDirs = strings.Split(os.Getenv("PATH"), ":")
+	} else {
+		// Handle current directory
+		pathDirs = []string{"."}
+	}
+
+	for _, dir := range pathDirs {
+		files, err := os.ReadDir(dir)
+		if err != nil {
+			continue
+		}
+
+		for _, file := range files {
+			if len(suggestions) >= maxSuggestions {
+				break
+			}
+
+			if file.IsDir() {
+				if strings.HasPrefix(file.Name(), word) {
+					suggestions = append(suggestions, prompt.Suggest{
+						Text: file.Name(),
+					})
+				}
+
+				continue
+			}
+
+			// Include all files
+			if strings.HasPrefix(file.Name(), word) {
+				suggestions = append(suggestions, prompt.Suggest{
+					Text: file.Name(),
+				})
+			}
+		}
+	}
+
+	return suggestions
 }
 
 // vim: set ts=4 sw=4 noet:

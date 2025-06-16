@@ -13,7 +13,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -119,15 +118,17 @@ func (br *browseObj) readRcFile() bool {
 }
 
 func resolveSymlink(path string) string {
-	rlPath, err := exec.LookPath("readlink")
-	if len(rlPath) == 0 || err != nil {
+	absPath, err := filepath.Abs(path)
+	if err != nil || len(absPath) == 0 {
 		return path
 	}
 
-	cmdbuf := exec.Command(rlPath, "-fn", path)
-	output, _ := cmdbuf.Output()
+	realPath, err := filepath.EvalSymlinks(absPath)
+	if err != nil || len(realPath) == 0 {
+		return absPath
+	}
 
-	return string(output)
+	return realPath
 }
 
 // vim: set ts=4 sw=4 noet:

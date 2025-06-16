@@ -19,7 +19,8 @@ import (
 	"unicode"
 )
 
-// Command groups
+// ─── Command Groups ─────────────────────────────────────────────────
+
 const (
 	// Navigation commands
 	CMD_PAGE_DN        = 'f'
@@ -77,7 +78,8 @@ const (
 	CMD_PERCENT_1 = '\007'
 )
 
-// Virtual key mappings
+// ─── Virtual Key Mappings ───────────────────────────────────────────
+
 const (
 	VK_UP    = "\033[A\000"
 	VK_DOWN  = "\033[B\000"
@@ -92,7 +94,8 @@ const (
 	VK_NEXT   = "\033[6~"
 )
 
-// Search and scroll constants
+// ─── Search and Scroll Constants ────────────────────────────────────
+
 const (
 	SEARCH_FWD  = true
 	SEARCH_REV  = false
@@ -320,8 +323,8 @@ func commands(br *browseObj) {
 
 		case CMD_JUMP:
 			// jump to line
-			lbuf, cancel, _ := br.userInput("Junp: ")
-			if !cancel && len(lbuf) > 0 {
+			lbuf, cancelled, _ := br.userInput("Junp: ")
+			if !cancelled && len(lbuf) > 0 {
 				var n int
 				fmt.Sscanf(lbuf, "%d", &n)
 				br.printPage(n)
@@ -371,8 +374,8 @@ func commands(br *browseObj) {
 
 		case CMD_MARK:
 			// mark page
-			lbuf, cancel, _ := br.userInput("Mark: ")
-			if !cancel && len(lbuf) > 0 {
+			lbuf, cancelled, _ := br.userInput("Mark: ")
+			if !cancelled && len(lbuf) > 0 {
 				if m := getMark(lbuf); m != 0 {
 					br.marks[m] = br.firstRow
 					br.printMessage(fmt.Sprintf("Mark %d at line %d", m, br.marks[m]), MSG_GREEN)
@@ -399,19 +402,8 @@ func commands(br *browseObj) {
 				filepath.Base(br.fileName), br.mapSiz-1, t), MSG_GREEN)
 
 		case CMD_NEWFILE:
-			// browse a new file
-			lbuf, cancel, _ := br.userFileComp("File: ")
-			file := strings.TrimSpace(lbuf)
-			if !cancel && len(file) > 0 {
-				sbuf := subCommandChars(file, "%", br.fileName)
-				if fp, err := os.Open(sbuf); err != nil {
-					br.timedMessage(err.Error(), MSG_RED)
-				} else {
-					fp.Close()
-					if browseFile(br, sbuf, setTitle(sbuf, sbuf), false, true) {
-						return
-					}
-				}
+			if fileCommnad(br) {
+				return
 			}
 
 		case CMD_QUIT:
@@ -447,6 +439,24 @@ func commands(br *browseObj) {
 			moveCursor(2, 1, false)
 		}
 	}
+}
+
+func fileCommnad(br *browseObj) bool {
+	// browse a new file
+
+	moveCursor(br.dispHeight, 1, true)
+	lbuf, cancelled := userFileComp()
+	file := strings.TrimSpace(lbuf)
+
+	if !cancelled && len(file) > 0 {
+		sbuf := subCommandChars(file, "%", br.fileName)
+		if browseFile(br, sbuf, setTitle(sbuf, sbuf), false, true) {
+			return true
+		}
+	}
+
+	br.pageCurrent()
+	return false
 }
 
 func waitForInput(br *browseObj) {

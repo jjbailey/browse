@@ -65,7 +65,7 @@ func (br *browseObj) userInput(prompt string) (string, bool, bool) {
 
 	var (
 		linebuf     string
-		cancel      bool
+		cancelled   bool
 		done        bool
 		ignore      bool
 		winchCaught bool
@@ -120,7 +120,7 @@ func (br *browseObj) userInput(prompt string) (string, bool, bool) {
 
 		case NEWLINE, CARRETURN, ESCAPE:
 			if len(linebuf) == 0 {
-				cancel = true
+				cancelled = true
 			} else {
 				done = true
 			}
@@ -131,7 +131,7 @@ func (br *browseObj) userInput(prompt string) (string, bool, bool) {
 				moveCursor(br.dispHeight, 1, true)
 				fmt.Printf("%s%s", prompt, linebuf)
 			} else {
-				cancel = true
+				cancelled = true
 				ignore = true
 			}
 
@@ -155,7 +155,7 @@ func (br *browseObj) userInput(prompt string) (string, bool, bool) {
 			fmt.Print(string(inputChar))
 		}
 
-		if cancel || ignore {
+		if cancelled || ignore {
 			br.restoreLast()
 			moveCursor(2, 1, false)
 			break
@@ -172,7 +172,7 @@ func (br *browseObj) userInput(prompt string) (string, bool, bool) {
 	// reset tty
 	ttyBrowser()
 
-	return linebuf, cancel, ignore
+	return linebuf, cancelled, ignore
 }
 
 // vim: set ts=4 sw=4 noet:

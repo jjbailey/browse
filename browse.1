@@ -89,7 +89,7 @@ the entire line.
 Scroll right or left to highlight matches.
 .SS Saved Sessions
 .PP
-browse saves sessions in \[ti]/.browserc.
+browse saves sessions in \f[V]\[ti]/.browserc\f[R].
 The format of the file is plaintext containing the following lines:
 .IP "1." 3
 file name
@@ -125,23 +125,23 @@ turns off follow/tail mode
 sets the page title
 .PP
 When browse is called with no file names, browse attempts to restore the
-session saved in \[ti]/.browserc.
-.SS Command-line (Tab) completion
+session saved in \f[V]\[ti]/.browserc\f[R].
+.SS Command-line (Tab) Completion
 .PP
-browse has support for command-line completion based on chzyer/readline.
-This feature allows users to type part of a program or file name and
+browse has support for command-line completion based on
+c-bata/go-prompt.
+This feature enables users to type part of a program or file name and
 press the TAB key to have the browser automatically suggest possible
 completions.
-This feature is available for bash commands and for browsing another
-file.
+This feature is available for bash commands and for browsing other
+files.
 .PP
-The readline package works well, with a limitation: readline bug #234
-renders it non-functional when input to browse is a pipe.
-.PP
-At most, browse returns 40 results.
+At most, browse returns 1000 results.
 More specific searches return better suggestions.
 .PP
-browse does not suggest binary files in file name searches.
+browse maintains two history files, \f[V]\[ti]/.browse_shell\f[R] for
+command history, and \f[V]\[ti]/.browse_files\f[R] for file history.
+The history sizes are 500 entries maximum.
 .SS Usage
 .nf
 
@@ -427,7 +427,7 @@ Exit list, don\[cq]t save .browserc
 T}
 .TE
 .PP
-.SS Limitations
+.SS Limitations/Bugs
 .IP \[bu] 2
 Xterm specific
 .IP \[bu] 2
@@ -439,8 +439,6 @@ Can be confused by lines with non-printable characters
 .IP \[bu] 2
 Tabs mapped to spaces
 .IP \[bu] 2
-Command-line completion is non-functional when input to browse is a pipe
-.IP \[bu] 2
-File completion does not suggest binary files for browsing
+c-bata/go-prompt insists on changing the terminal\[cq]s title
 .SH AUTHORS
 https://github.com/jjbailey/browse

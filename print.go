@@ -11,40 +11,54 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
 func (br *browseObj) printLine(lineno int) {
-	// print a line from the map, finds EOF, sets hitEOF
+	// Check for EOF first for earliest exit opportunity
+	isEOF := windowAtEOF(lineno, br.mapSiz)
+	br.hitEOF = isEOF
+	br.shownEOF = isEOF
 
-	br.hitEOF = windowAtEOF(lineno, br.mapSiz)
-
+	// Handle SOF marker
 	if lineno == 0 {
 		moveCursor(2, 1, true)
 		printSEOF("SOF")
 		return
 	}
 
-	// lineIsMatch reads lines from the map
+	// Get matches and content from map
 	matches, input := br.lineIsMatch(lineno)
-
 	if matches > 0 {
-		// where to start search
 		br.lastMatch = lineno
 	}
 
-	if lineno <= br.mapSiz {
-		// replaceMatch adds line numbers if applicable
-		output := br.replaceMatch(lineno, input)
-		// depends on linewrap=false
-		fmt.Print(LINEWRAPOFF)
-		fmt.Printf("\n%s%s%s", output, VIDOFF, CLEARLINE)
+	// Do not proceed if we're beyond known lines
+	if lineno > br.mapSiz {
+		return
 	}
 
+	// Formatting:
+	output := br.replaceMatch(lineno, input)
+
+	// Build output using a Builder to reduce stdout calls
+	var lineOut strings.Builder
+	lineOut.Grow(len(output) + 16) // rough guess with margin
+
+	lineOut.WriteString(LINEWRAPOFF)
+	lineOut.WriteByte('\n')
+	lineOut.WriteString(output)
+	lineOut.WriteString(VIDOFF)
+	lineOut.WriteString(CLEARLINE)
+
+	// Only save cursor if screen is not full yet
 	if lineno < br.dispRows {
-		// save cursor when screen is not full
-		fmt.Printf("\r%s", CURSAVE)
+		lineOut.WriteString("\r")
+		lineOut.WriteString(CURSAVE)
 	}
+
+	fmt.Print(lineOut.String())
 
 	if br.hitEOF {
 		printSEOF("EOF")
@@ -84,32 +98,17 @@ func (br *browseObj) printPage(lineno int) {
 }
 
 func adjustLineNumber(lineno, dispRows, mapSiz int) int {
-	if lineno+dispRows > mapSiz {
-		lineno = mapSiz - dispRows + 1
-	}
-
-	// Ensure lineno is within valid range
 	if lineno < 0 {
 		return 0
-	} else if lineno > mapSiz {
-		return mapSiz
+	}
+
+	maxTopLine := mapSiz - dispRows + 1
+
+	if maxTopLine < 0 || lineno > maxTopLine {
+		return maxTopLine
 	}
 
 	return lineno
-}
-
-func (br *browseObj) tryScroll(sop int) bool {
-	// attempt to scroll based on current position and target position
-
-	if sop > br.firstRow && sop-br.firstRow <= br.dispRows>>2 {
-		br.scrollDown(sop - br.firstRow)
-		return true
-	} else if br.firstRow > sop && br.firstRow-sop <= br.dispRows>>2 {
-		br.scrollUp(br.firstRow - sop)
-		return true
-	}
-
-	return false
 }
 
 func (br *browseObj) timedMessage(msg, color string) {

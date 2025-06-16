@@ -12,12 +12,13 @@ package main
 import (
 	"os"
 	"regexp"
+	"sync"
 )
 
 // ─── Build Information ──────────────────────────────────────────────
 
 const (
-	BR_VERSION = "0.55"
+	BR_VERSION = "0.56"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -150,6 +151,9 @@ type browseObj struct {
 	// Display settings
 	modeNumbers bool
 	modeScroll  int
+
+	// Synchronization
+	mutex sync.Mutex
 }
 
 // vim: set ts=4 sw=4 noet:
