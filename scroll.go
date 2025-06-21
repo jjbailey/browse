@@ -84,6 +84,20 @@ func (br *browseObj) scrollUp(count int) {
 	}
 }
 
+func (br *browseObj) tryScroll(sop int) bool {
+	// attempt to scroll based on current position and target position
+
+	if sop > br.firstRow && sop-br.firstRow <= br.dispRows>>2 {
+		br.scrollDown(sop - br.firstRow)
+		return true
+	} else if br.firstRow > sop && br.firstRow-sop <= br.dispRows>>2 {
+		br.scrollUp(br.firstRow - sop)
+		return true
+	}
+
+	return false
+}
+
 func (br *browseObj) toggleMode(mode int) {
 	// arrows and function keys toggle modes, with some
 	// exceptions required for modes to work as users expect

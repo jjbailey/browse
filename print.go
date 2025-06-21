@@ -115,20 +115,6 @@ func adjustLineNumber(lineno, dispRows, mapSiz int) int {
 	return lineno
 }
 
-func (br *browseObj) tryScroll(sop int) bool {
-	// attempt to scroll based on current position and target position
-
-	if sop > br.firstRow && sop-br.firstRow <= br.dispRows>>2 {
-		br.scrollDown(sop - br.firstRow)
-		return true
-	} else if br.firstRow > sop && br.firstRow-sop <= br.dispRows>>2 {
-		br.scrollUp(br.firstRow - sop)
-		return true
-	}
-
-	return false
-}
-
 func (br *browseObj) timedMessage(msg, color string) {
 	// display a short-lived message on the bottom line of the display
 
