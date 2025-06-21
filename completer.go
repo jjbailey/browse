@@ -101,11 +101,13 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 
 	// Wait for either input, Ctrl+C, or context cancellation
 	select {
+
 	case input := <-inputChan:
 		if len(input) == 0 {
 			return "", true
 		}
 		return input, false
+
 	case <-ctx.Done():
 		return "", true
 	}

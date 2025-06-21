@@ -18,56 +18,80 @@ import (
 )
 
 func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset bool) bool {
-	// init
 	targetFile := strings.TrimSuffix(fileName, "/")
 	basename := filepath.Base(targetFile)
 
-	stat, err := os.Stat(targetFile)
+	// Validate and open the file
+	fp, err := validateAndOpenFile(targetFile, basename, br)
 	if err != nil {
-		br.timedMessage(fmt.Sprintf("stat error: %v", err), MSG_RED)
-		return false
-	}
-
-	if stat.IsDir() {
-		br.timedMessage(fmt.Sprintf("%s: is a directory", basename), MSG_RED)
-		return false
-	}
-
-	fp, err := os.Open(targetFile)
-	if err != nil {
-		br.timedMessage(fmt.Sprintf("open error: %v", err), MSG_RED)
 		return false
 	}
 	defer fp.Close()
 
-	if isBinaryFile(targetFile) {
-		br.timedMessage(fmt.Sprintf("%s: is a binary file", basename), MSG_ORANGE)
-	}
+	// Check if file is binary and warn user
+	checkBinaryFile(targetFile, basename, br)
 
+	// Reset browser state if requested
 	if reset {
 		resetState(br)
 	}
 
 	br.fileInit(fp, targetFile, title, fromStdin)
+	updateFileHistory(targetFile, br)
 
+	return processFileBrowsing(br)
+}
+
+func validateAndOpenFile(targetFile, basename string, br *browseObj) (*os.File, error) {
+	// Check if file exists and get file info
+	stat, err := os.Stat(targetFile)
+	if err != nil {
+		br.timedMessage(fmt.Sprintf("stat error: %v", err), MSG_RED)
+		return nil, err
+	}
+
+	// Ensure it's not a directory
+	if stat.IsDir() {
+		br.timedMessage(fmt.Sprintf("%s: is a directory", basename), MSG_RED)
+		return nil, fmt.Errorf("file is a directory")
+	}
+
+	// Open the file
+	fp, err := os.Open(targetFile)
+	if err != nil {
+		br.timedMessage(fmt.Sprintf("open error: %v", err), MSG_RED)
+		return nil, err
+	}
+
+	return fp, nil
+}
+
+func checkBinaryFile(targetFile, basename string, br *browseObj) {
+	if isBinaryFile(targetFile) {
+		br.timedMessage(fmt.Sprintf("%s: is a binary file", basename), MSG_ORANGE)
+	}
+}
+
+func updateFileHistory(targetFile string, br *browseObj) {
 	if !br.fromStdin && len(targetFile) > 0 {
-		// Save file name to history
 		history := loadHistory(fileHistory)
-		// unsure which is the preferred behavior
-		// history = append(history, targetFile)
+		// Use resolved symlink path for consistent history entries
 		history = append(history, resolveSymlink(targetFile))
 		saveHistory(history, fileHistory)
 	}
+}
 
-	// start a reader
+func processFileBrowsing(br *browseObj) bool {
+	// Start file reading in background
 	syncOK := make(chan bool, 1)
 	go readFile(br, syncOK)
 
-	// process commands
+	// Wait for reader to be ready and process commands
 	if readerOK := <-syncOK; readerOK {
 		commands(br)
 	}
 
+	// Save session state if requested
 	if !br.fromStdin && br.saveRC {
 		br.writeRcFile()
 	}
@@ -98,7 +122,6 @@ func preInitialization(br *browseObj) {
 
 func processPipeInput(br *browseObj) {
 	fpStdin, err := os.CreateTemp("", "browse")
-
 	if err != nil {
 		errorExit(fmt.Errorf("error creating temporary file: %v", err))
 		return

@@ -98,17 +98,35 @@ func (br *browseObj) printPage(lineno int) {
 }
 
 func adjustLineNumber(lineno, dispRows, mapSiz int) int {
+	maxTopLine := mapSiz - dispRows + 1
+
+	if maxTopLine < 0 {
+		maxTopLine = 0
+	}
+
+	if lineno > maxTopLine {
+		return maxTopLine
+	}
+
 	if lineno < 0 {
 		return 0
 	}
 
-	maxTopLine := mapSiz - dispRows + 1
+	return lineno
+}
 
-	if maxTopLine < 0 || lineno > maxTopLine {
-		return maxTopLine
+func (br *browseObj) tryScroll(sop int) bool {
+	// attempt to scroll based on current position and target position
+
+	if sop > br.firstRow && sop-br.firstRow <= br.dispRows>>2 {
+		br.scrollDown(sop - br.firstRow)
+		return true
+	} else if br.firstRow > sop && br.firstRow-sop <= br.dispRows>>2 {
+		br.scrollUp(br.firstRow - sop)
+		return true
 	}
 
-	return lineno
+	return false
 }
 
 func (br *browseObj) timedMessage(msg, color string) {

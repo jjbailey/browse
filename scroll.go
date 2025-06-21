@@ -84,27 +84,6 @@ func (br *browseObj) scrollUp(count int) {
 	}
 }
 
-func (br *browseObj) tryScroll(sop int) bool {
-	// Attempt to scroll if movement is small enough
-
-	diff := sop - br.firstRow
-	threshold := br.dispRows >> 2
-
-	switch {
-
-	case diff > 0 && diff <= threshold:
-		br.scrollDown(diff)
-		return true
-
-	case diff < 0 && -diff <= threshold:
-		br.scrollUp(-diff)
-		return true
-
-	default:
-		return false
-	}
-}
-
 func (br *browseObj) toggleMode(mode int) {
 	// arrows and function keys toggle modes, with some
 	// exceptions required for modes to work as users expect
