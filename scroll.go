@@ -64,17 +64,15 @@ func (br *browseObj) scrollUp(count int) {
 
 	rowsToScroll := minimum(count, br.firstRow)
 
-	if br.shownEOF {
-		// cursor is on the bottom line
-		moveCursor(2, 1, false)
-	}
-
 	for i := 0; i < rowsToScroll; i++ {
 		br.firstRow--
 		br.lastRow--
 
 		// add line
+		moveCursor(2, 1, false)
 		fmt.Print(SCROLLREV)
+
+		// printLine starts with \n
 		moveCursor(1, 1, false)
 		br.printLine(br.firstRow)
 	}
@@ -85,24 +83,17 @@ func (br *browseObj) scrollUp(count int) {
 }
 
 func (br *browseObj) tryScroll(sop int) bool {
-	// Attempt to scroll if movement is small enough
+	// attempt to scroll based on current position and target position
 
-	diff := sop - br.firstRow
-	threshold := br.dispRows >> 2
-
-	switch {
-
-	case diff > 0 && diff <= threshold:
-		br.scrollDown(diff)
+	if sop > br.firstRow && sop-br.firstRow <= br.dispRows>>2 {
+		br.scrollDown(sop - br.firstRow)
 		return true
-
-	case diff < 0 && -diff <= threshold:
-		br.scrollUp(-diff)
+	} else if br.firstRow > sop && br.firstRow-sop <= br.dispRows>>2 {
+		br.scrollUp(br.firstRow - sop)
 		return true
-
-	default:
-		return false
 	}
+
+	return false
 }
 
 func (br *browseObj) toggleMode(mode int) {

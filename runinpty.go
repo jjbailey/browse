@@ -35,7 +35,6 @@ func (br *browseObj) runInPty(cmdbuf string) {
 	// child signals
 	br.ptySignals(RUNSIGS)
 	ptmx, err = pty.Start(cmd)
-
 	if err != nil {
 		// reset signals
 		br.catchSignals()

@@ -55,7 +55,7 @@ func (br *browseObj) bashCommand() {
 	saveHistory(history, commHistory)
 
 	// feedback
-	fmt.Print(CURUP + CLEARLINE)
+	fmt.Print(CURUP + CLEARLINE + CURUP + CLEARLINE)
 	fmt.Print("---\n")
 	fmt.Print(LINEWRAPON)
 	fmt.Printf("$ %s\n", cmdbuf)
@@ -77,7 +77,6 @@ func subCommandChars(input, char, repl string) string {
 	replace := `${1}` + repl
 
 	re, err := regexp.Compile(pattern)
-
 	if err != nil {
 		return ""
 	}

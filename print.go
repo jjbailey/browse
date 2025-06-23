@@ -98,14 +98,18 @@ func (br *browseObj) printPage(lineno int) {
 }
 
 func adjustLineNumber(lineno, dispRows, mapSiz int) int {
-	if lineno < 0 {
-		return 0
-	}
-
 	maxTopLine := mapSiz - dispRows + 1
 
-	if maxTopLine < 0 || lineno > maxTopLine {
+	if maxTopLine < 0 {
+		maxTopLine = 0
+	}
+
+	if lineno > maxTopLine {
 		return maxTopLine
+	}
+
+	if lineno < 0 {
+		return 0
 	}
 
 	return lineno

@@ -25,6 +25,8 @@ func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin boo
 }
 
 func (br *browseObj) browseInit() {
+	// screen initializations
+
 	br.ignoreCase = false
 	br.lastMatch = SEARCH_RESET
 	br.hitEOF = false
@@ -39,10 +41,11 @@ func (br *browseObj) browseInit() {
 }
 
 func (br *browseObj) screenInit(tty *os.File) {
+	// tty initializations
+
 	br.tty = tty
 
 	width, height, err := term.GetSize(int(tty.Fd()))
-
 	if err != nil {
 		br.dispWidth = 80
 		br.dispHeight = 25

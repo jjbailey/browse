@@ -22,22 +22,17 @@ const (
 )
 
 func (br *browseObj) searchFile(pattern string, searchDir, next bool) bool {
-	var sop, eop int
-	var wrapped, warned bool
-	var firstMatch, lastMatch int
+	// searchDir: true = forward, false = reverse
+	// next: true = continue search, false = new search
 
-	// to suppress S1002
-	searchFwd := searchDir
-
+	// Reset search state if pattern changed
 	if pattern != br.pattern {
-		// reset on first search
 		br.lastMatch = SEARCH_RESET
 		br.re = nil
 		next = false
 	}
 
 	patternLen, err := br.reCompile(pattern)
-
 	if err != nil {
 		br.printMessage(fmt.Sprintf("%v", err), MSG_ORANGE)
 		return false
@@ -48,20 +43,19 @@ func (br *browseObj) searchFile(pattern string, searchDir, next bool) bool {
 		return false
 	}
 
-	// where to start search
+	// Determine start and end of page
+	var sop, eop int
+	var wrapped, warned bool
 
 	if br.lastMatch == SEARCH_RESET {
-		// new search
 		sop = br.firstRow
 		eop = sop + br.dispRows
 	} else if next {
 		sop, eop, wrapped = br.setNextPage(searchDir, br.firstRow)
 	}
 
-	warned = false
-
 	for {
-		firstMatch, lastMatch = br.pageIsMatch(sop, eop)
+		firstMatch, lastMatch := br.pageIsMatch(sop, eop)
 
 		if wrapped {
 			if warned {
@@ -69,7 +63,7 @@ func (br *browseObj) searchFile(pattern string, searchDir, next bool) bool {
 				return false
 			}
 
-			if searchFwd {
+			if searchDir {
 				br.timedMessage("Resuming search from SOF", MSG_GREEN)
 			} else {
 				br.timedMessage("Resuming search from EOF", MSG_GREEN)
@@ -83,20 +77,23 @@ func (br *browseObj) searchFile(pattern string, searchDir, next bool) bool {
 			continue
 		}
 
-		// display strategy: go to the page wherever the next match occurs
+		// Display strategy: go to the page wherever the next match occurs
 
 		if br.lastMatch == SEARCH_RESET {
 			br.printPage(sop)
 			return true
 		}
 
-		// display strategy: reposition the page to provide match context
-		// 1/8 forward, 7/8 reverse
+		// Display strategy: reposition the page to provide match context
+		// 1/6 searching down, 5/6 searching up
 
-		if searchFwd {
-			br.printPage(firstMatch - (br.dispRows >> 3))
+		downOffset := br.dispRows / 6
+		upOffset := downOffset * 5
+
+		if searchDir {
+			br.printPage(firstMatch - downOffset)
 		} else {
-			br.printPage(lastMatch - (br.dispRows>>3)*7)
+			br.printPage(lastMatch - upOffset)
 		}
 
 		return true
@@ -106,77 +103,86 @@ func (br *browseObj) searchFile(pattern string, searchDir, next bool) bool {
 func (br *browseObj) pageIsMatch(sop, eop int) (int, int) {
 	// return the first and last regex match on the page
 
-	firstMatch := 0
-	lastMatch := 0
-	foundMatch := false
+	var (
+		firstMatchLine int
+		lastMatchLine  int
+		hasMatch       bool
+	)
 
-	for lineno := sop; lineno < eop; lineno++ {
-		if matches, _ := br.lineIsMatch(lineno); matches > 0 {
-			if !foundMatch {
-				firstMatch = lineno
-				foundMatch = true
-			}
-
-			lastMatch = lineno
+	for lineNum := sop; lineNum < eop; lineNum++ {
+		matchCount, _ := br.lineIsMatch(lineNum)
+		if matchCount == 0 {
+			continue
 		}
+
+		if !hasMatch {
+			firstMatchLine = lineNum
+			hasMatch = true
+		}
+
+		lastMatchLine = lineNum
 	}
 
-	if lastMatch < firstMatch {
-		lastMatch = firstMatch
+	if !hasMatch {
+		return 0, 0
 	}
 
-	return firstMatch, lastMatch
+	return firstMatchLine, lastMatchLine
 }
 
 func (br *browseObj) lineIsMatch(lineno int) (int, string) {
 	// check if this line has a regex match
 
-	input := string(br.readFromMap(lineno))
+	lineContent := string(br.readFromMap(lineno))
 
 	if br.noSearchPattern() {
 		// no regex
-		return 0, input
+		return 0, lineContent
 	}
 
-	matches := br.re.FindAllStringIndex(input, -1)
-	return len(matches), input
+	matchIndices := br.re.FindAllStringIndex(lineContent, -1)
+	matchCount := len(matchIndices)
+
+	return matchCount, lineContent
 }
 
 func (br *browseObj) setNextPage(searchDir bool, sop int) (int, int, bool) {
 	// figure out which page to search next
 
-	var eop int
-	var wrapped bool
+	var (
+		newStart int
+		newEnd   int
+		wrapped  bool
+	)
 
-	// to suppress S1002
-	searchFwd := searchDir
-
-	if searchFwd {
-		sop += br.dispRows
-		if sop >= br.mapSiz {
-			sop = 0
+	if searchDir {
+		// Forward search: move down by page size
+		newStart = sop + br.dispRows
+		if newStart >= br.mapSiz {
+			// Wrap to start of file
+			newStart = 0
 			wrapped = true
 		}
 	} else {
-		sop -= br.dispRows
-		if (sop + br.dispRows) < 0 {
-			sop = maximum(br.mapSiz-br.dispRows, 0)
+		// Reverse search: move up by page size
+		newStart = sop - br.dispRows
+		if newStart < 0 {
+			// Wrap to end of file, ensuring we don't go negative
+			newStart = maximum(br.mapSiz-br.dispRows, 0)
 			wrapped = true
 		}
 	}
 
-	// sop may be a negative number
-	eop = sop + br.dispRows
-	return sop, eop, wrapped
+	newEnd = newStart + br.dispRows
+	return newStart, newEnd, wrapped
 }
 
 func (br *browseObj) replaceMatch(lineno int, input string) string {
-	// make the regex replacements
-	// return the new line with or without line numbers as necessary
+	// Return the new line with or without line numbers, applying regex replacements as needed
 
-	var line string
 	sol := br.shiftWidth
 
+	// If the shifted start is past the end of the input, return blank/empty
 	if sol >= len(input) {
 		if br.modeNumbers {
 			return fmt.Sprintf(LINENUMBERS, lineno, "")
@@ -185,28 +191,31 @@ func (br *browseObj) replaceMatch(lineno int, input string) string {
 		return ""
 	}
 
+	// If no search pattern, just return the line (possibly with numbers)
 	if br.noSearchPattern() {
+		line := input[sol:]
 		if br.modeNumbers {
-			return fmt.Sprintf(LINENUMBERS, lineno, input[sol:])
+			return fmt.Sprintf(LINENUMBERS, lineno, line)
 		}
 
-		return input[sol:]
+		return line
 	}
 
-	// regex
+	// There is a search pattern: do regex replacement and possibly highlight
 	leftMatch, rightMatch := br.undisplayedMatches(input, sol)
+	var replaced string
 
 	if leftMatch || rightMatch {
-		line = _VID_GREEN_FG + br.re.ReplaceAllString(input[sol:], br.replace+_VID_GREEN_FG)
+		replaced = _VID_GREEN_FG + br.re.ReplaceAllString(input[sol:], br.replace+_VID_GREEN_FG)
 	} else {
-		line = br.re.ReplaceAllString(input[sol:], br.replace)
+		replaced = br.re.ReplaceAllString(input[sol:], br.replace)
 	}
 
 	if br.modeNumbers {
-		return fmt.Sprintf(LINENUMBERS, lineno, line)
+		return fmt.Sprintf(LINENUMBERS, lineno, replaced)
 	}
 
-	return line
+	return replaced
 }
 
 func (br *browseObj) noSearchPattern() bool {
@@ -267,7 +276,6 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 	}
 
 	re, err := regexp.Compile(cp)
-
 	if err != nil {
 		return 0, err
 	}
@@ -281,37 +289,29 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 
 func (br *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
 	matches := br.re.FindAllStringSubmatchIndex(input, -1)
-
 	if len(matches) == 0 {
 		return false, false
 	}
 
-	leftMatch := false
-	rightMatch := false
 	displayWidth := br.dispWidth
-
 	if br.modeNumbers {
 		displayWidth -= NUMCOLWIDTH
 	}
 
+	leftMatch, rightMatch := false, false
+
 	for _, index := range matches {
-		if index[0] < sol {
+		if !leftMatch && index[0] < sol {
 			leftMatch = true
-
-			if rightMatch {
-				break
-			}
-
-			continue
 		}
 
-		if index[0]-br.shiftWidth+2 > displayWidth {
+		if !rightMatch && index[0]-br.shiftWidth+2 > displayWidth {
 			// NB: off by two
 			rightMatch = true
+		}
 
-			if leftMatch {
-				break
-			}
+		if leftMatch && rightMatch {
+			break
 		}
 	}
 

@@ -18,8 +18,6 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-var readerFp *os.File
-
 func readInit(br *browseObj, bytesRead *int64) {
 	// reader initializations for new and truncated files
 
@@ -29,10 +27,6 @@ func readInit(br *browseObj, bytesRead *int64) {
 	br.newFileSiz = 0
 	br.savFileSiz = 0
 	*bytesRead = 0
-	if readerFp != nil {
-		readerFp.Close()
-		readerFp = nil
-	}
 }
 
 func readFile(br *browseObj, ch chan bool) {
@@ -49,7 +43,10 @@ func readFile(br *browseObj, ch chan bool) {
 	if err != nil {
 		return
 	}
+
 	readerFp := os.NewFile(uintptr(dupFd), br.fileName)
+	defer readerFp.Close()
+
 	reader := bufio.NewReader(readerFp)
 
 	// Get initial filename
@@ -119,7 +116,6 @@ func readFile(br *browseObj, ch chan bool) {
 
 func getFileSize(fp *os.File) (int64, error) {
 	fInfo, err := fp.Stat()
-
 	if err != nil {
 		return 0, err
 	}
@@ -167,7 +163,6 @@ func (br *browseObj) readFromMap(lineno int) []byte {
 
 	data := make([]byte, br.sizeMap[lineno])
 	_, err := br.fp.ReadAt(data, br.seekMap[lineno])
-
 	if err != nil || len(data) == 0 {
 		return nil
 	}

@@ -16,7 +16,10 @@ import (
 )
 
 func (br *browseObj) printHelp() {
-	var i int
+	const (
+		paddingTop  = 3
+		paddingSide = 2
+	)
 
 	lines := []string{
 		"                                                                       ",
@@ -52,54 +55,54 @@ func (br *browseObj) printHelp() {
 		"                                                                       ",
 	}
 
-	// the help screen needs room to print
-
 	helpHeight := len(lines)
 	helpWidth := len(lines[0])
 
-	if br.dispHeight < (helpHeight+4) || br.dispWidth < (helpWidth+2) {
+	// Verify screen space
+	if br.dispHeight < (helpHeight+paddingTop+1) || br.dispWidth < (helpWidth+paddingSide) {
 		br.printMessage("Screen is too small", MSG_ORANGE)
 		return
 	}
 
-	// top line
-	col := int((br.dispWidth - helpWidth) / 2)
+	// Centered horizontal offset
+	col := (br.dispWidth - helpWidth) / 2
+	row := paddingTop
+
 	fmt.Print(VIDHELP)
-	moveCursor(3, col, false)
-	fmt.Printf(ENTERGRAPHICS + UPPERLEFT)
-	fmt.Print(strings.Repeat(HORIZLINE, helpWidth))
-	fmt.Printf(UPPERRIGHT + EXITGRAPHICS)
 
-	// title
-	moveCursor(3, col+3, false)
-	fmt.Printf(" Browse ")
-	moveCursor(3, col+12, false)
-	fmt.Printf(" v" + BR_VERSION + " ")
+	// Top border
+	moveCursor(row, col, false)
+	fmt.Printf("%s%s%s%s%s",
+		ENTERGRAPHICS, UPPERLEFT,
+		strings.Repeat(HORIZLINE, helpWidth),
+		UPPERRIGHT, EXITGRAPHICS)
 
-	// body
-	for i = 0; i < helpHeight; i++ {
-		moveCursor(i+4, col, false)
+	// Title
+	moveCursor(row, col+3, false)
+	fmt.Print(" Browse ")
+	moveCursor(row, col+12, false)
+	fmt.Printf(" v%s ", BR_VERSION)
 
+	// Main body
+	for i, line := range lines {
+		moveCursor(row+1+i, col, false)
 		fmt.Printf("%s%s%s%s%s%s%s",
 			ENTERGRAPHICS, VERTLINE, EXITGRAPHICS,
-			lines[i],
+			line,
 			ENTERGRAPHICS, VERTLINE, EXITGRAPHICS)
 	}
 
-	// bottom line
-	moveCursor(i+4, col, false)
-	fmt.Printf(ENTERGRAPHICS + LOWERLEFT)
-	fmt.Print(strings.Repeat(HORIZLINE, helpWidth))
-	fmt.Printf(LOWERRIGHT + EXITGRAPHICS)
+	// Bottom border
+	moveCursor(row+1+helpHeight, col, false)
+	fmt.Printf("%s%s%s%s%s",
+		ENTERGRAPHICS, LOWERLEFT,
+		strings.Repeat(HORIZLINE, helpWidth),
+		LOWERRIGHT, EXITGRAPHICS)
+
 	fmt.Print(VIDOFF)
 
-	// prompt is in the body of the help screen
 	br.userAnyKey("")
-
-	// restore and reset window size
 	br.resizeWindow()
-
-	// reset signals
 	br.catchSignals()
 }
 
