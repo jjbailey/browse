@@ -156,9 +156,6 @@ func completer(d prompt.Document) []prompt.Suggest {
 
 		// Get the directory part of the path
 		dir := filepath.Dir(word)
-		if dir == "." {
-			dir = "."
-		}
 
 		// List files in the specified directory
 		files, err := os.ReadDir(dir)
