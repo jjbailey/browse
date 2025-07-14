@@ -236,6 +236,11 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 		return oldDir
 	}
 
+	if br.pattern != "" {
+		// substitute & with the current search pattern
+		patbuf = subCommandChars(patbuf, "&", br.pattern)
+	}
+
 	if oldDir != newDir && (len(patbuf) > 0 || len(br.pattern) > 0) {
 		// print direction
 		br.timedMessage(message, MSG_GREEN)
