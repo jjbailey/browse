@@ -100,15 +100,17 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 	}()
 
 	// Wait for either input, Ctrl+C, or context cancellation
+	// Restore shell title on empty input
 	select {
-
 	case input := <-inputChan:
 		if len(input) == 0 {
+			fmt.Printf("\033]0;%s\007", hostname)
 			return "", true
 		}
 		return input, false
 
 	case <-ctx.Done():
+		fmt.Printf("\033]0;%s\007", hostname)
 		return "", true
 	}
 }
