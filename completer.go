@@ -133,9 +133,12 @@ func completer(d prompt.Document) []prompt.Suggest {
 
 			// Look up the user
 			u, err := user.Lookup(username)
-			if err == nil {
+			if err == nil && u != nil {
 				// Replace ~username with the user's home directory
 				word = u.HomeDir + word[len(username)+1:]
+			} else {
+				// User does not exist, skip expansion and return current suggestions
+				return suggestions
 			}
 		} else {
 			// Regular home directory expansion
