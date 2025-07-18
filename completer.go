@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"os/user"
 	"path/filepath"
 	"strings"
 	"syscall"
@@ -122,34 +121,12 @@ func completer(d prompt.Document) []prompt.Suggest {
 	word := strings.ReplaceAll(d.GetWordBeforeCursor(), "//", "/")
 
 	// Handle home directory expansion
-	if strings.HasPrefix(word, "~") {
-		// Check if it's a user-specific home directory (e.g., ~jjb)
-		if len(word) > 1 && word[1] != '/' {
-			// Extract username (everything between ~ and / or end of string)
-			username := word[1:]
-			if idx := strings.Index(username, "/"); idx != -1 {
-				username = username[:idx]
-			}
-
-			// Look up the user
-			u, err := user.Lookup(username)
-			if err == nil && u != nil {
-				// Replace ~username with the user's home directory
-				word = u.HomeDir + word[len(username)+1:]
-			} else {
-				// User does not exist, skip expansion and return current suggestions
-				return suggestions
-			}
-		} else {
-			// Regular home directory expansion
-			homeDir, err := os.UserHomeDir()
-			if err != nil {
-				return suggestions
-			}
-
-			// Replace ~ with the home directory path
-			word = homeDir + word[1:]
+	if word == "~" || strings.HasPrefix(word, "~/") {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return suggestions
 		}
+		word = homeDir + word[1:]
 	}
 
 	// Handle absolute paths and relative paths
