@@ -11,7 +11,6 @@ package main
 
 import (
 	"fmt"
-	"regexp"
 )
 
 var prevCommand string
@@ -67,21 +66,6 @@ func (br *browseObj) bashCommand() {
 	br.runInPty(cmdbuf)
 	br.resizeWindow()
 	fmt.Print(LINEWRAPOFF)
-}
-
-func subCommandChars(input, char, repl string) string {
-	// negative lookbehind not supported in golang RE2 engine
-	// pattern := `(?<!\\)%`
-
-	pattern := `(^|[^\\])` + regexp.QuoteMeta(char)
-	replace := `${1}` + repl
-
-	re, err := regexp.Compile(pattern)
-	if err != nil {
-		return ""
-	}
-
-	return re.ReplaceAllString(input, replace)
 }
 
 // vim: set ts=4 sw=4 noet:

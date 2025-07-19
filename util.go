@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -138,6 +139,21 @@ func isBinaryFile(filename string) bool {
 	}
 
 	return false
+}
+
+func subCommandChars(input, char, repl string) string {
+	// negative lookbehind not supported in golang RE2 engine
+	// pattern := `(?<!\\)%`
+
+	pattern := `(^|[^\\])` + regexp.QuoteMeta(char)
+	replace := `${1}` + repl
+
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		return ""
+	}
+
+	return re.ReplaceAllString(input, replace)
 }
 
 // vim: set ts=4 sw=4 noet:

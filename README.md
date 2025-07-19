@@ -1,89 +1,38 @@
 # browse
 
-A simple, unconventional file browser.
+A simple, unconventional file browser designed for efficient file navigation and viewing.
 
-## Goals
+## Description
 
-- Create a file browser with only the most common features
-- Keep it simple, keep it friendly
+browse is a minimalist file browser that focuses on essential features while maintaining a user-friendly interface. It's ideal for developers and system administrators who need a lightweight alternative to traditional file viewers.
 
 ## Features
 
+### Navigation
+
 - Forward and reverse paging
-- Forward and reverse scrolling
-- Continuous forward and reverse scrolling
+- Continuous scrolling (forward and reverse)
 - Horizontal scrolling
-- Jump to lines
-- Mark pages
-- Forward and reverse searches by regular expression
-- Shell escape
-- Command-line (Tab) completion
-- tail -f
+- Line jumping
+- Page marking
+
+### Search & Filter
+
+- Forward and reverse regex searches
+- Case-sensitive/case-insensitive search toggle
+- Pattern highlighting
+
+### Additional Features
+
+- Shell escape with command completion
+- Tail -f functionality
 - Line numbers
-- Save session
+- Session saving
 - Help screen
-
-## Scrolling/Following
-
-browse includes several scrolling and following modes:
-
-- Scrolling up and down is a continuous process that provides a seamless browsing experience. Once scrolling starts, browse will continue until you decide to stop it. Think of the scroll and tail commands as toggle switches.
-
-- When scrolling down reaches the end of the file (EOF), the browse mode switches to "follow" mode. In this mode, it reads and displays two lines of the input file at a time.
-
-- The tail command jumps to and follows EOF, enabling the system to read and display the input file as quickly as possible.
-
-- The cursor position indicates whether the browse mode is following the file. If the cursor is in the lower left-hand corner, browsing is in follow mode. If the cursor is in the upper left-hand corner, browsing is idle.
-
-## Searching
-
-browse utilizes the RE2 regular expression syntax for pattern matching, highlighting all the matches on a line. When browse finds matches not on the visible screen, browse highlights the entire line. Scroll right or left to highlight matches.
-
-## Saved Sessions
-
-browse saves sessions in `~/.browserc`. The format of the file is plaintext containing the following lines:
-
-1. file name
-2. first line on page
-3. search pattern
-4. marks
-5. page title
-
-The session attributes not saved:
-
-- search direction
-- numbers
-- bash command
-- horizontal shift
-- follow/tail mode
-
-When advancing to the next file in a list of files, browse:
-
-- starts at the first page
-- resets the horizontal shift to column 1
-- turns off follow/tail mode
-- sets the page title
-
-When browse is called with no file names, browse attempts to restore the session saved in `~/.browserc`.
-
-## Command-line (Tab) Completion
-
-browse has support for command-line completion based on c-bata/go-prompt. This feature enables users to type part of a program or file name and press the TAB key to have the browser automatically suggest possible completions. This feature is available for bash commands and for browsing other files.
-
-At most, browse returns 1000 results. More specific searches return better suggestions.
-
-browse maintains two history files, `~/.browse_shell` for command history, and `~/.browse_files` for file history. The history sizes are 500 entries maximum.
 
 ## Usage
 
-    Usage: browse [-finv] [-p pattern] [-t title] [filename...]
-     -f, --follow       follow file
-     -i, --ignore-case  search ignores case
-     -n, --numbers      line numbers
-     -p, --pattern      search pattern
-     -t, --title        page title
-     -v, --version      print version number
-     -?, --help         this message
+### Command Line Options
 
 | <h4>Command Line Option</h4> | <h4>Function</h4>                                |
 | :--------------------------- | :----------------------------------------------- |
@@ -95,7 +44,7 @@ browse maintains two history files, `~/.browse_shell` for command history, and `
 | -v, --version                | print browse version number                      |
 | -?, --help                   | print browse command line options                |
 
-<br>
+### Navigation Commands
 
 | <h4>Pages/Lines</h4>          | <h4>Function</h4>                                  |
 | :---------------------------- | :------------------------------------------------- |
@@ -116,15 +65,7 @@ browse maintains two history files, `~/.browse_shell` for command history, and `
 | e<br> [END]                   | Jump to EOF, follow at EOF                         |
 | t                             | Jump to EOF, tail at EOF                           |
 
-<br>
-
-| <h4>Jumps/Marks</h4> | <h4>Function</h4>               |
-| :------------------- | :------------------------------ |
-| j                    | Jump to a line                  |
-| m                    | Assign top line to mark 1-9     |
-| 1-9                  | Jump to mark, default to line 0 |
-
-<br>
+### Search Commands
 
 | <h4>Searches</h4> | <h4>Function</h4>                                                              |
 | :---------------- | :----------------------------------------------------------------------------- |
@@ -137,7 +78,7 @@ browse maintains two history files, `~/.browse_shell` for command history, and `
 | P                 | Clear the search pattern                                                       |
 | &                 | Run 'grep -nP' on the current file for search pattern                          |
 
-<br>
+### Miscellaneous Commands
 
 | <h4>Miscellaneous</h4> | <h4>Function</h4>                             |
 | :--------------------- | :-------------------------------------------- |
@@ -150,13 +91,29 @@ browse maintains two history files, `~/.browse_shell` for command history, and `
 | x                      | Exit list, save .browserc                     |
 | X                      | Exit list, don't save .browserc               |
 
-<br>
+## Configuration
 
-## Limitations/Bugs
+browse saves sessions in `~/.browserc` with the following format:
+
+1. File name
+2. First line on page
+3. Search pattern
+4. Marks
+5. Page title
+
+browse saves file history in `~/.browse_files`.
+
+browse saves command history in `~/.browse_shell`.
+
+## Limitations
 
 - Xterm specific
-- Logical lines chopped to the screen width
-- Probably US-centric
-- Can be confused by lines with non-printable characters
-- Tabs mapped to spaces
-- c-bata/go-prompt insists on changing the terminal's title
+- Logical lines are truncated to screen width
+- May be US-centric
+- Can be confused by non-printable characters
+- Tabs are converted to spaces
+- Terminal title changes due to go-prompt dependency
+
+## License
+
+MIT License - see LICENSE file for details

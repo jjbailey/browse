@@ -21,8 +21,8 @@ const (
 	NUMCOLWIDTH = 7
 )
 
-func (br *browseObj) searchFile(pattern string, searchDir, next bool) bool {
-	// searchDir: true = forward, false = reverse
+func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
+	// forward: true = forward, false = reverse
 	// next: true = continue search, false = new search
 
 	// Reset search state if pattern changed
@@ -44,18 +44,18 @@ func (br *browseObj) searchFile(pattern string, searchDir, next bool) bool {
 	}
 
 	// Determine start and end of page
-	var sop, eop int
+	var startOfPage, endOfPage int
 	var wrapped, warned bool
 
 	if br.lastMatch == SEARCH_RESET {
-		sop = br.firstRow
-		eop = sop + br.dispRows
+		startOfPage = br.firstRow
+		endOfPage = startOfPage + br.dispRows
 	} else if next {
-		sop, eop, wrapped = br.setNextPage(searchDir, br.firstRow)
+		startOfPage, endOfPage, wrapped = br.setNextPage(forward, br.firstRow)
 	}
 
 	for {
-		firstMatch, lastMatch := br.pageIsMatch(sop, eop)
+		firstMatch, lastMatch := br.pageIsMatch(startOfPage, endOfPage)
 
 		if wrapped {
 			if warned {
@@ -63,34 +63,27 @@ func (br *browseObj) searchFile(pattern string, searchDir, next bool) bool {
 				return false
 			}
 
-			if searchDir {
-				br.timedMessage("Resuming search from SOF", MSG_GREEN)
-			} else {
-				br.timedMessage("Resuming search from EOF", MSG_GREEN)
-			}
-
+			br.displayWrapMessage(forward)
 			warned = true
 		}
 
 		if firstMatch == 0 || lastMatch == 0 {
-			sop, eop, wrapped = br.setNextPage(searchDir, sop)
+			startOfPage, endOfPage, wrapped = br.setNextPage(forward, startOfPage)
 			continue
 		}
 
 		// Display strategy: go to the page wherever the next match occurs
-
 		if br.lastMatch == SEARCH_RESET {
-			br.printPage(sop)
+			br.printPage(startOfPage)
 			return true
 		}
 
 		// Display strategy: reposition the page to provide match context
 		// 1/6 searching down, 5/6 searching up
-
 		downOffset := br.dispRows / 6
 		upOffset := downOffset * 5
 
-		if searchDir {
+		if forward {
 			br.printPage(firstMatch - downOffset)
 		} else {
 			br.printPage(lastMatch - upOffset)
@@ -100,7 +93,17 @@ func (br *browseObj) searchFile(pattern string, searchDir, next bool) bool {
 	}
 }
 
-func (br *browseObj) pageIsMatch(sop, eop int) (int, int) {
+func (br *browseObj) displayWrapMessage(forward bool) {
+	// displayWrapMessage prints a message when the search wraps around the file
+
+	if forward {
+		br.timedMessage("Resuming search from SOF", MSG_GREEN)
+	} else {
+		br.timedMessage("Resuming search from EOF", MSG_GREEN)
+	}
+}
+
+func (br *browseObj) pageIsMatch(startOfPage, endOfPage int) (int, int) {
 	// return the first and last regex match on the page
 
 	var (
@@ -109,7 +112,7 @@ func (br *browseObj) pageIsMatch(sop, eop int) (int, int) {
 		hasMatch       bool
 	)
 
-	for lineNum := sop; lineNum < eop; lineNum++ {
+	for lineNum := startOfPage; lineNum < endOfPage; lineNum++ {
 		matchCount, _ := br.lineIsMatch(lineNum)
 		if matchCount == 0 {
 			continue
@@ -141,12 +144,11 @@ func (br *browseObj) lineIsMatch(lineno int) (int, string) {
 	}
 
 	matchIndices := br.re.FindAllStringIndex(lineContent, -1)
-	matchCount := len(matchIndices)
 
-	return matchCount, lineContent
+	return len(matchIndices), lineContent
 }
 
-func (br *browseObj) setNextPage(searchDir bool, sop int) (int, int, bool) {
+func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool) {
 	// figure out which page to search next
 
 	var (
@@ -155,9 +157,9 @@ func (br *browseObj) setNextPage(searchDir bool, sop int) (int, int, bool) {
 		wrapped  bool
 	)
 
-	if searchDir {
+	if forward {
 		// Forward search: move down by page size
-		newStart = sop + br.dispRows
+		newStart = startOfPage + br.dispRows
 		if newStart >= br.mapSiz {
 			// Wrap to start of file
 			newStart = 0
@@ -165,7 +167,7 @@ func (br *browseObj) setNextPage(searchDir bool, sop int) (int, int, bool) {
 		}
 	} else {
 		// Reverse search: move up by page size
-		newStart = sop - br.dispRows
+		newStart = startOfPage - br.dispRows
 		if newStart < 0 {
 			// Wrap to end of file, ensuring we don't go negative
 			newStart = maximum(br.mapSiz-br.dispRows, 0)
@@ -203,8 +205,8 @@ func (br *browseObj) replaceMatch(lineno int, input string) string {
 
 	// There is a search pattern: do regex replacement and possibly highlight
 	leftMatch, rightMatch := br.undisplayedMatches(input, sol)
-	var replaced string
 
+	var replaced string
 	if leftMatch || rightMatch {
 		replaced = _VID_GREEN_FG + br.re.ReplaceAllString(input[sol:], br.replace+_VID_GREEN_FG)
 	} else {
@@ -224,16 +226,19 @@ func (br *browseObj) noSearchPattern() bool {
 
 func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 	prompt, message := "/", "Searching forward"
-
 	if !newDir {
 		prompt, message = "?", "Searching reverse"
 	}
 
 	patbuf, _, ignore := br.userInput(prompt)
-
 	if ignore {
 		// user backed out of prompt
 		return oldDir
+	}
+
+	if br.pattern != "" {
+		// substitute & with the current search pattern
+		patbuf = subCommandChars(patbuf, "&", br.pattern)
 	}
 
 	if oldDir != newDir && (len(patbuf) > 0 || len(br.pattern) > 0) {
@@ -255,7 +260,6 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 
 func (br *browseObj) reCompile(pattern string) (int, error) {
 	var cp string
-
 	if len(pattern) == 0 {
 		if len(br.pattern) == 0 {
 			return 0, nil
