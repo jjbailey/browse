@@ -33,6 +33,11 @@ var searchType int
 func userBashComp() (string, bool) {
 	searchType = searchPath
 	input, flag := runCompleter("$ ", commHistory)
+
+	// Get hostname title
+	title := getHostnameTitle()
+	fmt.Printf("\033]0;%s\007", title)
+
 	ttyBrowser()
 	return input, flag
 }
@@ -40,6 +45,11 @@ func userBashComp() (string, bool) {
 func userFileComp() (string, bool) {
 	searchType = searchFiles
 	input, flag := runCompleter("File: ", fileHistory)
+
+	// Get hostname title
+	title := getHostnameTitle()
+	fmt.Printf("\033]0;%s\007", title)
+
 	ttyBrowser()
 	return input, flag
 }
@@ -47,17 +57,6 @@ func userFileComp() (string, bool) {
 func runCompleter(promptStr, historyFile string) (string, bool) {
 	// Load history from file
 	history := loadHistory(historyFile)
-
-	// Can't prevent prompt.New from meddling with the title, so...
-	hostname, err := os.Hostname()
-	if err != nil {
-		hostname = "unknown"
-	} else {
-		if dotIndex := strings.Index(hostname, "."); dotIndex != -1 {
-			hostname = hostname[:dotIndex]
-		}
-	}
-	title := hostname
 
 	// Create a context that can be cancelled
 	ctx, cancelled := context.WithCancel(context.Background())
@@ -74,6 +73,9 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 		fmt.Printf("Ctrl+C pressed\n")
 		cancelled()
 	}()
+
+	// Get hostname title
+	title := getHostnameTitle()
 
 	p := prompt.New(
 		func(in string) { /* no-op executor */ },
@@ -103,15 +105,28 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 	select {
 	case input := <-inputChan:
 		if len(input) == 0 {
-			fmt.Printf("\033]0;%s\007", hostname)
 			return "", true
 		}
 		return input, false
 
 	case <-ctx.Done():
-		fmt.Printf("\033]0;%s\007", hostname)
 		return "", true
 	}
+}
+
+func getHostnameTitle() string {
+	// Can't prevent prompt.New from meddling with the title, so...
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		return "unknown"
+	}
+
+	if dotIndex := strings.Index(hostname, "."); dotIndex != -1 {
+		hostname = hostname[:dotIndex]
+	}
+
+	return hostname
 }
 
 func completer(d prompt.Document) []prompt.Suggest {
@@ -121,12 +136,32 @@ func completer(d prompt.Document) []prompt.Suggest {
 	word := strings.ReplaceAll(d.GetWordBeforeCursor(), "//", "/")
 
 	// Handle home directory expansion
-	if word == "~" || strings.HasPrefix(word, "~/") {
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			return suggestions
+	if strings.HasPrefix(word, "~") {
+		if len(word) == 1 || word[1] == '/' {
+			// ~ or ~/something
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				return suggestions
+			}
+			word = filepath.Join(homeDir, word[1:])
+		} else {
+			// ~username or ~username/something
+			slashIndex := strings.IndexRune(word, '/')
+			var userName, pathSuffix string
+			if slashIndex == -1 {
+				userName = word[1:]
+				pathSuffix = ""
+			} else {
+				userName = word[1:slashIndex]
+				pathSuffix = word[slashIndex:]
+			}
+
+			word, err := GetHomeDir(userName)
+			if err != nil {
+				return suggestions
+			}
+			word = filepath.Join(word, pathSuffix)
 		}
-		word = homeDir + word[1:]
 	}
 
 	// Handle absolute paths and relative paths
