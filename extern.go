@@ -106,6 +106,14 @@ const (
 	MODE_SCROLL_FOLLOW = 4
 )
 
+// ─── History Files  ─────────────────────────────────────────────────
+
+const (
+	commHistory    = ".browse_shell"
+	fileHistory    = ".browse_files"
+	maxHistorySize = 500
+)
+
 // ─── browseObj Definition ───────────────────────────────────────────
 
 type browseObj struct {

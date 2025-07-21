@@ -17,13 +17,6 @@ import (
 	"strings"
 )
 
-const (
-	commHistory = ".browse_shell"
-	fileHistory = ".browse_files"
-)
-
-const maxHistorySize = 500
-
 func loadHistory(historyFile string) []string {
 	home, err := os.UserHomeDir()
 	if err != nil {
