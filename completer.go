@@ -156,11 +156,11 @@ func completer(d prompt.Document) []prompt.Suggest {
 				pathSuffix = word[slashIndex:]
 			}
 
-			word, err := GetHomeDir(userName)
+			wordHome, err := GetHomeDir(userName)
 			if err != nil {
 				return suggestions
 			}
-			word = filepath.Join(word, pathSuffix)
+			word = filepath.Join(wordHome, pathSuffix)
 		}
 	}
 
