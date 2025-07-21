@@ -1,6 +1,6 @@
 module internetguy.net/browse
 
-go 1.22.2
+go 1.23.1
 
 // Direct dependencies
 require (
@@ -18,7 +18,6 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mattn/go-tty v0.0.5 // indirect
+	github.com/pkg/term v1.2.0-beta.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 )
-
-require github.com/pkg/term v1.2.0-beta.2 // indirect
