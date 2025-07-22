@@ -10,13 +10,10 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"strings"
-	"syscall"
 
 	"github.com/c-bata/go-prompt"
 )
@@ -58,22 +55,6 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 	// Load history from file
 	history := loadHistory(historyFile)
 
-	// Create a context that can be cancelled
-	ctx, cancelled := context.WithCancel(context.Background())
-	defer cancelled()
-
-	// Set up signal handling
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT)
-	defer signal.Stop(sigChan)
-
-	// Start a goroutine to handle Ctrl+C
-	go func() {
-		<-sigChan
-		fmt.Printf("Ctrl+C pressed\n")
-		cancelled()
-	}()
-
 	// Get hostname title
 	title := getHostnameTitle()
 
@@ -92,26 +73,19 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 		prompt.OptionSuggestionTextColor(prompt.White),
 		prompt.OptionSwitchKeyBindMode(prompt.EmacsKeyBind),
 		prompt.OptionTitle(title),
+		prompt.OptionAddKeyBind(prompt.KeyBind{
+			Key: prompt.ControlC,
+			Fn: func(buf *prompt.Buffer) {
+				fmt.Print("\r" + CURUP)
+			},
+		}),
 	)
 
-	// Start a goroutine to handle input
-	inputChan := make(chan string)
-	go func() {
-		inputChan <- p.Input()
-	}()
-
-	// Wait for either input, Ctrl+C, or context cancellation
-	// Restore shell title on empty input
-	select {
-	case input := <-inputChan:
-		if len(input) == 0 {
-			return "", true
-		}
-		return input, false
-
-	case <-ctx.Done():
+	input := p.Input()
+	if len(input) == 0 {
 		return "", true
 	}
+	return input, false
 }
 
 func getHostnameTitle() string {
