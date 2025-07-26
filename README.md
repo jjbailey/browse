@@ -84,12 +84,21 @@ browse is a minimalist file browser that focuses on essential features while mai
 | :--------------------- | :-------------------------------------------- |
 | #                      | Toggle line numbers on and off                |
 | %<br> ^G               | Page position                                 |
-| !                      | Run a bash command (expands !, %, &)          |
-| B                      | Browse another file                           |
+| !                      | Run a bash command (expands !, %, &, ~)       |
+| B                      | Browse another file (expands %, ~)            |
 | q                      | Quit, save .browserc, next file in list       |
 | Q                      | Quit, don't save .browserc, next file in list |
 | x                      | Exit list, save .browserc                     |
 | X                      | Exit list, don't save .browserc               |
+
+## Symbol Expansions
+
+| <h4>Symbol</h4> | <h4>Expansions</h4>    |
+| :-------------- | :--------------------- |
+| !               | Last bash commmand     |
+| %               | Current file name      |
+| &               | Current search pattern |
+| ~               | Home directory         |
 
 ## Configuration
 

@@ -18,7 +18,7 @@ import (
 // ─── Build Information ──────────────────────────────────────────────
 
 const (
-	BR_VERSION = "0.58"
+	BR_VERSION = "0.59"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -104,6 +104,14 @@ const (
 	MODE_SCROLL_DN     = 2
 	MODE_SCROLL_TAIL   = 3
 	MODE_SCROLL_FOLLOW = 4
+)
+
+// ─── History Files  ─────────────────────────────────────────────────
+
+const (
+	commHistory    = ".browse_shell"
+	fileHistory    = ".browse_files"
+	maxHistorySize = 500
 )
 
 // ─── browseObj Definition ───────────────────────────────────────────
