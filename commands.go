@@ -402,7 +402,7 @@ func commands(br *browseObj) {
 				filepath.Base(br.fileName), br.mapSiz-1, t), MSG_GREEN)
 
 		case CMD_NEWFILE:
-			if fileCommnad(br) {
+			if fileCommand(br) {
 				return
 			}
 
@@ -441,12 +441,16 @@ func commands(br *browseObj) {
 	}
 }
 
-func fileCommnad(br *browseObj) bool {
-	// browse a new file
+func fileCommand(br *browseObj) bool {
+	// Browse a new file
 
 	moveCursor(br.dispHeight, 1, true)
 	lbuf, cancelled := userFileComp()
 	file := strings.TrimSpace(lbuf)
+
+	// Remove single and double quotes from the input
+	file = strings.ReplaceAll(file, "'", "")
+	file = strings.ReplaceAll(file, "\"", "")
 
 	if !cancelled && len(file) > 0 {
 		sbuf := subCommandChars(file, "%", br.fileName)
@@ -537,7 +541,7 @@ func handlePanic(br *browseObj) {
 	// graceful exit
 
 	if r := recover(); r != nil {
-		moveCursor(br.dispHeight-1, 1, true)
+		moveCursor(br.dispRows, 1, true)
 		fmt.Printf("%s%s panic: %v %s\n", CLEARSCREEN, MSG_RED, r, VIDOFF)
 		br.saneExit()
 	}
