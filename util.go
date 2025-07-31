@@ -24,8 +24,7 @@ func expandTabs(data []byte) []byte {
 	}
 
 	tabCount := bytes.Count(data, []byte{'\t'})
-	crCount := bytes.Count(data, []byte{'\r'})
-	capacity := len(data) + tabCount*(TABWIDTH-1) + crCount
+	capacity := len(data) + tabCount*(TABWIDTH-1)
 
 	buf := make([]byte, 0, capacity)
 

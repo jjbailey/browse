@@ -25,22 +25,25 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 	// forward: true = forward, false = reverse
 	// next: true = continue search, false = new search
 
+	var err error
+	var patternLen int
+
 	// Reset search state if pattern changed
-	if pattern != br.pattern {
+	if len(pattern) == 0 || pattern != br.pattern {
 		br.lastMatch = SEARCH_RESET
 		br.re = nil
 		next = false
-	}
 
-	patternLen, err := br.reCompile(pattern)
-	if err != nil {
-		br.printMessage(fmt.Sprintf("%v", err), MSG_ORANGE)
-		return false
-	}
+		patternLen, err = br.reCompile(pattern)
+		if err != nil {
+			br.printMessage(fmt.Sprintf("%v", err), MSG_ORANGE)
+			return false
+		}
 
-	if patternLen == 0 {
-		br.printMessage("No search pattern", MSG_ORANGE)
-		return false
+		if patternLen == 0 {
+			br.printMessage("No search pattern", MSG_ORANGE)
+			return false
+		}
 	}
 
 	// Determine start and end of page
@@ -162,14 +165,21 @@ func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool)
 		newStart = startOfPage + br.dispRows
 		if newStart >= br.mapSiz {
 			// Wrap to start of file
-			newStart = 0
+			newStart = 1
 			wrapped = true
 		}
 	} else {
 		// Reverse search: move up by page size
-		newStart = startOfPage - br.dispRows
-		if newStart < 0 {
-			// Wrap to end of file, ensuring we don't go negative
+		if startOfPage > br.dispRows {
+			// Page above
+			newStart = startOfPage - br.dispRows
+			wrapped = false
+		} else if startOfPage > 0 {
+			// Top page
+			newStart = maximum(startOfPage-br.dispRows, 1)
+			wrapped = false
+		} else {
+			// Wrap to end of file
 			newStart = maximum(br.mapSiz-br.dispRows, 0)
 			wrapped = true
 		}

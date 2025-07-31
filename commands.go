@@ -323,7 +323,7 @@ func commands(br *browseObj) {
 
 		case CMD_JUMP:
 			// jump to line
-			lbuf, cancelled, _ := br.userInput("Junp: ")
+			lbuf, cancelled, _ := br.userInput("Jump: ")
 			if !cancelled && len(lbuf) > 0 {
 				var n int
 				fmt.Sscanf(lbuf, "%d", &n)
@@ -483,7 +483,7 @@ func waitForInput(br *browseObj) {
 		if err == nil {
 			if time.Since(info.ModTime()) > modTimeThreshold {
 				// don't wait for files unchanged in the last 5 seconds
-				return
+				break
 			}
 		}
 
@@ -515,11 +515,19 @@ func waitForInput(br *browseObj) {
 func shiftLongest(br *browseObj) int {
 	// shift to the end of the longest line on the page
 
+	if TABWIDTH == 0 {
+		return 0
+	}
+
 	longest := 0
 	lastRow := minimum(br.firstRow+br.dispRows, br.mapSiz)
 
 	for i := br.firstRow; i < lastRow; i++ {
-		lineLength := len(br.readFromMap(i))
+		line := br.readFromMap(i)
+		if line == nil {
+			continue
+		}
+		lineLength := len(line)
 
 		if lineLength > longest {
 			longest = lineLength
