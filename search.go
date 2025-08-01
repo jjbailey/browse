@@ -28,8 +28,14 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 	var err error
 	var patternLen int
 
+	if len(pattern) == 0 {
+		// should not happen
+		br.printMessage("No search pattern", MSG_ORANGE)
+		return false
+	}
+
 	// Reset search state if pattern changed
-	if len(pattern) == 0 || pattern != br.pattern {
+	if pattern != br.pattern {
 		br.lastMatch = SEARCH_RESET
 		br.re = nil
 		next = false
@@ -165,7 +171,7 @@ func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool)
 		newStart = startOfPage + br.dispRows
 		if newStart >= br.mapSiz {
 			// Wrap to start of file
-			newStart = 1
+			newStart = 0
 			wrapped = true
 		}
 	} else {
