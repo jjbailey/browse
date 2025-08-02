@@ -42,12 +42,12 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 
 		patternLen, err = br.reCompile(pattern)
 		if err != nil {
-			br.printMessage(fmt.Sprintf("%v", err), MSG_ORANGE)
+			br.printMessage(fmt.Sprintf("Regex compilation error: %v", err), MSG_ORANGE)
 			return false
 		}
 
 		if patternLen == 0 {
-			br.printMessage("No search pattern", MSG_ORANGE)
+			br.printMessage("Empty search pattern", MSG_ORANGE)
 			return false
 		}
 	}
@@ -61,6 +61,10 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 		endOfPage = startOfPage + br.dispRows
 	} else if next {
 		startOfPage, endOfPage, wrapped = br.setNextPage(forward, br.firstRow)
+	} else {
+		// If not a new search and not continuing, use current page
+		startOfPage = br.firstRow
+		endOfPage = startOfPage + br.dispRows
 	}
 
 	for {
@@ -152,6 +156,11 @@ func (br *browseObj) lineIsMatch(lineno int) (int, string) {
 		return 0, lineContent
 	}
 
+	// Safety check: ensure regex is compiled
+	if br.re == nil {
+		return 0, lineContent
+	}
+
 	matchIndices := br.re.FindAllStringIndex(lineContent, -1)
 
 	return len(matchIndices), lineContent
@@ -181,8 +190,8 @@ func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool)
 			newStart = startOfPage - br.dispRows
 			wrapped = false
 		} else if startOfPage > 0 {
-			// Top page
-			newStart = maximum(startOfPage-br.dispRows, 1)
+			// Top page - go to beginning of file
+			newStart = 0
 			wrapped = false
 		} else {
 			// Wrap to end of file
@@ -220,6 +229,15 @@ func (br *browseObj) replaceMatch(lineno int, input string) string {
 	}
 
 	// There is a search pattern: do regex replacement and possibly highlight
+	// Safety check: ensure regex is compiled
+	if br.re == nil {
+		// Fallback to no replacement if regex is not compiled
+		if br.modeNumbers {
+			return fmt.Sprintf(LINENUMBERS, lineno, input[sol:])
+		}
+		return input[sol:]
+	}
+
 	leftMatch, rightMatch := br.undisplayedMatches(input, sol)
 
 	var replaced string
@@ -278,9 +296,8 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 	var cp string
 	if len(pattern) == 0 {
 		if len(br.pattern) == 0 {
-			return 0, nil
+			return 0, fmt.Errorf("No search pattern")
 		}
-
 		pattern = br.pattern
 	}
 
@@ -308,6 +325,11 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 }
 
 func (br *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
+	// Safety check: ensure regex is compiled
+	if br.re == nil {
+		return false, false
+	}
+
 	matches := br.re.FindAllStringSubmatchIndex(input, -1)
 	if len(matches) == 0 {
 		return false, false
@@ -321,6 +343,11 @@ func (br *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
 	leftMatch, rightMatch := false, false
 
 	for _, index := range matches {
+		// Ensure index has at least 2 elements (start and end positions)
+		if len(index) < 2 {
+			continue
+		}
+
 		if !leftMatch && index[0] < sol {
 			leftMatch = true
 		}
