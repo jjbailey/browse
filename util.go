@@ -24,8 +24,7 @@ func expandTabs(data []byte) []byte {
 	}
 
 	tabCount := bytes.Count(data, []byte{'\t'})
-	crCount := bytes.Count(data, []byte{'\r'})
-	capacity := len(data) + tabCount*(TABWIDTH-1) + crCount
+	capacity := len(data) + tabCount*(TABWIDTH-1)
 
 	buf := make([]byte, 0, capacity)
 
@@ -48,7 +47,7 @@ func expandTabs(data []byte) []byte {
 	return buf
 }
 
-func moveCursor(row int, col int, clrflag bool) {
+func moveCursor(row, col int, clrflag bool) {
 	fmt.Printf(CURPOS, row, col)
 
 	if clrflag {
@@ -65,25 +64,25 @@ func printSEOF(what string) {
 	fmt.Printf("\r %s%s%s\r", VIDBLINK, what, VIDOFF)
 }
 
-func windowAtEOF(lineno int, mapsiz int) bool {
+func windowAtEOF(lineno, mapsiz int) bool {
 	return lineno == mapsiz
 }
 
-func maximum(a int, b int) int {
+func maximum(a, b int) int {
 	if a > b {
 		return a
 	}
 	return b
 }
 
-func minimum(a int, b int) int {
+func minimum(a, b int) int {
 	if a < b {
 		return a
 	}
 	return b
 }
 
-func setScrRegion(top int, bot int) {
+func setScrRegion(top, bot int) {
 	fmt.Printf(SCROLLREGION, top, bot)
 }
 
@@ -146,14 +145,13 @@ func subCommandChars(input, char, repl string) string {
 	// pattern := `(?<!\\)%`
 
 	pattern := `(^|[^\\])` + regexp.QuoteMeta(char)
-	replace := `${1}` + repl
 
 	re, err := regexp.Compile(pattern)
 	if err != nil {
-		return ""
+		return input
 	}
 
-	return re.ReplaceAllString(input, replace)
+	return re.ReplaceAllString(input, `${1}`+repl)
 }
 
 // vim: set ts=4 sw=4 noet:

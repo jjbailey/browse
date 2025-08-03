@@ -95,7 +95,7 @@ browse is a minimalist file browser that focuses on essential features while mai
 
 | <h4>Symbol</h4> | <h4>Expansions</h4>    |
 | :-------------- | :--------------------- |
-| !               | Last bash commmand     |
+| !               | Last bash command      |
 | %               | Current file name      |
 | &               | Current search pattern |
 | ~               | Home directory         |

@@ -323,7 +323,7 @@ func commands(br *browseObj) {
 
 		case CMD_JUMP:
 			// jump to line
-			lbuf, cancelled, _ := br.userInput("Junp: ")
+			lbuf, cancelled, _ := br.userInput("Jump: ")
 			if !cancelled && len(lbuf) > 0 {
 				var n int
 				fmt.Sscanf(lbuf, "%d", &n)
@@ -402,7 +402,7 @@ func commands(br *browseObj) {
 				filepath.Base(br.fileName), br.mapSiz-1, t), MSG_GREEN)
 
 		case CMD_NEWFILE:
-			if fileCommnad(br) {
+			if fileCommand(br) {
 				return
 			}
 
@@ -441,12 +441,16 @@ func commands(br *browseObj) {
 	}
 }
 
-func fileCommnad(br *browseObj) bool {
-	// browse a new file
+func fileCommand(br *browseObj) bool {
+	// Browse a new file
 
 	moveCursor(br.dispHeight, 1, true)
 	lbuf, cancelled := userFileComp()
 	file := strings.TrimSpace(lbuf)
+
+	// Remove single and double quotes from the input
+	file = strings.ReplaceAll(file, "'", "")
+	file = strings.ReplaceAll(file, "\"", "")
 
 	if !cancelled && len(file) > 0 {
 		sbuf := subCommandChars(file, "%", br.fileName)
@@ -479,7 +483,7 @@ func waitForInput(br *browseObj) {
 		if err == nil {
 			if time.Since(info.ModTime()) > modTimeThreshold {
 				// don't wait for files unchanged in the last 5 seconds
-				return
+				break
 			}
 		}
 
@@ -511,11 +515,19 @@ func waitForInput(br *browseObj) {
 func shiftLongest(br *browseObj) int {
 	// shift to the end of the longest line on the page
 
+	if TABWIDTH == 0 {
+		return 0
+	}
+
 	longest := 0
 	lastRow := minimum(br.firstRow+br.dispRows, br.mapSiz)
 
 	for i := br.firstRow; i < lastRow; i++ {
-		lineLength := len(br.readFromMap(i))
+		line := br.readFromMap(i)
+		if line == nil {
+			continue
+		}
+		lineLength := len(line)
 
 		if lineLength > longest {
 			longest = lineLength
@@ -537,7 +549,7 @@ func handlePanic(br *browseObj) {
 	// graceful exit
 
 	if r := recover(); r != nil {
-		moveCursor(br.dispHeight-1, 1, true)
+		moveCursor(br.dispRows, 1, true)
 		fmt.Printf("%s%s panic: %v %s\n", CLEARSCREEN, MSG_RED, r, VIDOFF)
 		br.saneExit()
 	}
