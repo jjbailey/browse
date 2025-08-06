@@ -55,7 +55,7 @@ func (br *browseObj) saneExit() {
 
 func (br *browseObj) catchSignals() {
 	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGWINCH)
+	signal.Notify(sigChan, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGWINCH)
 	signal.Ignore(syscall.SIGALRM, syscall.SIGCHLD, syscall.SIGURG)
 
 	go func() {
