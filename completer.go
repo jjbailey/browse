@@ -61,7 +61,8 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 	p := prompt.New(
 		func(in string) { /* no-op executor */ },
 		completer,
-		prompt.OptionDescriptionTextColor(prompt.Green),
+		prompt.OptionDescriptionBGColor(prompt.DarkGray),
+		prompt.OptionDescriptionTextColor(prompt.Yellow),
 		prompt.OptionHistory(history),
 		prompt.OptionMaxSuggestion(dispSuggestions),
 		prompt.OptionPrefix(promptStr),
@@ -168,17 +169,26 @@ func completer(d prompt.Document) []prompt.Suggest {
 				break
 			}
 
-			if file.IsDir() {
+			if file.Type()&os.ModeSymlink != 0 {
 				if baseWord == "" || strings.HasPrefix(file.Name(), baseWord) {
 					suggestions = append(suggestions, prompt.Suggest{
-						Text: filepath.Join(dir, file.Name()),
+						Text: filepath.Join(dir, file.Name()), Description: "symlink",
 					})
 				}
 
 				continue
 			}
 
-			// Include all files
+			if file.IsDir() {
+				if baseWord == "" || strings.HasPrefix(file.Name(), baseWord) {
+					suggestions = append(suggestions, prompt.Suggest{
+						Text: filepath.Join(dir, file.Name()), Description: "directory",
+					})
+				}
+
+				continue
+			}
+
 			if baseWord == "" || strings.HasPrefix(file.Name(), baseWord) {
 				suggestions = append(suggestions, prompt.Suggest{
 					Text: filepath.Join(dir, file.Name()),
@@ -210,10 +220,20 @@ func completer(d prompt.Document) []prompt.Suggest {
 				break
 			}
 
+			if file.Type()&os.ModeSymlink != 0 {
+				if strings.HasPrefix(file.Name(), word) {
+					suggestions = append(suggestions, prompt.Suggest{
+						Text: file.Name(), Description: "symlink",
+					})
+				}
+
+				continue
+			}
+
 			if file.IsDir() {
 				if strings.HasPrefix(file.Name(), word) {
 					suggestions = append(suggestions, prompt.Suggest{
-						Text: file.Name(),
+						Text: file.Name(), Description: "directory",
 					})
 				}
 
