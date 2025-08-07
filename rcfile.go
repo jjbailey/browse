@@ -117,18 +117,4 @@ func (br *browseObj) readRcFile() bool {
 	return true
 }
 
-func resolveSymlink(path string) string {
-	absPath, err := filepath.Abs(path)
-	if err != nil || len(absPath) == 0 {
-		return path
-	}
-
-	realPath, err := filepath.EvalSymlinks(absPath)
-	if err != nil || len(realPath) == 0 {
-		return absPath
-	}
-
-	return realPath
-}
-
 // vim: set ts=4 sw=4 noet:
