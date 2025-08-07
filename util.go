@@ -156,6 +156,10 @@ func subCommandChars(input, char, repl string) string {
 }
 
 func resolveSymlink(path string) string {
+	if path == "" {
+		return ""
+	}
+
 	absPath, err := filepath.Abs(path)
 	if err != nil {
 		return path
@@ -166,7 +170,7 @@ func resolveSymlink(path string) string {
 		return "broken symlink"
 	}
 
-	return realPath
+	return filepath.Clean(realPath)
 }
 
 // vim: set ts=4 sw=4 noet:
