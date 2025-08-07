@@ -18,23 +18,24 @@ import (
 func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin bool) {
 	// file initializations
 
-	br.fp = fp
 	br.fileName = fileName
-	br.title = title
+	br.fp = fp
 	br.fromStdin = fromStdin
+	br.lastMatch = SEARCH_RESET
+	br.title = title
 }
 
 func (br *browseObj) browseInit() {
 	// screen initializations
 
+	br.hitEOF = false
 	br.ignoreCase = false
 	br.lastMatch = SEARCH_RESET
-	br.hitEOF = false
-	br.shownEOF = false
-	br.shownMsg = false
-	br.shiftWidth = 0
 	br.modeNumbers = false
 	br.modeScroll = MODE_SCROLL_NONE
+	br.shiftWidth = 0
+	br.shownEOF = false
+	br.shownMsg = false
 
 	br.saveRC = false
 	br.exit = false
