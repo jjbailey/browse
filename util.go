@@ -157,13 +157,13 @@ func subCommandChars(input, char, repl string) string {
 
 func resolveSymlink(path string) string {
 	absPath, err := filepath.Abs(path)
-	if err != nil || len(absPath) == 0 {
+	if err != nil {
 		return path
 	}
 
 	realPath, err := filepath.EvalSymlinks(absPath)
-	if err != nil || len(realPath) == 0 {
-		return absPath
+	if err != nil {
+		return "broken symlink"
 	}
 
 	return realPath
