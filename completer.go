@@ -33,7 +33,7 @@ func userBashComp() (string, bool) {
 
 	// Get hostname title
 	title := getHostnameTitle()
-	fmt.Printf("\033]0;%s\007", title)
+	fmt.Printf(XTERMTITLE, title)
 
 	ttyBrowser()
 	return input, flag
@@ -45,7 +45,7 @@ func userFileComp() (string, bool) {
 
 	// Get hostname title
 	title := getHostnameTitle()
-	fmt.Printf("\033]0;%s\007", title)
+	fmt.Printf(XTERMTITLE, title)
 
 	ttyBrowser()
 	return input, flag
