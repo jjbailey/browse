@@ -197,33 +197,28 @@ func appendSuggestions(suggestions *[]prompt.Suggest, files []os.DirEntry, dir s
 		}
 
 		var suggest prompt.Suggest
-		path := filepath.Join(dir, file.Name())
 		text := file.Name()
+		path := filepath.Join(dir, text)
 		if useFullPath {
 			text = path
 		}
 
-		info, err := os.Lstat(text)
-		if err != nil {
-			continue
-		}
+		switch {
 
-		switch mode := info.Mode(); {
-
-		case mode&os.ModeSymlink != 0:
-			realPath := resolveSymlink(text)
+		case file.Type()&os.ModeSymlink != 0:
+			realPath := resolveSymlink(path)
 			suggest = prompt.Suggest{
 				Text:        text,
 				Description: "-> " + realPath,
 			}
 
-		case mode&os.ModeNamedPipe != 0:
+		case file.Type()&os.ModeNamedPipe != 0:
 			suggest = prompt.Suggest{
 				Text:        text,
 				Description: "named pipe",
 			}
 
-		case mode.IsDir():
+		case file.IsDir():
 			suggest = prompt.Suggest{
 				Text:        text,
 				Description: "directory",
