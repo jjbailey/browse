@@ -1,4 +1,5 @@
 // runinpty.go
+// run a bash command in a pseudo tty
 //
 // Copyright (c) 2024-2025 jjb
 // All rights reserved.
