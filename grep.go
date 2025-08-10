@@ -28,13 +28,13 @@ func (br *browseObj) runGrep() {
 	}
 
 	grepPath, err := exec.LookPath("grep")
-	if len(grepPath) == 0 || err != nil {
+	if err != nil || grepPath == "" {
 		br.printMessage("Cannot find grep in $PATH", MSG_ORANGE)
 		return
 	}
 
 	brPath, err := exec.LookPath("browse")
-	if len(brPath) == 0 || err != nil {
+	if err != nil || brPath == "" {
 		br.printMessage("Cannot find browse in $PATH", MSG_ORANGE)
 		return
 	}
@@ -67,7 +67,9 @@ func (br *browseObj) runGrep() {
 	fmt.Printf("$ %s\n", cmd.String())
 
 	// set up env, run
+	fmt.Print(CURSAVE)
 	resetScrRegion()
+	fmt.Print(CURRESTORE)
 	br.runInPty(cmd.String())
 	br.resizeWindow()
 	fmt.Print(LINEWRAPOFF)

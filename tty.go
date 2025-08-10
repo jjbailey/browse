@@ -10,48 +10,80 @@
 package main
 
 import (
-	"github.com/k0kubun/go-termios"
+	"os"
+
+	"golang.org/x/sys/unix"
 )
 
 var (
-	saneTerm termios.Termios
-	prmTerm  termios.Termios
-	rawTerm  termios.Termios
+	savedTermios *unix.Termios
 )
 
 func ttySaveTerm() {
-	saneTerm.GetAttr(termios.Stdout)
+	// Get the current terminal settings
+	termios, err := unix.IoctlGetTermios(int(os.Stdout.Fd()), unix.TCGETS)
+	if err == nil {
+		savedTermios = termios
+	}
 }
 
 func ttyRestore() {
-	saneTerm.SetAttr(termios.Stdout, termios.TCSAFLUSH)
+	if savedTermios != nil {
+		unix.IoctlSetTermios(int(os.Stdout.Fd()), unix.TCSETSF, savedTermios)
+	}
 }
 
 func ttyBrowser() {
-	rawTerm = saneTerm
-	lflag := termios.ISIG | termios.ICANON | termios.ECHO | termios.ECHOK | termios.ECHONL
+	// Get the current terminal settings
+	termios, err := unix.IoctlGetTermios(int(os.Stdout.Fd()), unix.TCGETS)
+	if err != nil {
+		return
+	}
 
-	rawTerm.IFlag &= termios.INLCR
-	rawTerm.LFlag &^= termios.Flag(lflag)
-	rawTerm.CC[termios.VMIN] = 0
-	rawTerm.CC[termios.VTIME] = 1
-	// depends on key mapping
-	rawTerm.CC[termios.VERASE] = '\b'
+	// Save a copy of the original termios for ttyPrompter
+	if savedTermios == nil {
+		savedTermios = termios
+	}
 
-	rawTerm.SetAttr(termios.Stdout, termios.TCSAFLUSH)
+	// Set input flags - clear all except INLCR
+	termios.Iflag &^= ^uint32(unix.INLCR)
+
+	// Set local flags - clear ISIG, ICANON, ECHO, ECHOK, ECHONL
+	lflag := unix.ISIG | unix.ICANON | unix.ECHO | unix.ECHOK | unix.ECHONL
+	termios.Lflag &^= uint32(lflag)
+
+	// Set VMIN and VTIME
+	termios.Cc[unix.VMIN] = 0
+	termios.Cc[unix.VTIME] = 1
+
+	// Set VERASE to backspace
+	termios.Cc[unix.VERASE] = '\b'
+
+	// Apply the settings
+	unix.IoctlSetTermios(int(os.Stdout.Fd()), unix.TCSETSF, termios)
 }
 
 func ttyPrompter() {
-	prmTerm = saneTerm
-	lflag := termios.ICANON | termios.ECHO | termios.ECHOK | termios.ECHONL
+	// Get the current terminal settings
+	termios, err := unix.IoctlGetTermios(int(os.Stdout.Fd()), unix.TCGETS)
+	if err != nil {
+		return
+	}
 
-	prmTerm.IFlag |= termios.INLCR
-	prmTerm.LFlag |= termios.ISIG
-	prmTerm.LFlag &^= termios.Flag(lflag)
-	prmTerm.CC[termios.VMIN] = 1
-	prmTerm.CC[termios.VTIME] = 0
+	// Set input flags - enable INLCR
+	termios.Iflag |= unix.INLCR
 
-	prmTerm.SetAttr(termios.Stdout, termios.TCSAFLUSH)
+	// Set local flags - enable ISIG, disable ICANON, ECHO, ECHOK, ECHONL
+	lflag := unix.ICANON | unix.ECHO | unix.ECHOK | unix.ECHONL
+	termios.Lflag |= unix.ISIG
+	termios.Lflag &^= uint32(lflag)
+
+	// Set VMIN and VTIME
+	termios.Cc[unix.VMIN] = 1
+	termios.Cc[unix.VTIME] = 0
+
+	// Apply the settings
+	unix.IoctlSetTermios(int(os.Stdout.Fd()), unix.TCSETSF, termios)
 }
 
 // vim: set ts=4 sw=4 noet:

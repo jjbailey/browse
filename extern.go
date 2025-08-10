@@ -18,7 +18,7 @@ import (
 // ─── Build Information ──────────────────────────────────────────────
 
 const (
-	BR_VERSION = "0.60"
+	BR_VERSION = "0.61"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -44,6 +44,7 @@ const (
 	RESETREGION  = "\033[r"
 	LINEWRAPOFF  = "\033[?7l"
 	LINEWRAPON   = "\033[?7h"
+	XTERMTITLE   = "\033]0;%s\007"
 )
 
 // ─── Graphic Line Drawing ───────────────────────────────────────────

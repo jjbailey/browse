@@ -33,7 +33,7 @@ func userBashComp() (string, bool) {
 
 	// Get hostname title
 	title := getHostnameTitle()
-	fmt.Printf("\033]0;%s\007", title)
+	fmt.Printf(XTERMTITLE, title)
 
 	ttyBrowser()
 	return input, flag
@@ -45,7 +45,7 @@ func userFileComp() (string, bool) {
 
 	// Get hostname title
 	title := getHostnameTitle()
-	fmt.Printf("\033]0;%s\007", title)
+	fmt.Printf(XTERMTITLE, title)
 
 	ttyBrowser()
 	return input, flag
@@ -61,7 +61,8 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 	p := prompt.New(
 		func(in string) { /* no-op executor */ },
 		completer,
-		prompt.OptionDescriptionTextColor(prompt.Green),
+		prompt.OptionDescriptionBGColor(prompt.DarkGray),
+		prompt.OptionDescriptionTextColor(prompt.Yellow),
 		prompt.OptionHistory(history),
 		prompt.OptionMaxSuggestion(dispSuggestions),
 		prompt.OptionPrefix(promptStr),
@@ -148,44 +149,18 @@ func completer(d prompt.Document) []prompt.Suggest {
 		// Get the directory part of the path
 		dir := filepath.Dir(word)
 
-		// List files in the specified directory
 		files, err := os.ReadDir(dir)
 		if err != nil {
 			return suggestions
 		}
 
-		// If the word ends with a slash, we're looking for everything in that directory
-		// Otherwise, we're looking for files/dirs that match the base name
-		var baseWord string
 		if strings.HasSuffix(word, "/") {
-			baseWord = ""
+			word = ""
 		} else {
-			baseWord = filepath.Base(word)
+			word = filepath.Base(word)
 		}
 
-		for _, file := range files {
-			if len(suggestions) >= maxSuggestions {
-				break
-			}
-
-			if file.IsDir() {
-				if baseWord == "" || strings.HasPrefix(file.Name(), baseWord) {
-					suggestions = append(suggestions, prompt.Suggest{
-						Text: filepath.Join(dir, file.Name()),
-					})
-				}
-
-				continue
-			}
-
-			// Include all files
-			if baseWord == "" || strings.HasPrefix(file.Name(), baseWord) {
-				suggestions = append(suggestions, prompt.Suggest{
-					Text: filepath.Join(dir, file.Name()),
-				})
-			}
-		}
-
+		appendSuggestions(&suggestions, files, dir, word, true)
 		return suggestions
 	}
 
@@ -205,31 +180,58 @@ func completer(d prompt.Document) []prompt.Suggest {
 			continue
 		}
 
-		for _, file := range files {
-			if len(suggestions) >= maxSuggestions {
-				break
-			}
-
-			if file.IsDir() {
-				if strings.HasPrefix(file.Name(), word) {
-					suggestions = append(suggestions, prompt.Suggest{
-						Text: file.Name(),
-					})
-				}
-
-				continue
-			}
-
-			// Include all files
-			if strings.HasPrefix(file.Name(), word) {
-				suggestions = append(suggestions, prompt.Suggest{
-					Text: file.Name(),
-				})
-			}
-		}
+		appendSuggestions(&suggestions, files, dir, word, false)
 	}
 
 	return suggestions
+}
+
+func appendSuggestions(suggestions *[]prompt.Suggest, files []os.DirEntry, dir string, prefix string, useFullPath bool) {
+	for _, file := range files {
+		if len(*suggestions) >= maxSuggestions {
+			break
+		}
+
+		if !strings.HasPrefix(file.Name(), prefix) {
+			continue
+		}
+
+		var suggest prompt.Suggest
+		text := file.Name()
+		path := filepath.Join(dir, text)
+		if useFullPath {
+			text = path
+		}
+
+		switch {
+
+		case file.Type()&os.ModeSymlink != 0:
+			realPath := resolveSymlink(path)
+			suggest = prompt.Suggest{
+				Text:        text,
+				Description: "-> " + realPath,
+			}
+
+		case file.Type()&os.ModeNamedPipe != 0:
+			suggest = prompt.Suggest{
+				Text:        text,
+				Description: "named pipe",
+			}
+
+		case file.IsDir():
+			suggest = prompt.Suggest{
+				Text:        text,
+				Description: "directory",
+			}
+
+		default:
+			suggest = prompt.Suggest{
+				Text: text,
+			}
+		}
+
+		*suggestions = append(*suggestions, suggest)
+	}
 }
 
 // vim: set ts=4 sw=4 noet:

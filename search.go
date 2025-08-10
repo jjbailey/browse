@@ -296,7 +296,7 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 	var cp string
 	if len(pattern) == 0 {
 		if len(br.pattern) == 0 {
-			return 0, fmt.Errorf("No search pattern")
+			return 0, nil
 		}
 		pattern = br.pattern
 	}
