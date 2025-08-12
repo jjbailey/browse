@@ -33,7 +33,6 @@ func (br *browseObj) userAnyKey(prompt string) {
 		moveCursor(2, 1, false)
 	} else {
 		moveCursor(br.dispHeight, 1, true)
-		ttyBrowser()
 		fmt.Print(prompt)
 	}
 
