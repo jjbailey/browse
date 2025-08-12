@@ -238,7 +238,6 @@ func commands(br *browseObj) {
 
 		case CMD_PAGE_DN, CMD_PAGE_DN_1:
 			// page forward/down
-			br.restoreLast()
 			br.pageDown()
 
 		case CMD_SCROLL_DN, CMD_SCROLL_DN_1:
