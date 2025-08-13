@@ -444,18 +444,26 @@ func fileCommand(br *browseObj) bool {
 	// Browse a new file
 
 	moveCursor(br.dispHeight, 1, true)
+
 	lbuf, cancelled := userFileComp()
+	if cancelled {
+		br.pageCurrent()
+		return false
+	}
+
 	file := strings.TrimSpace(lbuf)
+	if file == "" {
+		br.pageCurrent()
+		return false
+	}
 
 	// Remove single and double quotes from the input
 	file = strings.ReplaceAll(file, "'", "")
 	file = strings.ReplaceAll(file, "\"", "")
 
-	if !cancelled && len(file) > 0 {
-		sbuf := subCommandChars(file, "%", br.fileName)
-		if browseFile(br, sbuf, setTitle(sbuf, sbuf), false, true) {
-			return true
-		}
+	sbuf := subCommandChars(file, "%", br.fileName)
+	if browseFile(br, sbuf, setTitle(sbuf, sbuf), false, true) {
+		return true
 	}
 
 	br.pageCurrent()
