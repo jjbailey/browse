@@ -205,53 +205,46 @@ func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool)
 }
 
 func (br *browseObj) replaceMatch(lineno int, input string) string {
-	// Return the new line with or without line numbers, applying regex replacements as needed
-
 	sol := br.shiftWidth
 
-	// If the shifted start is past the end of the input, return blank/empty
-	if sol >= len(input) {
-		if br.modeNumbers {
-			return fmt.Sprintf(LINENUMBERS, lineno, "")
-		}
-
-		return ""
+	// Slice safely
+	var content string
+	if sol < len(input) {
+		content = input[sol:]
+	} else {
+		content = ""
 	}
 
-	// If no search pattern, just return the line (possibly with numbers)
-	if br.noSearchPattern() {
-		line := input[sol:]
-		if br.modeNumbers {
-			return fmt.Sprintf(LINENUMBERS, lineno, line)
-		}
-
-		return line
-	}
-
-	// There is a search pattern: do regex replacement and possibly highlight
-	// Safety check: ensure regex is compiled
-	if br.re == nil {
-		// Fallback to no replacement if regex is not compiled
-		if br.modeNumbers {
-			return fmt.Sprintf(LINENUMBERS, lineno, input[sol:])
-		}
-		return input[sol:]
+	if br.noSearchPattern() || br.re == nil {
+		return br.formatLine(lineno, content)
 	}
 
 	leftMatch, rightMatch := br.undisplayedMatches(input, sol)
 
+	if content == "" {
+		if leftMatch {
+			return br.formatLine(lineno, _VID_ORANGE_FG+"<<<"+VIDOFF)
+		}
+
+		return br.formatLine(lineno, "")
+	}
+
 	var replaced string
 	if leftMatch || rightMatch {
-		replaced = _VID_GREEN_FG + br.re.ReplaceAllString(input[sol:], br.replace+_VID_GREEN_FG)
+		replaced = _VID_GREEN_FG + br.re.ReplaceAllString(content, br.replace+_VID_GREEN_FG)
 	} else {
-		replaced = br.re.ReplaceAllString(input[sol:], br.replace)
+		replaced = br.re.ReplaceAllString(content, br.replace)
 	}
 
+	return br.formatLine(lineno, replaced)
+}
+
+func (br *browseObj) formatLine(lineno int, content string) string {
 	if br.modeNumbers {
-		return fmt.Sprintf(LINENUMBERS, lineno, replaced)
+		return fmt.Sprintf(LINENUMBERS, lineno, content)
 	}
 
-	return replaced
+	return content
 }
 
 func (br *browseObj) noSearchPattern() bool {
