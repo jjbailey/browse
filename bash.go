@@ -61,13 +61,13 @@ func (br *browseObj) bashCommand() {
 	history = append(history, cmdbuf)
 	saveHistory(history, commHistory)
 
-	// feedback
+	// Display command preview
 	fmt.Print(CURUP + CLEARLINE + CURUP + CLEARLINE)
 	fmt.Print("---\n")
 	fmt.Print(LINEWRAPON)
 	fmt.Printf("$ %s\n", cmdbuf)
 
-	// set up env, run
+	// Run command in a PTY
 	fmt.Print(CURSAVE)
 	resetScrRegion()
 	fmt.Print(CURRESTORE)

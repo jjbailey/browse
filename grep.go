@@ -47,26 +47,21 @@ func (br *browseObj) runGrep() {
 		brOpts = browseIgnoreCase
 	}
 
-	// build the command
+	title := fmt.Sprintf("grep %s -e \"%s\"", grepOpts, br.pattern)
+
 	var cmd strings.Builder
 	cmd.Grow(256)
 
-	fmt.Fprintf(&cmd, "%s %s -e '%s' %s | %s %s",
-		grepPath, grepOpts, br.pattern, br.fileName, brPath, brOpts)
+	fmt.Fprintf(&cmd, "%s %s -e '%s' %s | %s %s -p '%s' -t '%s'",
+		grepPath, grepOpts, br.pattern, br.fileName,
+		brPath, brOpts, br.pattern, title)
 
-	if br.pattern != "" {
-		fmt.Fprintf(&cmd, " -p '%s'", br.pattern)
-	}
-
-	title := fmt.Sprintf("grep %s -e \"%s\"", grepOpts, br.pattern)
-	fmt.Fprintf(&cmd, " -t '%s'", title)
-
-	// feedback
+	// Display command preview
 	moveCursor(br.dispHeight, 1, true)
 	fmt.Print("---\n", LINEWRAPON)
 	fmt.Printf("$ %s\n", cmd.String())
 
-	// set up env, run
+	// Run command in a PTY
 	fmt.Print(CURSAVE)
 	resetScrRegion()
 	fmt.Print(CURRESTORE)
