@@ -223,7 +223,7 @@ func (br *browseObj) replaceMatch(lineno int, input string) string {
 
 	if content == "" {
 		if leftMatch {
-			return br.formatLine(lineno, _VID_ORANGE_FG+"<<<"+VIDOFF)
+			return br.formatLine(lineno, _VID_ORANGE_FG+"\u2190"+VIDOFF)
 		}
 
 		return br.formatLine(lineno, "")
