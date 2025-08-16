@@ -28,7 +28,7 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 	var err error
 	var patternLen int
 
-	if len(pattern) == 0 {
+	if pattern == "" {
 		// should not happen
 		br.printMessage("No search pattern", MSG_ORANGE)
 		return false
@@ -249,7 +249,7 @@ func (br *browseObj) formatLine(lineno int, content string) string {
 }
 
 func (br *browseObj) noSearchPattern() bool {
-	return br.re == nil || len(br.re.String()) == 0
+	return br.re == nil || br.re.String() == ""
 }
 
 func (br *browseObj) doSearch(oldDir, newDir bool) bool {
@@ -288,10 +288,12 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 
 func (br *browseObj) reCompile(pattern string) (int, error) {
 	var cp string
-	if len(pattern) == 0 {
-		if len(br.pattern) == 0 {
+
+	if pattern == "" {
+		if br.pattern == "" {
 			return 0, nil
 		}
+
 		pattern = br.pattern
 	}
 
