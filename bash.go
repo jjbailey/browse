@@ -11,18 +11,26 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
 var prevCommand string
 
 func (br *browseObj) bashCommand() {
-	// run a command with bash
+	// Run a command with bash
 
 	moveCursor(br.dispHeight, 1, true)
-	input, cancelled := userBashComp()
 
-	if cancelled || len(input) == 0 {
+	input, cancelled := userBashComp()
+	if cancelled {
 		br.pageCurrent()
+		return
+	}
+
+	input = strings.TrimSpace(input)
+	if input == "" {
+		br.pageCurrent()
+		return
 	}
 
 	// limit input length to prevent buffer overflows
@@ -43,7 +51,7 @@ func (br *browseObj) bashCommand() {
 		cmdbuf = subCommandChars(cmdbuf, "&", `'`+br.pattern+`'`)
 	}
 
-	if len(cmdbuf) == 0 {
+	if cmdbuf == "" {
 		br.pageCurrent()
 		return
 	}
@@ -53,13 +61,13 @@ func (br *browseObj) bashCommand() {
 	history = append(history, cmdbuf)
 	saveHistory(history, commHistory)
 
-	// feedback
+	// Display command preview
 	fmt.Print(CURUP + CLEARLINE + CURUP + CLEARLINE)
 	fmt.Print("---\n")
 	fmt.Print(LINEWRAPON)
 	fmt.Printf("$ %s\n", cmdbuf)
 
-	// set up env, run
+	// Run command in a PTY
 	fmt.Print(CURSAVE)
 	resetScrRegion()
 	fmt.Print(CURRESTORE)

@@ -17,10 +17,7 @@ func (br *browseObj) scrollDown(count int) {
 	// scroll down, toward EOF, stop at EOF
 	// there's more hand-waving here than meets the eye
 
-	if br.shownMsg {
-		// the last line contains a message
-		br.restoreLast()
-	}
+	br.restoreLast()
 
 	if br.lastRow > br.mapSiz || br.hitEOF {
 		// nothing more to show
@@ -115,6 +112,23 @@ func (br *browseObj) toggleMode(mode int) {
 		br.modeScroll = MODE_SCROLL_NONE
 	} else {
 		br.modeScroll = mode
+	}
+}
+
+func (br *browseObj) restoreLast() {
+	// restore the last (prompt) line
+
+	if br.shownMsg {
+		moveCursor(br.dispHeight, 1, true)
+
+		// -2 for SOF, EOF
+		if br.lastRow > (br.dispHeight - 2) {
+			fmt.Print(CURUP)
+			br.printLine(br.lastRow - 1)
+		}
+
+		fmt.Print(CURRESTORE)
+		br.shownMsg = false
 	}
 }
 

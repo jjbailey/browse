@@ -40,7 +40,7 @@ func ttyBrowser() {
 		return
 	}
 
-	// Save a copy of the original termios for ttyPrompter
+	// Save a copy of the original termios for ttyRestore
 	if savedTermios == nil {
 		savedTermios = termios
 	}

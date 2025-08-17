@@ -19,17 +19,16 @@ import (
 
 func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset bool) bool {
 	targetFile := strings.TrimSuffix(fileName, "/")
-	basename := filepath.Base(targetFile)
 
 	// Validate and open the file
-	fp, err := validateAndOpenFile(targetFile, basename, br)
+	fp, err := validateAndOpenFile(targetFile, br)
 	if err != nil {
 		return false
 	}
 	defer fp.Close()
 
 	// Check if file is binary and warn user
-	checkBinaryFile(targetFile, basename, br)
+	checkBinaryFile(br, targetFile)
 
 	// Reset browser state if requested
 	if reset {
@@ -42,7 +41,7 @@ func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset boo
 	return processFileBrowsing(br)
 }
 
-func validateAndOpenFile(targetFile, basename string, br *browseObj) (*os.File, error) {
+func validateAndOpenFile(targetFile string, br *browseObj) (*os.File, error) {
 	// Check if file exists and get file info
 	stat, err := os.Stat(targetFile)
 	if err != nil {
@@ -52,7 +51,7 @@ func validateAndOpenFile(targetFile, basename string, br *browseObj) (*os.File, 
 
 	// Ensure it's not a directory
 	if stat.IsDir() {
-		br.timedMessage(fmt.Sprintf("%s: is a directory", basename), MSG_RED)
+		br.timedMessage(fmt.Sprintf("%s: is a directory", filepath.Base(targetFile)), MSG_RED)
 		return nil, fmt.Errorf("file is a directory")
 	}
 
@@ -66,9 +65,9 @@ func validateAndOpenFile(targetFile, basename string, br *browseObj) (*os.File, 
 	return fp, nil
 }
 
-func checkBinaryFile(targetFile, basename string, br *browseObj) {
+func checkBinaryFile(br *browseObj, targetFile string) {
 	if isBinaryFile(targetFile) {
-		br.timedMessage(fmt.Sprintf("%s: is a binary file", basename), MSG_ORANGE)
+		br.timedMessage(fmt.Sprintf("%s: is a binary file", filepath.Base(targetFile)), MSG_ORANGE)
 	}
 }
 

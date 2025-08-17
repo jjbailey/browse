@@ -39,24 +39,19 @@ func (br *browseObj) printLine(lineno int) {
 		return
 	}
 
-	// Formatting:
+	// Formatting
 	output := br.replaceMatch(lineno, input)
 
 	// Build output using a Builder to reduce stdout calls
 	var lineOut strings.Builder
-	lineOut.Grow(len(output) + 16) // rough guess with margin
+	// rough guess with margin
+	lineOut.Grow(len(output) + 16)
 
 	lineOut.WriteString(LINEWRAPOFF)
 	lineOut.WriteByte('\n')
 	lineOut.WriteString(output)
 	lineOut.WriteString(VIDOFF)
 	lineOut.WriteString(CLEARLINE)
-
-	// Only save cursor if screen is not full yet
-	if lineno < br.dispRows {
-		lineOut.WriteString("\r")
-		lineOut.WriteString(CURSAVE)
-	}
 
 	fmt.Print(lineOut.String())
 
@@ -137,23 +132,6 @@ func (br *browseObj) printMessage(msg string, color string) {
 
 	// scrollDown needs this
 	br.shownMsg = true
-}
-
-func (br *browseObj) restoreLast() {
-	// restore the last (prompt) line
-
-	if br.shownMsg {
-		moveCursor(br.dispHeight, 1, true)
-
-		// -2 for SOF, EOF
-		if br.lastRow > (br.dispHeight - 2) {
-			fmt.Print(CURUP)
-			br.printLine(br.lastRow - 1)
-		}
-
-		fmt.Print(CURRESTORE)
-		br.shownMsg = false
-	}
 }
 
 // vim: set ts=4 sw=4 noet:
