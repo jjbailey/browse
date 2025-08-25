@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-func GetHomeDir(username string) (string, error) {
+func getHomeDir(username string) (string, error) {
 	file, err := os.Open("/etc/passwd")
 	if err != nil {
 		return "", err
