@@ -13,6 +13,7 @@ import (
 	"bufio"
 	"io"
 	"os"
+	"sync/atomic"
 	"time"
 
 	"golang.org/x/sys/unix"
@@ -34,45 +35,65 @@ func readFile(br *browseObj, ch chan bool) {
 
 	var bytesRead int64
 	var err error
-	var notified bool
+	var notified int32
 
 	readInit(br, &bytesRead)
 
 	fd := int(br.fp.Fd())
 	dupFd, err := unix.Dup(fd)
 	if err != nil {
+		br.printMessage("Failed to duplicate file descriptor: "+err.Error(), MSG_RED)
+		select {
+		case ch <- false:
+		default:
+		}
 		return
 	}
 
 	readerFp := os.NewFile(uintptr(dupFd), br.fileName)
-	defer readerFp.Close()
+	if readerFp == nil {
+		unix.Close(dupFd)
+		br.printMessage("Failed to create file from descriptor", MSG_RED)
+		select {
+		case ch <- false:
+		default:
+		}
+		return
+	}
+	defer func() {
+		readerFp.Close()
+		unix.Close(dupFd)
+	}()
 
-	reader := bufio.NewReader(readerFp)
-
-	// Get initial filename
+	// Get initial filename with mutex protection
+	br.mutex.Lock()
 	saveFileName := br.fileName
+	br.mutex.Unlock()
 
 	for {
-		// Check if file changed before doing anything else
+		// Check if file changed with mutex protection
 		br.mutex.Lock()
-		if br.fileName != saveFileName {
-			// new file -- exit thread
-			br.mutex.Unlock()
-			return
-		}
+		currentFileName := br.fileName
 		br.mutex.Unlock()
 
-		// Get file size with minimal mutex lock
-		br.mutex.Lock()
-		br.newFileSiz, err = getFileSize(readerFp)
-		if err != nil {
-			if !notified {
-				ch <- false
-			}
-			br.mutex.Unlock()
+		if currentFileName != saveFileName {
+			// new file -- exit thread
 			return
 		}
-		br.mutex.Unlock()
+
+		var newSize int64
+		newSize, err = getFileSize(readerFp)
+		if err != nil {
+			select {
+			case ch <- false:
+			default:
+			}
+			return
+		}
+
+		var shouldRead bool
+		br.mutex.Lock()
+		br.newFileSiz = newSize
 
 		// Handle file truncation
 		if br.newFileSiz < br.savFileSiz {
@@ -80,34 +101,68 @@ func readFile(br *browseObj, ch chan bool) {
 			readInit(br, &bytesRead)
 			br.modeScroll = MODE_SCROLL_NONE
 			br.shownMsg = false
+			shouldRead = true
+		} else {
+			// Check if file grew
+			shouldRead = br.savFileSiz == 0 || br.savFileSiz < br.newFileSiz
 		}
+		br.mutex.Unlock()
 
-		// Read new content if file grew
-		if br.savFileSiz == 0 || br.savFileSiz < br.newFileSiz {
-			br.mutex.Lock()
-			readerFp.Seek(br.seekMap[br.mapSiz], io.SeekStart)
+		if shouldRead {
+			// Seek to the last known end of file (or beginning if truncated)
+			_, err = readerFp.Seek(bytesRead, io.SeekStart)
+			if err != nil {
+				// Cannot seek, exit
+				select {
+				case ch <- false:
+				default:
+				}
+				return
+			}
+
+			// Read new lines into temporary structures without holding the lock
+			// to avoid blocking the UI.
+			type lineInfo struct {
+				seek int64
+				size int64
+			}
+			var newLines []lineInfo
+			currentOffset := bytesRead
+			reader := bufio.NewReader(readerFp)
 
 			for {
-				br.seekMap[br.mapSiz] = bytesRead
 				line, err := reader.ReadString('\n')
 				if err != nil {
 					break
 				}
-
 				lineLen := len(line)
-				bytesRead += int64(lineLen)
-				br.sizeMap[br.mapSiz] = int64(minimum(lineLen-1, READBUFSIZ))
-				br.mapSiz++
+				newLines = append(newLines, lineInfo{
+					seek: currentOffset,
+					size: int64(minimum(lineLen-1, READBUFSIZ)),
+				})
+				currentOffset += int64(lineLen)
 			}
 
-			br.hitEOF = false
-			br.savFileSiz = br.newFileSiz
-
-			if !notified {
-				ch <- true
-				notified = true
+			// Now, lock and merge the temporary maps into the main ones
+			if len(newLines) > 0 {
+				br.mutex.Lock()
+				for _, info := range newLines {
+					br.seekMap[br.mapSiz] = info.seek
+					br.sizeMap[br.mapSiz] = info.size
+					br.mapSiz++
+				}
+				br.hitEOF = false
+				br.savFileSiz = br.newFileSiz
+				br.mutex.Unlock()
 			}
-			br.mutex.Unlock()
+			bytesRead = currentOffset
+
+			if atomic.CompareAndSwapInt32(&notified, 0, 1) {
+				select {
+				case ch <- true:
+				default:
+				}
+			}
 		}
 
 		time.Sleep(time.Second)
@@ -134,7 +189,15 @@ func (br *browseObj) readStdin(fin, fout *os.File) bool {
 
 	for {
 		line, err := r.ReadString('\n')
-		if err == io.EOF && empty {
+		if err == io.EOF {
+			if !empty && len(line) > 0 {
+				_, _ = w.WriteString(line)
+			}
+
+			return empty
+		}
+
+		if err != nil {
 			return empty
 		}
 
@@ -154,15 +217,17 @@ func (br *browseObj) readFromMap(lineno int) []byte {
 	// use the maps to read a line from the file
 
 	br.mutex.Lock()
-	defer br.mutex.Unlock()
-
 	if lineno >= br.mapSiz {
-		// should not happen
+		br.mutex.Unlock()
 		return nil
 	}
 
-	data := make([]byte, br.sizeMap[lineno])
-	_, err := br.fp.ReadAt(data, br.seekMap[lineno])
+	seek := br.seekMap[lineno]
+	size := br.sizeMap[lineno]
+	br.mutex.Unlock()
+
+	data := make([]byte, size)
+	_, err := br.fp.ReadAt(data, seek)
 	if err != nil || len(data) == 0 {
 		return nil
 	}
