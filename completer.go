@@ -108,8 +108,8 @@ func completer(d prompt.Document) []prompt.Suggest {
 		return fileCompleter(word)
 	}
 
-	// If searchType == searchPath, complete $PATH executables
-	if searchType == searchPath {
+	// If searchType == searchPath and no space in input, complete $PATH executables
+	if searchType == searchPath && !strings.Contains(d.TextBeforeCursor(), " ") {
 		return pathCompleter(word)
 	}
 
