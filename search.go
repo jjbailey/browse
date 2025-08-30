@@ -80,7 +80,7 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 			warned = true
 		}
 
-		if firstMatch == 0 || lastMatch == 0 {
+		if firstMatch < 0 {
 			startOfPage, endOfPage, wrapped = br.setNextPage(forward, startOfPage)
 			continue
 		}
@@ -120,9 +120,8 @@ func (br *browseObj) pageIsMatch(startOfPage, endOfPage int) (int, int) {
 	// return the first and last regex match on the page
 
 	var (
-		firstMatchLine int
-		lastMatchLine  int
-		hasMatch       bool
+		firstMatchLine int = -1
+		lastMatchLine  int = -1
 	)
 
 	for lineNum := startOfPage; lineNum < endOfPage; lineNum++ {
@@ -130,17 +129,10 @@ func (br *browseObj) pageIsMatch(startOfPage, endOfPage int) (int, int) {
 		if matchCount == 0 {
 			continue
 		}
-
-		if !hasMatch {
+		if firstMatchLine == -1 {
 			firstMatchLine = lineNum
-			hasMatch = true
 		}
-
 		lastMatchLine = lineNum
-	}
-
-	if !hasMatch {
-		return 0, 0
 	}
 
 	return firstMatchLine, lastMatchLine
@@ -148,6 +140,10 @@ func (br *browseObj) pageIsMatch(startOfPage, endOfPage int) (int, int) {
 
 func (br *browseObj) lineIsMatch(lineno int) (int, string) {
 	// check if this line has a regex match
+
+	if lineno < 0 || lineno >= br.mapSiz {
+		return 0, ""
+	}
 
 	lineContent := string(br.readFromMap(lineno))
 
@@ -162,7 +158,6 @@ func (br *browseObj) lineIsMatch(lineno int) (int, string) {
 	}
 
 	matchIndices := br.re.FindAllStringIndex(lineContent, -1)
-
 	return len(matchIndices), lineContent
 }
 
@@ -209,6 +204,7 @@ func (br *browseObj) replaceMatch(lineno int, input string) string {
 
 	// Slice safely
 	var content string
+
 	if sol < len(input) {
 		content = input[sol:]
 	} else {
@@ -231,6 +227,7 @@ func (br *browseObj) replaceMatch(lineno int, input string) string {
 	}
 
 	var replaced string
+
 	if leftMatch || rightMatch {
 		replaced = _VID_GREEN_FG + br.re.ReplaceAllString(content, br.replace+_VID_GREEN_FG)
 	} else {
@@ -322,6 +319,7 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 
 func (br *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
 	// Safety check: ensure regex is compiled
+
 	if br.re == nil {
 		return false, false
 	}
