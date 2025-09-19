@@ -20,8 +20,4 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 )
 
-require (
-	github.com/elk-language/go-prompt v1.3.1 // indirect
-	github.com/pkg/term v1.2.0-beta.2 // indirect
-	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
-)
+require github.com/pkg/term v1.2.0-beta.2 // indirect
