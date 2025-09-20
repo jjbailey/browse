@@ -114,7 +114,7 @@ func completer(d prompt.Document) []prompt.Suggest {
 	}
 
 	// Fallback: complete from current directory
-	return dirCompleter(".", word, false)
+	return dirCompleter(".", word, false, false)
 }
 
 func expandHome(word string) string {
@@ -176,7 +176,7 @@ func fileCompleter(word string) []prompt.Suggest {
 		prefix = ""
 	}
 
-	return dirCompleter(dir, prefix, true)
+	return dirCompleter(dir, prefix, true, false)
 }
 
 func pathCompleter(word string) []prompt.Suggest {
@@ -194,7 +194,7 @@ func pathCompleter(word string) []prompt.Suggest {
 			continue
 		}
 
-		suggestions = append(suggestions, dirCompleter(dir, word, false)...)
+		suggestions = append(suggestions, dirCompleter(dir, word, false, true)...)
 	}
 
 	if len(suggestions) > maxSuggestions {
@@ -204,7 +204,7 @@ func pathCompleter(word string) []prompt.Suggest {
 	return suggestions
 }
 
-func dirCompleter(dir, prefix string, useFullPath bool) []prompt.Suggest {
+func dirCompleter(dir, prefix string, useFullPath bool, onlyExec bool) []prompt.Suggest {
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		return nil
@@ -222,9 +222,23 @@ func dirCompleter(dir, prefix string, useFullPath bool) []prompt.Suggest {
 			continue
 		}
 
+		fullPath := filepath.Join(dir, name)
+
+		info, err := file.Info()
+		if err != nil {
+			continue
+		}
+
+		if onlyExec && !file.IsDir() {
+			mode := info.Mode().Perm()
+			if mode&0111 == 0 {
+				continue
+			}
+		}
+
 		text := name
 		if useFullPath {
-			text = filepath.Join(dir, name)
+			text = fullPath
 		}
 
 		desc := ""
@@ -232,7 +246,7 @@ func dirCompleter(dir, prefix string, useFullPath bool) []prompt.Suggest {
 		switch {
 
 		case file.Type()&os.ModeSymlink != 0:
-			desc = "-> " + resolveSymlink(filepath.Join(dir, name))
+			desc = "-> " + resolveSymlink(fullPath)
 
 		case file.Type()&os.ModeNamedPipe != 0:
 			desc = "named pipe"
