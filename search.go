@@ -372,8 +372,8 @@ func (br *browseObj) restoreLast2() {
 	// similar to restoreLast()
 	// the search prompt uses the last 2 lines
 
-	if br.lastRow < br.dispHeight-1 {
-		moveCursor(br.dispHeight-1, 1, true)
+	if br.lastRow < (br.dispHeight - 1) {
+		moveCursor((br.dispHeight - 1), 1, true)
 		moveCursor(2, 1, false)
 		return
 	}
