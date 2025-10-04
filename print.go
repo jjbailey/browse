@@ -117,7 +117,6 @@ func (br *browseObj) timedMessage(msg, color string) {
 	fmt.Print(LINEWRAPOFF)
 	fmt.Printf("%s %s %s", color, msg, VIDOFF)
 	time.Sleep(1400 * time.Millisecond)
-
 	// scrollDown needs this
 	br.shownMsg = true
 }
@@ -130,6 +129,18 @@ func (br *browseObj) printMessage(msg string, color string) {
 	fmt.Printf("%s %s %s", color, msg, VIDOFF)
 	moveCursor(2, 1, false)
 
+	// scrollDown needs this
+	br.shownMsg = true
+}
+
+func (br *browseObj) debugPrintf(format string, args ...interface{}) {
+	// for debugging
+
+	msg := fmt.Sprintf(format, args...)
+	moveCursor(br.dispHeight, 1, true)
+	fmt.Print(LINEWRAPOFF)
+	fmt.Printf("%s %s %s", _VID_YELLOW_FG, msg, VIDOFF)
+	time.Sleep(3 * time.Second)
 	// scrollDown needs this
 	br.shownMsg = true
 }
