@@ -28,15 +28,16 @@ func (br *browseObj) printLine(lineno int) {
 		return
 	}
 
+	// Do not proceed if we're beyond known lines
+	if lineno > br.mapSiz {
+        fmt.Print(CLEARLINE)
+		return
+	}
+
 	// Get matches and content from map
 	matches, input := br.lineIsMatch(lineno)
 	if matches > 0 {
 		br.lastMatch = lineno
-	}
-
-	// Do not proceed if we're beyond known lines
-	if lineno > br.mapSiz {
-		return
 	}
 
 	// Formatting
