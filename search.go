@@ -52,30 +52,32 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 		}
 	}
 
+	dispRows := br.dispRows
+
 	// Determine start and end of page
 	var startOfPage, endOfPage int
 	var wrapped, warned bool
 
 	if br.lastMatch == SEARCH_RESET {
 		startOfPage = br.firstRow
-		endOfPage = startOfPage + br.dispRows
+		endOfPage = startOfPage + dispRows
 	} else if next {
 		startOfPage, endOfPage, wrapped = br.setNextPage(forward, br.firstRow)
 	} else {
 		// If not a new search and not continuing, use current page
 		startOfPage = br.firstRow
-		endOfPage = startOfPage + br.dispRows
+		endOfPage = startOfPage + dispRows
 	}
 
 	for {
 		firstMatch, lastMatch := br.pageIsMatch(startOfPage, endOfPage)
 
-		if wrapped {
-			if warned {
-				br.printMessage("Pattern not found: "+br.pattern, MSG_ORANGE)
-				return false
-			}
-
+		if wrapped && warned {
+			br.timedMessage("Pattern not found: "+br.pattern, MSG_ORANGE)
+			br.pageCurrent()
+			return false
+		}
+		if wrapped && !warned {
 			br.displayWrapMessage(forward)
 			warned = true
 		}
@@ -93,7 +95,7 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 
 		// Display strategy: reposition the page to provide match context
 		// 1/6 searching down, 5/6 searching up
-		downOffset := br.dispRows / 6
+		downOffset := dispRows / 6
 		upOffset := downOffset * 5
 
 		if forward {
@@ -145,18 +147,11 @@ func (br *browseObj) lineIsMatch(lineno int) (int, string) {
 		return 0, ""
 	}
 
+	if br.noSearchPattern() || br.re == nil {
+		return 0, string(br.readFromMap(lineno))
+	}
+
 	lineContent := string(br.readFromMap(lineno))
-
-	if br.noSearchPattern() {
-		// no regex
-		return 0, lineContent
-	}
-
-	// Safety check: ensure regex is compiled
-	if br.re == nil {
-		return 0, lineContent
-	}
-
 	matchIndices := br.re.FindAllStringIndex(lineContent, -1)
 	return len(matchIndices), lineContent
 }
@@ -170,32 +165,34 @@ func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool)
 		wrapped  bool
 	)
 
+	dispRows := br.dispRows
+
 	if forward {
-		// Forward search: move down by page size
-		newStart = startOfPage + br.dispRows
+		// Forward search
+		newStart = startOfPage + dispRows
 		if newStart >= br.mapSiz {
 			// Wrap to start of file
-			newStart = 0
-			wrapped = true
+			newStart, wrapped = 0, true
 		}
 	} else {
-		// Reverse search: move up by page size
-		if startOfPage > br.dispRows {
-			// Page above
-			newStart = startOfPage - br.dispRows
-			wrapped = false
-		} else if startOfPage > 0 {
-			// Top page - go to beginning of file
-			newStart = 0
-			wrapped = false
-		} else {
-			// Wrap to end of file
-			newStart = maximum(br.mapSiz-br.dispRows, 0)
-			wrapped = true
+		// Reverse search
+		switch {
+
+		case startOfPage > dispRows:
+			// Previous page
+			newStart, wrapped = startOfPage-dispRows, false
+
+		case br.lastMatch < dispRows || startOfPage < dispRows:
+			// Either already searched top page, or already at top -- wrap to end
+			newStart, wrapped = maximum(br.mapSiz-dispRows, 0), true
+
+		default:
+			// Top page but not wrapped → go to beginning
+			newStart, wrapped = 0, false
 		}
 	}
 
-	newEnd = newStart + br.dispRows
+	newEnd = newStart + dispRows
 	return newStart, newEnd, wrapped
 }
 
@@ -250,16 +247,21 @@ func (br *browseObj) noSearchPattern() bool {
 }
 
 func (br *browseObj) doSearch(oldDir, newDir bool) bool {
-	prompt, message := "/", "Searching forward"
-	if !newDir {
-		prompt, message = "?", "Searching reverse"
-	}
+	// Search starts here
 
-	patbuf, _, ignore := br.userInput(prompt)
-	if ignore {
+	moveCursor(br.dispHeight-1, 1, true)
+	patbuf, cancelled := userSearchComp(newDir)
+
+	if cancelled {
 		// user backed out of prompt
+		br.pageCurrent()
 		return oldDir
 	}
+
+	// Save search to history
+	history := loadHistory(searchHistory)
+	history = append(history, patbuf)
+	saveHistory(history, searchHistory)
 
 	if br.pattern != "" {
 		// substitute & with the current search pattern
@@ -268,7 +270,11 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 
 	if oldDir != newDir && (len(patbuf) > 0 || len(br.pattern) > 0) {
 		// print direction
-		br.timedMessage(message, MSG_GREEN)
+		if newDir {
+			br.timedMessage("Searching forward", MSG_GREEN)
+		} else {
+			br.timedMessage("Searching reverse", MSG_GREEN)
+		}
 	}
 
 	if len(patbuf) == 0 {
@@ -324,7 +330,8 @@ func (br *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
 		return false, false
 	}
 
-	matches := br.re.FindAllStringSubmatchIndex(input, -1)
+	// Use FindAllStringIndex (not Submatch) for efficiency
+	matches := br.re.FindAllStringIndex(input, -1)
 	if len(matches) == 0 {
 		return false, false
 	}
