@@ -74,7 +74,8 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 
 		if wrapped && warned {
 			br.timedMessage("Pattern not found: "+br.pattern, MSG_ORANGE)
-			br.pageCurrent()
+			// br.pageCurrent()
+			br.restoreLast2()
 			return false
 		}
 		if wrapped && !warned {
@@ -254,7 +255,8 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 
 	if cancelled {
 		// user backed out of prompt
-		br.pageCurrent()
+		// br.pageCurrent()
+		br.restoreLast2()
 		return oldDir
 	}
 
@@ -364,6 +366,27 @@ func (br *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
 	}
 
 	return leftMatch, rightMatch
+}
+
+func (br *browseObj) restoreLast2() {
+	// similar to restoreLast()
+	// the search prompt uses the last 2 lines
+
+	if br.lastRow < br.dispHeight-1 {
+		moveCursor(br.dispHeight-1, 1, true)
+		moveCursor(2, 1, false)
+		return
+	}
+
+	moveCursor(br.dispHeight, 1, true)
+
+	if br.lastRow > (br.dispHeight - 3) {
+		fmt.Print(CURUP + CURUP)
+		br.printLine(br.lastRow - 2)
+		br.printLine(br.lastRow - 1)
+	}
+
+	moveCursor(2, 1, false)
 }
 
 // vim: set ts=4 sw=4 noet:
