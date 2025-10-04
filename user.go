@@ -99,7 +99,7 @@ func (br *browseObj) userInput(promptStr string) (string, bool) {
 
 		b := make([]byte, 1)
 		_, err := br.tty.Read(b)
-		fmt.Printf("%s", CURSAVE)
+		fmt.Print(CURSAVE)
 
 		if winchCaught {
 			// restore and reset window size
