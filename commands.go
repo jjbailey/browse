@@ -103,9 +103,6 @@ const (
 	SCROLL_CONT = 2
 )
 
-// searchDir controls the direction of search operations
-var searchDir bool = SEARCH_FWD
-
 func commands(br *browseObj) {
 	// seed the saved search pattern
 	br.reCompile(br.pattern)
@@ -126,6 +123,9 @@ func commands(br *browseObj) {
 	} else {
 		br.pageCurrent()
 	}
+
+	// searchDir controls the direction of search operations
+	var searchDir bool = SEARCH_FWD
 
 	// handle panic
 	defer handlePanic(br)
@@ -322,7 +322,7 @@ func commands(br *browseObj) {
 
 		case CMD_JUMP:
 			// jump to line
-			lbuf, cancelled, _ := br.userInput("Jump: ")
+			lbuf, cancelled := br.userInput("Jump: ")
 			if !cancelled && len(lbuf) > 0 {
 				var n int
 				fmt.Sscanf(lbuf, "%d", &n)
@@ -373,7 +373,7 @@ func commands(br *browseObj) {
 
 		case CMD_MARK:
 			// mark page
-			lbuf, cancelled, _ := br.userInput("Mark: ")
+			lbuf, cancelled := br.userInput("Mark: ")
 			if !cancelled && len(lbuf) > 0 {
 				if m := getMark(lbuf); m != 0 {
 					br.marks[m] = br.firstRow
