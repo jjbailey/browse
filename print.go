@@ -129,7 +129,6 @@ func (br *browseObj) printMessage(msg string, color string) {
 	fmt.Print(LINEWRAPOFF)
 	fmt.Printf("%s %s %s", color, msg, VIDOFF)
 	moveCursor(2, 1, false)
-
 	// scrollDown needs this
 	br.shownMsg = true
 }

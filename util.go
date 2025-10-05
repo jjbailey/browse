@@ -16,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 )
 
@@ -132,13 +133,7 @@ func isBinaryFile(filename string) bool {
 		return false
 	}
 
-	for _, b := range buffer[:bytesRead] {
-		if b == 0 {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(buffer[:bytesRead], 0)
 }
 
 func subCommandChars(input, char, repl string) string {
