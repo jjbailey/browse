@@ -114,6 +114,8 @@ browse saves file history in `~/.browse_files`.
 
 browse saves command history in `~/.browse_shell`.
 
+browse saves search history in `~/.browse_search`.
+
 ## Limitations
 
 - Xterm specific
