@@ -150,6 +150,7 @@ func expandHome(word string) string {
 		if err != nil {
 			return word
 		}
+
 		return filepath.Join(homeDir, word[1:])
 	}
 
@@ -219,18 +220,22 @@ func pathCompleter(word string) []prompt.Suggest {
 		if err != nil {
 			continue
 		}
+
 		if len(suggestions) >= maxSuggestions {
 			break
 		}
+
 		suggestions = append(suggestions, matchFiles(files, dir, word, false, true)...)
 		// Check again in case matchFiles added a lot
 		if len(suggestions) >= maxSuggestions {
 			break
 		}
 	}
+
 	if len(suggestions) > maxSuggestions {
 		suggestions = suggestions[:maxSuggestions]
 	}
+
 	return suggestions
 }
 
@@ -249,10 +254,12 @@ func matchFiles(files []os.DirEntry, dir, prefix string, useFullPath, onlyExec b
 		if len(suggestions) >= maxSuggestions {
 			break
 		}
+
 		name := file.Name()
 		if !strings.HasPrefix(name, prefix) {
 			continue
 		}
+
 		fullPath := filepath.Join(dir, name)
 		// Only stat (expensive) if necessary
 		var desc string
@@ -263,6 +270,7 @@ func matchFiles(files []os.DirEntry, dir, prefix string, useFullPath, onlyExec b
 			if err != nil {
 				continue
 			}
+
 			mode := info.Mode().Perm()
 			if mode&0111 == 0 {
 				continue
@@ -274,12 +282,16 @@ func matchFiles(files []os.DirEntry, dir, prefix string, useFullPath, onlyExec b
 		}
 
 		switch {
+
 		case file.Type()&os.ModeSymlink != 0:
 			desc = "-> " + resolveSymlink(fullPath)
+
 		case file.Type()&os.ModeNamedPipe != 0:
 			desc = "named pipe"
+
 		case file.IsDir():
 			desc = "directory"
+
 		default:
 			desc = ""
 		}
@@ -289,6 +301,7 @@ func matchFiles(files []os.DirEntry, dir, prefix string, useFullPath, onlyExec b
 			Description: desc,
 		})
 	}
+
 	return suggestions
 }
 
