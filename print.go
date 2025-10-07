@@ -30,7 +30,7 @@ func (br *browseObj) printLine(lineno int) {
 
 	// Do not proceed if we're beyond known lines
 	if lineno > br.mapSiz {
-        fmt.Print(CLEARLINE)
+		fmt.Print(CLEARLINE)
 		return
 	}
 
@@ -72,12 +72,10 @@ func (br *browseObj) printPage(lineno int) {
 
 	sop := lineno
 	// +1 for EOF
-	eop := minimum(sop+br.dispRows, br.mapSiz+1)
+	eop := minimum(sop+br.dispRows, (br.mapSiz + 1))
 
-	if br.mapSiz > br.dispRows {
-		if br.tryScroll(sop) {
-			return
-		}
+	if br.mapSiz > br.dispRows && br.tryScroll(sop) {
+		return
 	}
 
 	// printLine starts with \n
