@@ -487,11 +487,9 @@ func waitForInput(br *browseObj) {
 
 	for attempt := 0; attempt < maxAttempts; attempt++ {
 		info, err := os.Stat(br.fileName)
-		if err == nil {
-			if time.Since(info.ModTime()) > modTimeThreshold {
-				// don't wait for files unchanged in the last 5 seconds
-				break
-			}
+		if err == nil && time.Since(info.ModTime()) > modTimeThreshold {
+			// don't wait for files unchanged in the last 5 seconds
+			break
 		}
 
 		if br.mapSiz >= targetSize {
