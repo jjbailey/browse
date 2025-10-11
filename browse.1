@@ -260,7 +260,7 @@ T}
 .PP
 .TS
 tab(@);
-lw(23.0n) lw(47.0n).
+lw(23.3n) lw(46.7n).
 T{
 Miscellaneous
 T}@T{
@@ -290,22 +290,22 @@ T}
 T{
 q
 T}@T{
-Quit, save .browserc, next file in list
+Quit, save browserc, next file in list
 T}
 T{
 Q
 T}@T{
-Quit, don\[cq]t save .browserc, next file in list
+Quit, don\[cq]t save browserc, next file in list
 T}
 T{
 x
 T}@T{
-Exit list, save .browserc
+Exit list, save browserc
 T}
 T{
 X
 T}@T{
-Exit list, don\[cq]t save .browserc
+Exit list, don\[cq]t save browserc
 T}
 .TE
 .SS Symbol Expansions
@@ -342,8 +342,8 @@ T}
 .TE
 .SS Configuration
 .PP
-browse saves sessions in \f[V]\[ti]/.browserc\f[R] with the following
-format:
+browse saves sessions in \f[V]\[ti]/.browse/browserc\f[R] with the
+following format:
 .IP "1." 3
 File name
 .IP "2." 3
@@ -355,9 +355,11 @@ Marks
 .IP "5." 3
 Page title
 .PP
-browse saves file history in \f[V]\[ti]/.browse_files\f[R].
+browse saves file history in \f[V]\[ti]/.browse/browse_files\f[R].
 .PP
-browse saves command history in \f[V]\[ti]/.browse_shell\f[R].
+browse saves command history in \f[V]\[ti]/.browse/browse_shell\f[R].
+.PP
+browse saves search history in \f[V]\[ti]/.browse/browse_search\f[R].
 .SS Limitations
 .IP \[bu] 2
 Xterm specific
