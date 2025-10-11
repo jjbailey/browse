@@ -80,16 +80,16 @@ browse is a minimalist file browser that focuses on essential features while mai
 
 ### Miscellaneous Commands
 
-| <h4>Miscellaneous</h4> | <h4>Function</h4>                             |
-| :--------------------- | :-------------------------------------------- |
-| #                      | Toggle line numbers on and off                |
-| %<br> ^G               | Page position                                 |
-| !                      | Run a bash command (expands !, %, &, ~)       |
-| B                      | Browse another file (expands %, ~)            |
-| q                      | Quit, save .browserc, next file in list       |
-| Q                      | Quit, don't save .browserc, next file in list |
-| x                      | Exit list, save .browserc                     |
-| X                      | Exit list, don't save .browserc               |
+| <h4>Miscellaneous</h4> | <h4>Function</h4>                            |
+| :--------------------- | :------------------------------------------- |
+| #                      | Toggle line numbers on and off               |
+| %<br> ^G               | Page position                                |
+| !                      | Run a bash command (expands !, %, &, ~)      |
+| B                      | Browse another file (expands %, ~)           |
+| q                      | Quit, save browserc, next file in list       |
+| Q                      | Quit, don't save browserc, next file in list |
+| x                      | Exit list, save browserc                     |
+| X                      | Exit list, don't save browserc               |
 
 ## Symbol Expansions
 
@@ -102,7 +102,7 @@ browse is a minimalist file browser that focuses on essential features while mai
 
 ## Configuration
 
-browse saves sessions in `~/.browserc` with the following format:
+browse saves sessions in `~/.browse/browserc` with the following format:
 
 1. File name
 2. First line on page
@@ -110,11 +110,11 @@ browse saves sessions in `~/.browserc` with the following format:
 4. Marks
 5. Page title
 
-browse saves file history in `~/.browse_files`.
+browse saves file history in `~/.browse/browse_files`.
 
-browse saves command history in `~/.browse_shell`.
+browse saves command history in `~/.browse/browse_shell`.
 
-browse saves search history in `~/.browse_search`.
+browse saves search history in `~/.browse/browse_search`.
 
 ## Limitations
 
