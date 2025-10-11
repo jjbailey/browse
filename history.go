@@ -23,7 +23,7 @@ func loadHistory(historyFile string) []string {
 		return []string{}
 	}
 
-	historyPath := filepath.Join(home, historyFile)
+	historyPath := filepath.Join(home, (RCDIRNAME + "/" + historyFile))
 	file, err := os.OpenFile(historyPath, os.O_RDONLY|os.O_CREATE, 0600)
 	if err != nil {
 		return []string{}
@@ -80,7 +80,7 @@ func saveHistory(history []string, historyFile string) {
 		return
 	}
 
-	historyPath := filepath.Join(home, historyFile)
+	historyPath := filepath.Join(home, (RCDIRNAME + "/" + historyFile))
 	file, err := os.OpenFile(historyPath, os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		return
