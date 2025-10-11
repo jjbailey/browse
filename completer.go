@@ -15,7 +15,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/c-bata/go-prompt"
+	"github.com/jjbailey/go-prompt"
 )
 
 const (
@@ -23,18 +23,29 @@ const (
 	maxSuggestions  = 1000
 	searchFiles     = 1
 	searchPath      = 2
+	searchSearch    = 3
 )
 
 var searchType int
+
+func userFileComp() (string, bool) {
+	searchType = searchFiles
+	return runCompleter("File: ", fileHistory)
+}
 
 func userBashComp() (string, bool) {
 	searchType = searchPath
 	return runCompleter("$ ", commHistory)
 }
 
-func userFileComp() (string, bool) {
-	searchType = searchFiles
-	return runCompleter("File: ", fileHistory)
+func userSearchComp(searchDir bool) (string, bool) {
+	promptStr := "/"
+	if !searchDir {
+		promptStr = "?"
+	}
+
+	searchType = searchSearch
+	return runCompleter(promptStr, searchHistory)
 }
 
 func runCompleter(promptStr, historyFile string) (string, bool) {
@@ -43,6 +54,9 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 
 	// Get hostname title
 	title := getHostnameTitle()
+
+	// reset go-prompt BackedOut flag
+	prompt.BackedOut = false
 
 	p := prompt.New(
 		func(in string) { /* no-op executor */ },
@@ -69,12 +83,11 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 	)
 
 	input := p.Input()
-	// Restore terminal state after prompt exits
 	fmt.Printf(XTERMTITLE, title)
 	ttyBrowser()
 
 	if len(input) == 0 {
-		return "", true
+		return "", prompt.BackedOut
 	}
 
 	return input, false
@@ -84,11 +97,11 @@ func getHostnameTitle() string {
 	// Can't prevent prompt.New from meddling with the title, so...
 
 	hostname, err := os.Hostname()
-	if err != nil {
+	if err != nil || hostname == "" {
 		return "unknown"
 	}
 
-	if dotIndex := strings.Index(hostname, "."); dotIndex != -1 {
+	if dotIndex := strings.IndexByte(hostname, '.'); dotIndex != -1 {
 		hostname = hostname[:dotIndex]
 	}
 
@@ -96,25 +109,39 @@ func getHostnameTitle() string {
 }
 
 func completer(d prompt.Document) []prompt.Suggest {
-	word := strings.ReplaceAll(d.GetWordBeforeCursor(), "//", "/")
+	// Use local variable for efficiency, also avoids race if global is modified mid-call
+	switch searchType {
 
-	// Detect and handle home directory expansion (including ~user)
+	case searchSearch:
+		return searchCompleter()
+
+	case searchFiles:
+		// Fall through below for word handling
+
+	case searchPath:
+		// Fall through below for word handling
+	}
+
+	word := strings.ReplaceAll(d.GetWordBeforeCursor(), "//", "/")
+	originalWord := word
+
+	// Home directory expansion (including ~user)
 	if strings.HasPrefix(word, "~") {
 		word = expandHome(word)
 	}
 
-	// Decide completion type
+	// Fast path: raw path or file completion
 	if isAbsOrRelPath(word) {
 		return fileCompleter(word)
 	}
 
-	// If searchType == searchPath and no space in input, complete $PATH executables
+	// Command completion only if searchType is path and word is at prompt start
 	if searchType == searchPath && !strings.Contains(d.TextBeforeCursor(), " ") {
 		return pathCompleter(word)
 	}
 
-	// Fallback: complete from current directory
-	return dirCompleter(".", word, false, false)
+	// Fallback: Just use whatever word we've got in current directory
+	return dirCompleter(".", originalWord, false, false)
 }
 
 func expandHome(word string) string {
@@ -129,9 +156,7 @@ func expandHome(word string) string {
 
 	// ~username or ~username/something
 	slashIndex := strings.IndexRune(word, '/')
-
 	var userName, pathSuffix string
-
 	if slashIndex == -1 {
 		userName = word[1:]
 		pathSuffix = ""
@@ -140,15 +165,13 @@ func expandHome(word string) string {
 		pathSuffix = word[slashIndex:]
 	}
 
-	// Use getHomeDir which reads /etc/passwd directly
 	wordHome, err := getHomeDir(userName)
 	if err != nil || wordHome == "" {
-		// Return original word if user not found or error occurred
 		return word
 	}
 
-	// Verify the home directory exists
-	if _, err := os.Stat(wordHome); os.IsNotExist(err) {
+	// Confirm the directory exists, stat once here
+	if fi, err := os.Stat(wordHome); err != nil || !fi.IsDir() {
 		return word
 	}
 
@@ -156,15 +179,23 @@ func expandHome(word string) string {
 }
 
 func isAbsOrRelPath(word string) bool {
+	// Only care about the very first rune for . and ..
 	return strings.HasPrefix(word, "/") ||
-		strings.HasPrefix(word, ".") ||
-		strings.HasPrefix(word, "..") ||
+		strings.HasPrefix(word, "./") ||
+		strings.HasPrefix(word, "../") ||
 		strings.Contains(word, "/")
+}
+
+func searchCompleter() []prompt.Suggest {
+	// history contents only
+	return nil
 }
 
 func fileCompleter(word string) []prompt.Suggest {
 	dir := filepath.Dir(word)
-	_, err := os.ReadDir(dir)
+
+	// Only stat once; if fails, bail
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		return nil
 	}
@@ -176,25 +207,29 @@ func fileCompleter(word string) []prompt.Suggest {
 		prefix = ""
 	}
 
-	return dirCompleter(dir, prefix, true, false)
+	return matchFiles(files, dir, prefix, true, false)
 }
 
 func pathCompleter(word string) []prompt.Suggest {
+	paths := strings.Split(os.Getenv("PATH"), ":")
 	var suggestions []prompt.Suggest
 
-	paths := strings.Split(os.Getenv("PATH"), ":")
 	for _, dir := range paths {
-		// Use short-circuit if enough suggestions
-		if len(suggestions) >= maxSuggestions {
-			break
-		}
-
-		_, err := os.ReadDir(dir)
+		// Defensive: avoid unnecessary os.ReadDir
+		files, err := os.ReadDir(dir)
 		if err != nil {
 			continue
 		}
 
-		suggestions = append(suggestions, dirCompleter(dir, word, false, true)...)
+		if len(suggestions) >= maxSuggestions {
+			break
+		}
+
+		suggestions = append(suggestions, matchFiles(files, dir, word, false, true)...)
+		// Check again in case matchFiles added a lot
+		if len(suggestions) >= maxSuggestions {
+			break
+		}
 	}
 
 	if len(suggestions) > maxSuggestions {
@@ -210,8 +245,11 @@ func dirCompleter(dir, prefix string, useFullPath bool, onlyExec bool) []prompt.
 		return nil
 	}
 
-	suggestions := make([]prompt.Suggest, 0, dispSuggestions)
+	return matchFiles(files, dir, prefix, useFullPath, onlyExec)
+}
 
+func matchFiles(files []os.DirEntry, dir, prefix string, useFullPath, onlyExec bool) []prompt.Suggest {
+	suggestions := make([]prompt.Suggest, 0, dispSuggestions)
 	for _, file := range files {
 		if len(suggestions) >= maxSuggestions {
 			break
@@ -223,25 +261,25 @@ func dirCompleter(dir, prefix string, useFullPath bool, onlyExec bool) []prompt.
 		}
 
 		fullPath := filepath.Join(dir, name)
+		// Only stat (expensive) if necessary
+		var desc string
 
-		info, err := file.Info()
-		if err != nil {
-			continue
-		}
-
+		// If filtering for executables, only stat if not directory
 		if onlyExec && !file.IsDir() {
+			info, err := file.Info()
+			if err != nil {
+				continue
+			}
+
 			mode := info.Mode().Perm()
 			if mode&0111 == 0 {
 				continue
 			}
 		}
 
-		text := name
 		if useFullPath {
-			text = fullPath
+			name = fullPath
 		}
-
-		desc := ""
 
 		switch {
 
@@ -253,10 +291,13 @@ func dirCompleter(dir, prefix string, useFullPath bool, onlyExec bool) []prompt.
 
 		case file.IsDir():
 			desc = "directory"
+
+		default:
+			desc = ""
 		}
 
 		suggestions = append(suggestions, prompt.Suggest{
-			Text:        text,
+			Text:        name,
 			Description: desc,
 		})
 	}

@@ -18,7 +18,7 @@ import (
 // ─── Build Information ──────────────────────────────────────────────
 
 const (
-	BR_VERSION = "0.65"
+	BR_VERSION = "0.66"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -75,6 +75,7 @@ const (
 	_VID_WHITE_FG  = "\033[38;5;15m"
 	_VID_GREEN_FG  = "\033[38;5;46m"
 	_VID_ORANGE_FG = "\033[38;5;208m"
+	_VID_YELLOW_FG = "\033[38;5;226m"
 
 	_VID_BLACK_BG  = "\033[48;5;16m"
 	_VID_GREEN_BG  = "\033[48;5;46m"
@@ -107,11 +108,12 @@ const (
 	MODE_SCROLL_FOLLOW = 4
 )
 
-// ─── History Files  ─────────────────────────────────────────────────
+// ─── History Files ──────────────────────────────────────────────────
 
 const (
-	commHistory    = ".browse_shell"
 	fileHistory    = ".browse_files"
+	commHistory    = ".browse_shell"
+	searchHistory  = ".browse_search"
 	maxHistorySize = 500
 )
 

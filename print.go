@@ -28,15 +28,16 @@ func (br *browseObj) printLine(lineno int) {
 		return
 	}
 
+	// Do not proceed if we're beyond known lines
+	if lineno > br.mapSiz {
+		fmt.Print(CLEARLINE)
+		return
+	}
+
 	// Get matches and content from map
 	matches, input := br.lineIsMatch(lineno)
 	if matches > 0 {
 		br.lastMatch = lineno
-	}
-
-	// Do not proceed if we're beyond known lines
-	if lineno > br.mapSiz {
-		return
 	}
 
 	// Formatting
@@ -71,12 +72,10 @@ func (br *browseObj) printPage(lineno int) {
 
 	sop := lineno
 	// +1 for EOF
-	eop := minimum(sop+br.dispRows, br.mapSiz+1)
+	eop := minimum(sop+br.dispRows, (br.mapSiz + 1))
 
-	if br.mapSiz > br.dispRows {
-		if br.tryScroll(sop) {
-			return
-		}
+	if br.mapSiz > br.dispRows && br.tryScroll(sop) {
+		return
 	}
 
 	// printLine starts with \n
@@ -117,7 +116,6 @@ func (br *browseObj) timedMessage(msg, color string) {
 	fmt.Print(LINEWRAPOFF)
 	fmt.Printf("%s %s %s", color, msg, VIDOFF)
 	time.Sleep(1400 * time.Millisecond)
-
 	// scrollDown needs this
 	br.shownMsg = true
 }
@@ -129,7 +127,18 @@ func (br *browseObj) printMessage(msg string, color string) {
 	fmt.Print(LINEWRAPOFF)
 	fmt.Printf("%s %s %s", color, msg, VIDOFF)
 	moveCursor(2, 1, false)
+	// scrollDown needs this
+	br.shownMsg = true
+}
 
+func (br *browseObj) debugPrintf(format string, args ...interface{}) {
+	// for debugging
+
+	msg := fmt.Sprintf(format, args...)
+	moveCursor(br.dispHeight, 1, true)
+	fmt.Print(LINEWRAPOFF)
+	fmt.Printf("%s %s %s", _VID_YELLOW_FG, msg, VIDOFF)
+	time.Sleep(3 * time.Second)
 	// scrollDown needs this
 	br.shownMsg = true
 }

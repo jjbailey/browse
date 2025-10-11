@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-func (br *browseObj) userAnyKey(prompt string) {
+func (br *browseObj) userAnyKey(promptStr string) {
 	// wait for a key press
 
 	const timeout = 500 * time.Millisecond
@@ -27,13 +27,13 @@ func (br *browseObj) userAnyKey(prompt string) {
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
 	defer signal.Reset(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
 
-	// prompt is optional
+	// promptStr is optional
 
-	if prompt == "" {
+	if promptStr == "" {
 		moveCursor(2, 1, false)
 	} else {
 		moveCursor(br.dispHeight, 1, true)
-		fmt.Print(prompt)
+		fmt.Print(promptStr)
 	}
 
 	b := make([]byte, 1)
@@ -51,7 +51,7 @@ func (br *browseObj) userAnyKey(prompt string) {
 	}
 }
 
-func (br *browseObj) userInput(prompt string) (string, bool, bool) {
+func (br *browseObj) userInput(promptStr string) (string, bool) {
 	const (
 		NEWLINE   = '\n'
 		CARRETURN = '\r'
@@ -66,14 +66,13 @@ func (br *browseObj) userInput(prompt string) (string, bool, bool) {
 		linebuf     string
 		cancelled   bool
 		done        bool
-		ignore      bool
 		winchCaught bool
 	)
 
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
 	defer signal.Reset(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
 
-	// prompt
+	// promptStr
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGWINCH)
@@ -81,7 +80,7 @@ func (br *browseObj) userInput(prompt string) (string, bool, bool) {
 	ttyPrompter()
 	fmt.Printf("\r%s", CURSAVE)
 	moveCursor(br.dispHeight, 1, true)
-	fmt.Printf("%s", prompt)
+	fmt.Printf("%s", promptStr)
 	br.shownMsg = true
 
 	for {
@@ -100,7 +99,7 @@ func (br *browseObj) userInput(prompt string) (string, bool, bool) {
 
 		b := make([]byte, 1)
 		_, err := br.tty.Read(b)
-		fmt.Printf("%s", CURSAVE)
+		fmt.Print(CURSAVE)
 
 		if winchCaught {
 			// restore and reset window size
@@ -110,7 +109,7 @@ func (br *browseObj) userInput(prompt string) (string, bool, bool) {
 
 		if err != nil {
 			errorExit(err)
-			return "", false, false
+			return "", false
 		}
 
 		inputChar := b[0]
@@ -118,20 +117,19 @@ func (br *browseObj) userInput(prompt string) (string, bool, bool) {
 		switch inputChar {
 
 		case NEWLINE, CARRETURN, ESCAPE:
-			if len(linebuf) == 0 {
-				cancelled = true
-			} else {
+			if len(linebuf) > 0 {
 				done = true
+			} else {
+				cancelled = true
 			}
 
 		case BACKSPACE, DELETE:
 			if len(linebuf) > 0 {
 				linebuf = strings.TrimSuffix(linebuf, string(linebuf[len(linebuf)-1]))
 				moveCursor(br.dispHeight, 1, true)
-				fmt.Printf("%s%s", prompt, linebuf)
+				fmt.Printf("%s%s", promptStr, linebuf)
 			} else {
 				cancelled = true
-				ignore = true
 			}
 
 		case ERASEWORD:
@@ -142,19 +140,19 @@ func (br *browseObj) userInput(prompt string) (string, bool, bool) {
 			}
 
 			moveCursor(br.dispHeight, 1, true)
-			fmt.Printf("%s%s", prompt, linebuf)
+			fmt.Printf("%s%s", promptStr, linebuf)
 
 		case ERASELINE:
 			linebuf = ""
 			moveCursor(br.dispHeight, 1, true)
-			fmt.Printf("%s%s", prompt, linebuf)
+			fmt.Printf("%s%s", promptStr, linebuf)
 
 		default:
 			linebuf += string(inputChar)
 			fmt.Print(string(inputChar))
 		}
 
-		if cancelled || ignore {
+		if cancelled {
 			br.restoreLast()
 			moveCursor(2, 1, false)
 			break
@@ -171,7 +169,7 @@ func (br *browseObj) userInput(prompt string) (string, bool, bool) {
 	// reset tty
 	ttyBrowser()
 
-	return linebuf, cancelled, ignore
+	return linebuf, cancelled
 }
 
 // vim: set ts=4 sw=4 noet:
