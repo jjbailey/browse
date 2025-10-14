@@ -76,44 +76,57 @@ func (br *browseObj) readRcFile() bool {
 
 		line := strings.TrimRight(scanner.Text(), "\r\n")
 
-		switch i {
-
-		case 0:
-			// fileName
-			br.fileName = line
-
-		case 1:
-			// firstRow
-			firstRow, err := strconv.Atoi(line)
-			if err != nil {
-				return false
-			}
-			br.firstRow = firstRow
-
-		case 2:
-			// pattern
-			br.pattern = line
-
-		case 3:
-			// marks
-			markStrings := strings.Fields(line)
-
-			if len(markStrings) != 9 {
-				return false
-			}
-
-			for i, markString := range markStrings {
-				mark, err := strconv.Atoi(markString)
-				if err != nil {
-					return false
-				}
-				br.marks[i+1] = mark
-			}
-
-		case 4:
-			// title
-			br.title = line
+		if !br.handleRcFileLine(i, line) {
+			return false
 		}
+	}
+
+	return true
+}
+
+func (br *browseObj) handleRcFileLine(i int, line string) bool {
+	switch i {
+
+	case 0:
+		// fileName
+		br.fileName = line
+
+	case 1:
+		// firstRow
+		firstRow, err := strconv.Atoi(line)
+		if err != nil {
+			return false
+		}
+		br.firstRow = firstRow
+
+	case 2:
+		// pattern
+		br.pattern = line
+
+	case 3:
+		// marks
+		return br.parseMarks(line)
+
+	case 4:
+		// title
+		br.title = line
+	}
+
+	return true
+}
+
+func (br *browseObj) parseMarks(line string) bool {
+	markStrings := strings.Fields(line)
+	if len(markStrings) != 9 {
+		return false
+	}
+
+	for i, markString := range markStrings {
+		mark, err := strconv.Atoi(markString)
+		if err != nil {
+			return false
+		}
+		br.marks[i+1] = mark
 	}
 
 	return true
