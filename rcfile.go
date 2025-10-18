@@ -1,5 +1,5 @@
 // rcfile.go
-// write and read the .browserc session file
+// write and read the browserc session file
 //
 // Copyright (c) 2024-2025 jjb
 // All rights reserved.
