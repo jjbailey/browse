@@ -4,11 +4,11 @@ A simple, unconventional file browser designed for efficient file navigation and
 
 ## Description
 
-browse is a minimalist file browser that focuses on essential features while maintaining a user-friendly interface. It's ideal for developers and system administrators who need a lightweight alternative to traditional file viewers.
+**browse** is a minimalist file browser that focuses on essential features while maintaining a user-friendly interface. It's ideal for developers and system administrators who need a lightweight, keyboard-driven alternative to traditional file viewers.
 
-## Features
+## ✨ Features
 
-### Navigation
+### 🧭 Navigation
 
 - Forward and reverse paging
 - Continuous scrolling (forward and reverse)
@@ -16,93 +16,107 @@ browse is a minimalist file browser that focuses on essential features while mai
 - Line jumping
 - Page marking
 
-### Search & Filter
+### 🔍 Search & Filter
 
 - Forward and reverse regex searches
 - Case-sensitive/case-insensitive search toggle
 - Pattern highlighting
+- Search pattern history
 
-### Additional Features
+### 🛠️ Additional Features
 
 - Shell escape with command completion
-- Tail -f functionality
+- `tail -f` functionality
 - Line numbers
 - Session saving
-- Help screen
+- Shell command history
+- Built-in help screen
 
-## Usage
+## 📖 Usage
 
 ### Command Line Options
 
-| <h4>Command Line Option</h4> | <h4>Function</h4>                                |
-| :--------------------------- | :----------------------------------------------- |
-| -f, --follow                 | follow file changes                              |
-| -i, --ignore-case            | search ignores case                              |
-| -n, --numbers                | start with line numbers turned on                |
-| -p, --pattern                | initial search pattern                           |
-| -t, --title                  | page title, default is filename, blank for stdin |
-| -v, --version                | print browse version number                      |
-| -?, --help                   | print browse command line options                |
+```bash
+browse [OPTIONS] [FILE] [FILE...]
+```
 
-### Navigation Commands
+| Option | Function |
+|--------|----------|
+| `-f`, `--follow` | Follow file changes (like `tail -f`) |
+| `-i`, `--ignore-case` | Search ignores case |
+| `-n`, `--numbers` | Start with line numbers turned on |
+| `-p`, `--pattern` | Initial search pattern |
+| `-t`, `--title` | Page title (default is filename, blank for stdin) |
+| `-v`, `--version` | Print browse version number |
+| `-?`, `--help` | Print browse command line options |
 
-| <h4>Pages/Lines</h4>          | <h4>Function</h4>                                  |
-| :---------------------------- | :------------------------------------------------- |
-| f<br> [PAGE DOWN]<br> [SPACE] | Page down toward EOF                               |
-| b<br> [PAGE UP]               | Page up toward SOF                                 |
-| ^F<br> ^D<br> z               | Scroll half page down toward EOF                   |
-| ^B<br> ^U<br> Z               | Scroll half page up toward SOF                     |
-| +<br> [RIGHT]<br> [ENTER]     | Scroll one line toward EOF                         |
-| -<br> [LEFT]                  | Scroll one line toward SOF                         |
-| d<br> [DOWN]                  | Toggle continuous scroll toward EOF, follow at EOF |
-| u<br> [UP]                    | Toggle continuous scroll toward SOF, stop at SOF   |
-| ><br> [TAB]                   | Scroll 4 characters right                          |
-| <<br> [BACKSPACE]<br> [DEL]   | Scroll 4 characters left                           |
-| ^                             | Scroll to column 1                                 |
-| $                             | Scroll to EOL                                      |
-| 0<br> [HOME]                  | Jump to SOF, column 1                              |
-| G                             | Jump to EOF                                        |
-| e<br> [END]                   | Jump to EOF, follow at EOF                         |
-| t                             | Jump to EOF, tail at EOF                           |
+### Keyboard Shortcuts
 
-### Search Commands
+#### Navigation
 
-| <h4>Searches</h4> | <h4>Function</h4>                                                              |
-| :---------------- | :----------------------------------------------------------------------------- |
-| /                 | Regex search forward, empty pattern repeats search or changes search direction |
-| ?                 | Regex search reverse, empty pattern repeats search or changes search direction |
-| n                 | Repeat search in the current search direction                                  |
-| N                 | Repeat search in the opposite search direction                                 |
-| i                 | Toggle between case-sensitive and case-insensitive searches                    |
-| p                 | Print the search pattern                                                       |
-| P                 | Clear the search pattern                                                       |
-| &                 | Run 'grep -nP' on the current file for search pattern                          |
+| Key | Function |
+|-----|----------|
+| `f`, `Page Down`, `Space` | Page down toward EOF |
+| `b`, `Page Up` | Page up toward SOF |
+| `Ctrl+F`, `Ctrl+D`, `z` | Scroll half page down toward EOF |
+| `Ctrl+B`, `Ctrl+U`, `Z` | Scroll half page up toward SOF |
+| `+`, `Right`, `Enter` | Scroll one line toward EOF |
+| `-`, `Left` | Scroll one line toward SOF |
+| `d`, `Down` | Toggle continuous scroll toward EOF, follow at EOF |
+| `u`, `Up` | Toggle continuous scroll toward SOF, stop at SOF |
+| `>`, `Tab` | Scroll 4 characters right |
+| `<`, `Backspace`, `Del` | Scroll 4 characters left |
+| `^` | Scroll to column 1 |
+| `$` | Scroll to end of line |
+| `0`, `Home` | Jump to start of file, column 1 |
+| `G` | Jump to end of file |
+| `e`, `End` | Jump to EOF, follow at EOF |
+| `t` | Jump to EOF, tail at EOF |
 
-### Miscellaneous Commands
+#### Search
 
-| <h4>Miscellaneous</h4> | <h4>Function</h4>                            |
-| :--------------------- | :------------------------------------------- |
-| #                      | Toggle line numbers on and off               |
-| %<br> ^G               | Page position                                |
-| !                      | Run a bash command (expands !, %, &, ~)      |
-| B                      | Browse another file (expands %, ~)           |
-| q                      | Quit, save browserc, next file in list       |
-| Q                      | Quit, don't save browserc, next file in list |
-| x                      | Exit list, save browserc                     |
-| X                      | Exit list, don't save browserc               |
+| Key | Function |
+|-----|----------|
+| `/` | Regex search forward (empty pattern repeats or changes direction) |
+| `?` | Regex search reverse (empty pattern repeats or changes direction) |
+| `n` | Repeat search in current direction |
+| `N` | Repeat search in opposite direction |
+| `i` | Toggle case-sensitive/insensitive search |
+| `p` | Print current search pattern |
+| `P` | Clear search pattern |
+| `&` | Run `grep -nP` on current file for search pattern |
 
-## Symbol Expansions
+#### Miscellaneous
 
-| <h4>Symbol</h4> | <h4>Expansions</h4>    |
-| :-------------- | :--------------------- |
-| !               | Last bash command      |
-| %               | Current file name      |
-| &               | Current search pattern |
-| ~               | Home directory         |
+| Key | Function |
+|-----|----------|
+| `#` | Toggle line numbers on/off |
+| `%`, `Ctrl+G` | Show page position |
+| `!` | Run a bash command (expands `!`, `%`, `&`, `~`) |
+| `B` | Browse another file (expands `%`, `~`) |
+| `q` | Quit, save session, next file in list |
+| `Q` | Quit without saving session, next file in list |
+| `x` | Exit list, save session |
+| `X` | Exit list, don't save session |
 
-## Configuration
+### Symbol Expansions
 
-browse saves sessions in `~/.browse/browserc` with the following format:
+Special symbols are expanded in commands:
+
+| Symbol | Expands To |
+|--------|------------|
+| `!` | Last bash command |
+| `%` | Current file name |
+| `&` | Current search pattern |
+| `~` | Home directory |
+
+## ⚙️ Configuration
+
+browse stores configuration and history in `~/.browse/`:
+
+**Session File:** `~/.browse/browserc`
+
+Saves current session state including:
 
 1. File name
 2. First line on page
@@ -110,13 +124,13 @@ browse saves sessions in `~/.browse/browserc` with the following format:
 4. Marks
 5. Page title
 
-browse saves file history in `~/.browse/browse_files`.
+**History Files:**
 
-browse saves command history in `~/.browse/browse_shell`.
+- `~/.browse/browse_files` - File browsing history
+- `~/.browse/browse_shell` - Shell command history
+- `~/.browse/browse_search` - Search pattern history
 
-browse saves search history in `~/.browse/browse_search`.
-
-## Limitations
+## ⚠️ Limitations
 
 - Xterm specific
 - Logical lines are truncated to screen width
@@ -125,6 +139,6 @@ browse saves search history in `~/.browse/browse_search`.
 - Tabs are converted to spaces
 - Terminal title changes due to go-prompt dependency
 
-## License
+## 📄 License
 
 MIT License - see LICENSE file for details

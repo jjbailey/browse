@@ -28,12 +28,12 @@ browse [-finv] [-p pattern] [-t title] [filename\&...]
 Browse and search text files, follow changes.
 .SS Description
 .PP
-browse is a minimalist file browser that focuses on essential features
-while maintaining a user-friendly interface.
+\f[B]browse\f[R] is a minimalist file browser that focuses on essential
+features while maintaining a user-friendly interface.
 It\[cq]s ideal for developers and system administrators who need a
-lightweight alternative to traditional file viewers.
-.SS Features
-.SS Navigation
+lightweight, keyboard-driven alternative to traditional file viewers.
+.SS ✨ Features
+.SS 🧭 Navigation
 .IP \[bu] 2
 Forward and reverse paging
 .IP \[bu] 2
@@ -44,271 +44,282 @@ Horizontal scrolling
 Line jumping
 .IP \[bu] 2
 Page marking
-.SS Search & Filter
+.SS 🔍 Search & Filter
 .IP \[bu] 2
 Forward and reverse regex searches
 .IP \[bu] 2
 Case-sensitive/case-insensitive search toggle
 .IP \[bu] 2
 Pattern highlighting
-.SS Additional Features
+.IP \[bu] 2
+Search pattern history
+.SS 🛠️ Additional Features
 .IP \[bu] 2
 Shell escape with command completion
 .IP \[bu] 2
-Tail -f functionality
+\f[V]tail -f\f[R] functionality
 .IP \[bu] 2
 Line numbers
 .IP \[bu] 2
 Session saving
 .IP \[bu] 2
-Help screen
-.SS Usage
+Shell command history
+.IP \[bu] 2
+Built-in help screen
+.SS 📖 Usage
 .SS Command Line Options
+.nf
+
+browse [OPTIONS] [FILE] [FILE...]
+\f[R]
+.fi
 .PP
 .TS
 tab(@);
-lw(25.8n) lw(44.2n).
+l l.
 T{
-Command Line Option
+Option
 T}@T{
 Function
 T}
 _
 T{
--f, \--follow
+\f[V]-f\f[R], \f[V]--follow\f[R]
 T}@T{
-follow file changes
+Follow file changes (like \f[V]tail -f\f[R])
 T}
 T{
--i, \--ignore-case
+\f[V]-i\f[R], \f[V]--ignore-case\f[R]
 T}@T{
-search ignores case
+Search ignores case
 T}
 T{
--n, \--numbers
+\f[V]-n\f[R], \f[V]--numbers\f[R]
 T}@T{
-start with line numbers turned on
+Start with line numbers turned on
 T}
 T{
--p, \--pattern
+\f[V]-p\f[R], \f[V]--pattern\f[R]
 T}@T{
-initial search pattern
+Initial search pattern
 T}
 T{
--t, \--title
+\f[V]-t\f[R], \f[V]--title\f[R]
 T}@T{
-page title, default is filename, blank for stdin
+Page title (default is filename, blank for stdin)
 T}
 T{
--v, \--version
+\f[V]-v\f[R], \f[V]--version\f[R]
 T}@T{
-print browse version number
+Print browse version number
 T}
 T{
--?, \--help
+\f[V]-?\f[R], \f[V]--help\f[R]
 T}@T{
-print browse command line options
+Print browse command line options
 T}
 .TE
-.SS Navigation Commands
+.SS Keyboard Shortcuts
+.SS Navigation
 .PP
 .TS
 tab(@);
-lw(25.7n) lw(44.3n).
+l l.
 T{
-Pages/Lines
+Key
 T}@T{
 Function
 T}
 _
 T{
-f [PAGE DOWN] [SPACE]
+\f[V]f\f[R], \f[V]Page Down\f[R], \f[V]Space\f[R]
 T}@T{
 Page down toward EOF
 T}
 T{
-b [PAGE UP]
+\f[V]b\f[R], \f[V]Page Up\f[R]
 T}@T{
 Page up toward SOF
 T}
 T{
-\[ha]F \[ha]D z
+\f[V]Ctrl+F\f[R], \f[V]Ctrl+D\f[R], \f[V]z\f[R]
 T}@T{
 Scroll half page down toward EOF
 T}
 T{
-\[ha]B \[ha]U Z
+\f[V]Ctrl+B\f[R], \f[V]Ctrl+U\f[R], \f[V]Z\f[R]
 T}@T{
 Scroll half page up toward SOF
 T}
 T{
-+ [RIGHT] [ENTER]
+\f[V]+\f[R], \f[V]Right\f[R], \f[V]Enter\f[R]
 T}@T{
 Scroll one line toward EOF
 T}
 T{
-- [LEFT]
+\f[V]-\f[R], \f[V]Left\f[R]
 T}@T{
 Scroll one line toward SOF
 T}
 T{
-d [DOWN]
+\f[V]d\f[R], \f[V]Down\f[R]
 T}@T{
 Toggle continuous scroll toward EOF, follow at EOF
 T}
 T{
-u [UP]
+\f[V]u\f[R], \f[V]Up\f[R]
 T}@T{
 Toggle continuous scroll toward SOF, stop at SOF
 T}
 T{
-> [TAB]
+\f[V]>\f[R], \f[V]Tab\f[R]
 T}@T{
 Scroll 4 characters right
 T}
 T{
-< [BACKSPACE] [DEL]
+\f[V]<\f[R], \f[V]Backspace\f[R], \f[V]Del\f[R]
 T}@T{
 Scroll 4 characters left
 T}
 T{
-\[ha]
+\f[V]\[ha]\f[R]
 T}@T{
 Scroll to column 1
 T}
 T{
-$
+\f[V]$\f[R]
 T}@T{
-Scroll to EOL
+Scroll to end of line
 T}
 T{
-0 [HOME]
+\f[V]0\f[R], \f[V]Home\f[R]
 T}@T{
-Jump to SOF, column 1
+Jump to start of file, column 1
 T}
 T{
-G
+\f[V]G\f[R]
 T}@T{
-Jump to EOF
+Jump to end of file
 T}
 T{
-e [END]
+\f[V]e\f[R], \f[V]End\f[R]
 T}@T{
 Jump to EOF, follow at EOF
 T}
 T{
-t
+\f[V]t\f[R]
 T}@T{
 Jump to EOF, tail at EOF
 T}
 .TE
-.SS Search Commands
-.PP
-.TS
-tab(@);
-lw(12.5n) lw(57.5n).
-T{
-Searches
-T}@T{
-Function
-T}
-_
-T{
-/
-T}@T{
-Regex search forward, empty pattern repeats search or changes search
-direction
-T}
-T{
-?
-T}@T{
-Regex search reverse, empty pattern repeats search or changes search
-direction
-T}
-T{
-n
-T}@T{
-Repeat search in the current search direction
-T}
-T{
-N
-T}@T{
-Repeat search in the opposite search direction
-T}
-T{
-i
-T}@T{
-Toggle between case-sensitive and case-insensitive searches
-T}
-T{
-p
-T}@T{
-Print the search pattern
-T}
-T{
-P
-T}@T{
-Clear the search pattern
-T}
-T{
-&
-T}@T{
-Run `grep -nP' on the current file for search pattern
-T}
-.TE
-.SS Miscellaneous Commands
+.SS Search
 .PP
 .TS
 tab(@);
 lw(23.3n) lw(46.7n).
 T{
-Miscellaneous
+Key
 T}@T{
 Function
 T}
 _
 T{
-#
+\f[V]/\f[R]
 T}@T{
-Toggle line numbers on and off
+Regex search forward (empty pattern repeats or changes direction)
 T}
 T{
-% \[ha]G
+\f[V]?\f[R]
 T}@T{
-Page position
+Regex search reverse (empty pattern repeats or changes direction)
 T}
 T{
-!
+\f[V]n\f[R]
 T}@T{
-Run a bash command (expands !, %, &, \[ti])
+Repeat search in current direction
 T}
 T{
-B
+\f[V]N\f[R]
 T}@T{
-Browse another file (expands %, \[ti])
+Repeat search in opposite direction
 T}
 T{
-q
+\f[V]i\f[R]
 T}@T{
-Quit, save browserc, next file in list
+Toggle case-sensitive/insensitive search
 T}
 T{
-Q
+\f[V]p\f[R]
 T}@T{
-Quit, don\[cq]t save browserc, next file in list
+Print current search pattern
 T}
 T{
-x
+\f[V]P\f[R]
 T}@T{
-Exit list, save browserc
+Clear search pattern
 T}
 T{
-X
+\f[V]&\f[R]
 T}@T{
-Exit list, don\[cq]t save browserc
+Run \f[V]grep -nP\f[R] on current file for search pattern
+T}
+.TE
+.SS Miscellaneous
+.PP
+.TS
+tab(@);
+l l.
+T{
+Key
+T}@T{
+Function
+T}
+_
+T{
+\f[V]#\f[R]
+T}@T{
+Toggle line numbers on/off
+T}
+T{
+\f[V]%\f[R], \f[V]Ctrl+G\f[R]
+T}@T{
+Show page position
+T}
+T{
+\f[V]!\f[R]
+T}@T{
+Run a bash command (expands \f[V]!\f[R], \f[V]%\f[R], \f[V]&\f[R],
+\f[V]\[ti]\f[R])
+T}
+T{
+\f[V]B\f[R]
+T}@T{
+Browse another file (expands \f[V]%\f[R], \f[V]\[ti]\f[R])
+T}
+T{
+\f[V]q\f[R]
+T}@T{
+Quit, save session, next file in list
+T}
+T{
+\f[V]Q\f[R]
+T}@T{
+Quit without saving session, next file in list
+T}
+T{
+\f[V]x\f[R]
+T}@T{
+Exit list, save session
+T}
+T{
+\f[V]X\f[R]
+T}@T{
+Exit list, don\[cq]t save session
 T}
 .TE
 .SS Symbol Expansions
+.PP
+Special symbols are expanded in commands:
 .PP
 .TS
 tab(@);
@@ -316,34 +327,37 @@ l l.
 T{
 Symbol
 T}@T{
-Expansions
+Expands To
 T}
 _
 T{
-!
+\f[V]!\f[R]
 T}@T{
 Last bash command
 T}
 T{
-%
+\f[V]%\f[R]
 T}@T{
 Current file name
 T}
 T{
-&
+\f[V]&\f[R]
 T}@T{
 Current search pattern
 T}
 T{
-\[ti]
+\f[V]\[ti]\f[R]
 T}@T{
 Home directory
 T}
 .TE
-.SS Configuration
+.SS ⚙️ Configuration
 .PP
-browse saves sessions in \f[V]\[ti]/.browse/browserc\f[R] with the
-following format:
+browse stores configuration and history in \f[V]\[ti]/.browse/\f[R]:
+.PP
+\f[B]Session File:\f[R] \f[V]\[ti]/.browse/browserc\f[R]
+.PP
+Saves current session state including:
 .IP "1." 3
 File name
 .IP "2." 3
@@ -355,12 +369,14 @@ Marks
 .IP "5." 3
 Page title
 .PP
-browse saves file history in \f[V]\[ti]/.browse/browse_files\f[R].
-.PP
-browse saves command history in \f[V]\[ti]/.browse/browse_shell\f[R].
-.PP
-browse saves search history in \f[V]\[ti]/.browse/browse_search\f[R].
-.SS Limitations
+\f[B]History Files:\f[R]
+.IP \[bu] 2
+\f[V]\[ti]/.browse/browse_files\f[R] - File browsing history
+.IP \[bu] 2
+\f[V]\[ti]/.browse/browse_shell\f[R] - Shell command history
+.IP \[bu] 2
+\f[V]\[ti]/.browse/browse_search\f[R] - Search pattern history
+.SS ⚠️ Limitations
 .IP \[bu] 2
 Xterm specific
 .IP \[bu] 2
@@ -373,7 +389,7 @@ Can be confused by non-printable characters
 Tabs are converted to spaces
 .IP \[bu] 2
 Terminal title changes due to go-prompt dependency
-.SS License
+.SS 📄 License
 .PP
 MIT License - see LICENSE file for details
 .SH AUTHORS
