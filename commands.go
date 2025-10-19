@@ -441,8 +441,7 @@ func commands(br *browseObj) {
 }
 
 func fileCommand(br *browseObj) bool {
-	// Browse a new file
-
+	// Browse new file(s)
 	moveCursor(br.dispHeight, 1, true)
 
 	lbuf, cancelled := userFileComp()
@@ -457,39 +456,78 @@ func fileCommand(br *browseObj) bool {
 		return false
 	}
 
-	// Remove single and double quotes from the input
-	file = strings.ReplaceAll(file, "'", "")
-	file = strings.ReplaceAll(file, "\"", "")
 	sbuf := subCommandChars(file, "%", br.fileName)
+	tokens := fieldsQuoted(sbuf)
 
-	var files []string
-	var err error
+	var allFiles []string
+	for _, tok := range tokens {
+		// Expand globs for each token
+		if strings.ContainsAny(tok, "*?[") {
+			files, err := filepath.Glob(tok)
+			if err != nil {
+				br.timedMessage("Invalid glob pattern", MSG_ORANGE)
+				continue
+			}
 
-	if strings.ContainsAny(sbuf, "*?[") {
-		files, err = filepath.Glob(sbuf)
-		if err != nil {
-			br.timedMessage("Invalid glob pattern", MSG_ORANGE)
-			br.pageCurrent()
-			return false
+			if len(files) == 0 {
+				br.timedMessage(fmt.Sprintf("No files match pattern: %s", tok), MSG_ORANGE)
+				continue
+			}
+
+			allFiles = append(allFiles, files...)
+		} else {
+			allFiles = append(allFiles, tok)
 		}
-
-		if len(files) == 0 {
-			br.timedMessage("No files match pattern", MSG_ORANGE)
-			br.pageCurrent()
-			return false
-		}
-	} else {
-		// Use the original name
-		files = []string{sbuf}
 	}
 
-	if len(files) > 0 {
-		processFileList(br, files)
+	if len(allFiles) > 0 {
+		processFileList(br, allFiles)
 		return true
 	}
 
 	br.pageCurrent()
 	return false
+}
+
+func fieldsQuoted(s string) []string {
+	var (
+		fields  []string
+		inQuote rune
+		field   strings.Builder
+	)
+
+	for _, r := range s {
+		switch {
+
+		case (r == '\'' || r == '"'):
+			switch inQuote {
+
+			case 0:
+				inQuote = r
+
+			case r:
+				inQuote = 0
+
+			default:
+				field.WriteRune(r)
+			}
+
+		case unicode.IsSpace(r) && inQuote == 0:
+			if field.Len() > 0 {
+				fields = append(fields, field.String())
+				field.Reset()
+			}
+
+		default:
+			field.WriteRune(r)
+		}
+	}
+
+	if field.Len() > 0 {
+		fields = append(fields, field.String())
+	}
+
+	return fields
 }
 
 func waitForInput(br *browseObj) {
