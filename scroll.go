@@ -54,6 +54,10 @@ func (br *browseObj) scrollDown(count int) {
 }
 
 func (br *browseObj) scrollUp(count int) {
+	// scroll up, toward SOF, stop at SOF
+
+	br.restoreLast()
+
 	if br.firstRow <= 0 {
 		br.modeScroll = MODE_SCROLL_NONE
 		return
@@ -115,23 +119,6 @@ func (br *browseObj) toggleMode(mode int) {
 	}
 }
 
-func (br *browseObj) restoreLast() {
-	// restore the last (prompt) line
-
-	if br.shownMsg {
-		moveCursor(br.dispHeight, 1, true)
-
-		// -2 for SOF, EOF
-		if br.lastRow > (br.dispHeight - 2) {
-			fmt.Print(CURUP)
-			br.printLine(br.lastRow - 1)
-		}
-
-		fmt.Print(CURRESTORE)
-		br.shownMsg = false
-	}
-}
-
 func (br *browseObj) inMotion() bool {
 	return br.modeScroll != MODE_SCROLL_NONE
 }
@@ -140,6 +127,29 @@ func (br *browseObj) inFollow() bool {
 	return (br.modeScroll == MODE_SCROLL_DN ||
 		br.modeScroll == MODE_SCROLL_TAIL ||
 		br.modeScroll == MODE_SCROLL_FOLLOW)
+}
+
+func (br *browseObj) restoreLast() {
+	// the search prompt uses the last 2 lines
+
+	if !br.shownMsg {
+		return
+	}
+
+	if br.lastRow < (br.dispHeight - 1) {
+		moveCursor((br.dispHeight - 1), 1, true)
+		fmt.Print(CLEARSCREEN)
+	}
+
+	if br.lastRow > (br.dispHeight - 3) {
+		moveCursor(br.dispHeight, 1, true)
+		fmt.Print(CURUP + CURUP)
+		br.printLine(br.lastRow - 2)
+		br.printLine(br.lastRow - 1)
+	}
+
+	moveCursor(2, 1, false)
+	br.shownMsg = false
 }
 
 // vim: set ts=4 sw=4 noet:
