@@ -93,7 +93,7 @@ browse [OPTIONS] [FILE] [FILE...]
 | `#` | Toggle line numbers on/off |
 | `%`, `Ctrl+G` | Show page position |
 | `!` | Run a bash command (expands `!`, `%`, `&`, `~`) |
-| `B` | Browse another file (expands `%`, `~`) |
+| `B` | Browse another file (expands `%`, `~`, shell glob) |
 | `q` | Quit, save session, next file in list |
 | `Q` | Quit without saving session, next file in list |
 | `x` | Exit list, save session |
@@ -116,7 +116,7 @@ browse stores configuration and history in `~/.browse/`:
 
 **Session File:** `~/.browse/browserc`
 
-Saves current session state including:
+Saves current session state, including:
 
 1. File name
 2. First line on page

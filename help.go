@@ -45,7 +45,7 @@ func (br *browseObj) printHelp() {
 		"  e [END]                       Follow mode                           ",
 		"  t                             Tail mode                             ",
 		"  !                             bash command                          ",
-		"  B                             Browse another file                   ",
+		"  B                             Browse file (expands %, ~, glob)      ",
 		"  q                             Quit, save browserc, next file        ",
 		"  Q                             Quit, don't save browserc, next file  ",
 		"  x                             Exit list, save browserc              ",
