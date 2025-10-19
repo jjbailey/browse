@@ -460,9 +460,31 @@ func fileCommand(br *browseObj) bool {
 	// Remove single and double quotes from the input
 	file = strings.ReplaceAll(file, "'", "")
 	file = strings.ReplaceAll(file, "\"", "")
-
 	sbuf := subCommandChars(file, "%", br.fileName)
-	if browseFile(br, sbuf, setTitle(sbuf, sbuf), false, true) {
+
+	var files []string
+	var err error
+
+	if strings.ContainsAny(sbuf, "*?[") {
+		files, err = filepath.Glob(sbuf)
+		if err != nil {
+			br.timedMessage("Invalid glob pattern", MSG_ORANGE)
+			br.pageCurrent()
+			return false
+		}
+
+		if len(files) == 0 {
+			br.timedMessage("No files match pattern", MSG_ORANGE)
+			br.pageCurrent()
+			return false
+		}
+	} else {
+		// Use the original name
+		files = []string{sbuf}
+	}
+
+	if len(files) > 0 {
+		processFileList(br, files)
 		return true
 	}
 

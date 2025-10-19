@@ -140,18 +140,14 @@ func processPipeInput(br *browseObj) {
 
 func processFileList(br *browseObj, args []string) {
 	if len(args) == 0 {
+		// handles file from browserc
 		browseFile(br, br.fileName, setTitle(br.title, br.fileName), false, false)
 		return
 	}
 
 	for index, fileName := range args {
-		title := br.title
-
-		if index != 0 || title == "" {
-			title = fileName
-		}
-
-		browseFile(br, fileName, setTitle(title, fileName), false, false)
+		// handles list of files
+		browseFile(br, fileName, setTitle(fileName, fileName), false, false)
 
 		if br.exit {
 			break
