@@ -150,7 +150,7 @@ func processFileList(br *browseObj, args []string) {
 		browseFile(br, fileName, setTitle(fileName, fileName), false, false)
 
 		if br.exit {
-			break
+			return
 		}
 
 		if index < len(args)-1 {
