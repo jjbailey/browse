@@ -1,5 +1,5 @@
 // rcfile.go
-// write and read the .browserc session file
+// write and read the browserc session file
 //
 // Copyright (c) 2024-2025 jjb
 // All rights reserved.
@@ -19,14 +19,12 @@ import (
 	"strings"
 )
 
-const RCFILENAME = ".browserc"
-
 func (br *browseObj) writeRcFile() bool {
 	var absPath string
 	var data strings.Builder
 	var err error
 
-	rcFileName := filepath.Join(os.Getenv("HOME"), RCFILENAME)
+	rcFileName := filepath.Join(os.Getenv("HOME"), (RCDIRNAME + "/" + RCFILENAME))
 	absPath = resolveSymlink(br.fileName)
 
 	// fileName
@@ -54,7 +52,11 @@ func (br *browseObj) writeRcFile() bool {
 }
 
 func (br *browseObj) readRcFile() bool {
-	rcFileName := path.Join(os.Getenv("HOME"), RCFILENAME)
+	// default file reorg for pre-0.67
+	// remove this reference at some point in the future
+	setupBrDir()
+
+	rcFileName := path.Join(os.Getenv("HOME"), (RCDIRNAME + "/" + RCFILENAME))
 	rcFileName = os.ExpandEnv(rcFileName)
 
 	fp, err := os.Open(rcFileName)
@@ -74,44 +76,57 @@ func (br *browseObj) readRcFile() bool {
 
 		line := strings.TrimRight(scanner.Text(), "\r\n")
 
-		switch i {
-
-		case 0:
-			// fileName
-			br.fileName = line
-
-		case 1:
-			// firstRow
-			firstRow, err := strconv.Atoi(line)
-			if err != nil {
-				return false
-			}
-			br.firstRow = firstRow
-
-		case 2:
-			// pattern
-			br.pattern = line
-
-		case 3:
-			// marks
-			markStrings := strings.Fields(line)
-
-			if len(markStrings) != 9 {
-				return false
-			}
-
-			for i, markString := range markStrings {
-				mark, err := strconv.Atoi(markString)
-				if err != nil {
-					return false
-				}
-				br.marks[i+1] = mark
-			}
-
-		case 4:
-			// title
-			br.title = line
+		if !br.handleRcFileLine(i, line) {
+			return false
 		}
+	}
+
+	return true
+}
+
+func (br *browseObj) handleRcFileLine(i int, line string) bool {
+	switch i {
+
+	case 0:
+		// fileName
+		br.fileName = line
+
+	case 1:
+		// firstRow
+		firstRow, err := strconv.Atoi(line)
+		if err != nil {
+			return false
+		}
+		br.firstRow = firstRow
+
+	case 2:
+		// pattern
+		br.pattern = line
+
+	case 3:
+		// marks
+		return br.parseMarks(line)
+
+	case 4:
+		// title
+		br.title = line
+	}
+
+	return true
+}
+
+func (br *browseObj) parseMarks(line string) bool {
+	markStrings := strings.Fields(line)
+	if len(markStrings) != 9 {
+		return false
+	}
+
+	for i, markString := range markStrings {
+		mark, err := strconv.Atoi(markString)
+		if err != nil {
+			return false
+		}
+		br.marks[i+1] = mark
 	}
 
 	return true

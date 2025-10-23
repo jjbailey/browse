@@ -115,7 +115,7 @@ func (br *browseObj) timedMessage(msg, color string) {
 	moveCursor(br.dispHeight, 1, true)
 	fmt.Print(LINEWRAPOFF)
 	fmt.Printf("%s %s %s", color, msg, VIDOFF)
-	time.Sleep(1400 * time.Millisecond)
+	time.Sleep(1500 * time.Millisecond)
 	// scrollDown needs this
 	br.shownMsg = true
 }

@@ -18,7 +18,7 @@ import (
 // ─── Build Information ──────────────────────────────────────────────
 
 const (
-	BR_VERSION = "0.66"
+	BR_VERSION = "0.67"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -108,12 +108,14 @@ const (
 	MODE_SCROLL_FOLLOW = 4
 )
 
-// ─── History Files ──────────────────────────────────────────────────
+// ─── Default and Browse History Files ───────────────────────────────
 
 const (
-	fileHistory    = ".browse_files"
-	commHistory    = ".browse_shell"
-	searchHistory  = ".browse_search"
+	RCDIRNAME      = ".browse"
+	RCFILENAME     = "browserc"
+	fileHistory    = "browse_files"
+	commHistory    = "browse_shell"
+	searchHistory  = "browse_search"
 	maxHistorySize = 500
 )
 
