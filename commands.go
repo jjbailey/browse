@@ -442,6 +442,7 @@ func commands(br *browseObj) {
 
 func fileCommand(br *browseObj) bool {
 	// Browse new file(s)
+
 	moveCursor(br.dispHeight, 1, true)
 
 	lbuf, cancelled := userFileComp()
@@ -481,7 +482,7 @@ func fileCommand(br *browseObj) bool {
 	}
 
 	if len(allFiles) > 0 {
-		processFileList(br, allFiles)
+		processFileList(br, allFiles, false)
 		return true
 	}
 

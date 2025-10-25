@@ -43,6 +43,7 @@ func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset boo
 
 func validateAndOpenFile(targetFile string, br *browseObj) (*os.File, error) {
 	// Check if file exists and get file info
+
 	stat, err := os.Stat(targetFile)
 	if err != nil {
 		br.timedMessage(fmt.Sprintf("stat error: %v", err), MSG_RED)
@@ -138,7 +139,7 @@ func processPipeInput(br *browseObj) {
 	browseFile(br, fpStdin.Name(), setTitle(br.title, "          "), true, false)
 }
 
-func processFileList(br *browseObj, args []string) {
+func processFileList(br *browseObj, args []string, toplevel bool) {
 	if len(args) == 0 {
 		// handles file from browserc
 		browseFile(br, br.fileName, setTitle(br.title, br.fileName), false, false)
@@ -150,7 +151,12 @@ func processFileList(br *browseObj, args []string) {
 		browseFile(br, fileName, setTitle(fileName, fileName), false, false)
 
 		if br.exit {
-			return
+			if toplevel {
+				return
+			} else {
+				br.exit = false
+				return
+			}
 		}
 
 		if index < len(args)-1 {
