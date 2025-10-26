@@ -85,10 +85,14 @@ func (br *browseObj) printPage(lineno int) {
 		br.printLine(i)
 	}
 
-	moveCursor(2, 1, false)
-
 	// reset these
 	br.firstRow, br.lastRow = sop, eop
+
+	if br.inMotion() {
+		fmt.Print(CURRESTORE)
+	} else {
+		moveCursor(2, 1, false)
+	}
 }
 
 func adjustLineNumber(lineno, dispRows, mapSiz int) int {
@@ -134,9 +138,9 @@ func (br *browseObj) printMessage(msg string, color string) {
 func (br *browseObj) debugPrintf(format string, args ...interface{}) {
 	// for debugging
 
-	msg := fmt.Sprintf(format, args...)
 	moveCursor(br.dispHeight, 1, true)
 	fmt.Print(LINEWRAPOFF)
+	msg := fmt.Sprintf(format, args...)
 	fmt.Printf("%s %s %s", _VID_YELLOW_FG, msg, VIDOFF)
 	time.Sleep(3 * time.Second)
 	// scrollDown needs this

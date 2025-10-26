@@ -148,7 +148,12 @@ func (br *browseObj) restoreLast() {
 		br.printLine(br.lastRow - 1)
 	}
 
-	moveCursor(2, 1, false)
+	if br.inMotion() {
+		fmt.Print(CURRESTORE)
+	} else {
+		moveCursor(2, 1, false)
+	}
+
 	br.shownMsg = false
 }
 
