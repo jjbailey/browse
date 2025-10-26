@@ -52,7 +52,18 @@ func (br *browseObj) runInPty(cmdbuf string) {
 
 	execOK := make(chan bool)
 	go func(ch chan bool) {
-		io.Copy(ptmx, br.tty)
+		// Custom copy that captures the last key press
+		buf := make([]byte, READBUFSIZ)
+		for {
+			n, err := br.tty.Read(buf)
+			if err != nil || n == 0 {
+				break
+			}
+			// Store the last pressed key
+			br.lastKey = buf[0]
+			// Write to ptmx
+			ptmx.Write(buf[:n])
+		}
 		ch <- true
 	}(execOK)
 	io.Copy(os.Stdout, ptmx)
@@ -68,7 +79,6 @@ func (br *browseObj) runInPty(cmdbuf string) {
 	fmt.Printf(MSG_GREEN + " Press any key to continue... " + VIDOFF)
 	<-execOK
 
-	// reset signals
 	br.catchSignals()
 }
 
