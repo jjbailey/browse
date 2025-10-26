@@ -53,7 +53,7 @@ func (br *browseObj) runInPty(cmdbuf string) {
 	execOK := make(chan bool)
 	go func(ch chan bool) {
 		// Custom copy that captures the last key press
-		buf := make([]byte, READBUFSIZ)
+		buf := make([]byte, 1)
 		for {
 			n, err := br.tty.Read(buf)
 			if err != nil || n == 0 {
