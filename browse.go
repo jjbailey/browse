@@ -17,7 +17,7 @@ import (
 	"syscall"
 )
 
-func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset bool) bool {
+func browseFile(br *browseObj, fileName, title string, fromStdin bool) bool {
 	targetFile := strings.TrimSuffix(fileName, "/")
 
 	// Validate and open the file
@@ -29,11 +29,6 @@ func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset boo
 
 	// Check if file is binary and warn user
 	checkBinaryFile(br, targetFile)
-
-	// Reset browser state if requested
-	if reset {
-		resetState(br)
-	}
 
 	br.fileInit(fp, targetFile, title, fromStdin)
 	updateFileHistory(targetFile, br)
@@ -136,19 +131,19 @@ func processPipeInput(br *browseObj) {
 		}
 	}()
 
-	browseFile(br, fpStdin.Name(), setTitle(br.title, "          "), true, false)
+	browseFile(br, fpStdin.Name(), setTitle(br.title, "          "), true)
 }
 
 func processFileList(br *browseObj, args []string, toplevel bool) {
 	if len(args) == 0 {
 		// handles file from browserc
-		browseFile(br, br.fileName, setTitle(br.title, br.fileName), false, false)
+		browseFile(br, br.fileName, setTitle(br.title, br.fileName), false)
 		return
 	}
 
 	for index, fileName := range args {
 		// handles list of files
-		browseFile(br, fileName, setTitle(fileName, fileName), false, false)
+		browseFile(br, fileName, setTitle(fileName, fileName), false)
 
 		if br.exit {
 			if toplevel {
