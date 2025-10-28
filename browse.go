@@ -143,7 +143,10 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 
 	for index, fileName := range args {
 		// handles list of files
-		browseFile(br, fileName, setTitle(fileName, fileName), false)
+
+		if browseFile(br, fileName, setTitle(fileName, fileName), false) == false {
+			continue
+		}
 
 		if br.exit {
 			if toplevel {
