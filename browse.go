@@ -41,20 +41,22 @@ func validateAndOpenFile(targetFile string, br *browseObj) (*os.File, error) {
 
 	stat, err := os.Stat(targetFile)
 	if err != nil {
-		br.timedMessage(fmt.Sprintf("stat error: %v", err), MSG_RED)
+		br.userAnyKey(fmt.Sprintf("%s %v ... [press enter] %s", MSG_RED, err, VIDOFF))
 		return nil, err
 	}
 
 	// Ensure it's not a directory
 	if stat.IsDir() {
-		br.timedMessage(fmt.Sprintf("%s: is a directory", filepath.Base(targetFile)), MSG_RED)
+		br.userAnyKey(fmt.Sprintf("%s %s: is a directory ... [press enter] %s",
+			MSG_RED, filepath.Base(targetFile), VIDOFF))
+
 		return nil, fmt.Errorf("file is a directory")
 	}
 
 	// Open the file
 	fp, err := os.Open(targetFile)
 	if err != nil {
-		br.timedMessage(fmt.Sprintf("open error: %v", err), MSG_RED)
+		br.userAnyKey(fmt.Sprintf("%s %v ... [press enter] %s", MSG_RED, err, VIDOFF))
 		return nil, err
 	}
 
