@@ -41,7 +41,9 @@ func validateAndOpenFile(targetFile string, br *browseObj) (*os.File, error) {
 
 	stat, err := os.Stat(targetFile)
 	if err != nil {
-		br.userAnyKey(fmt.Sprintf("%s %v ... [press enter] %s", MSG_RED, err, VIDOFF))
+		br.userAnyKey(fmt.Sprintf("%s %s: cannot open ... [press enter] %s",
+			MSG_RED, filepath.Base(targetFile), VIDOFF))
+
 		return nil, err
 	}
 
@@ -56,7 +58,9 @@ func validateAndOpenFile(targetFile string, br *browseObj) (*os.File, error) {
 	// Open the file
 	fp, err := os.Open(targetFile)
 	if err != nil {
-		br.userAnyKey(fmt.Sprintf("%s %v ... [press enter] %s", MSG_RED, err, VIDOFF))
+		br.userAnyKey(fmt.Sprintf("%s %s: cannot open ... [press enter] %s",
+			MSG_RED, filepath.Base(targetFile), VIDOFF))
+
 		return nil, err
 	}
 
