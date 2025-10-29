@@ -356,7 +356,7 @@ func commands(br *browseObj) {
 		case CMD_SEARCH_PRINT:
 			// print the search pattern
 			if len(br.pattern) == 0 {
-				br.printMessage("No search pattern", MSG_ORANGE)
+				br.printMessage("No search pattern", MSG_GREEN)
 			} else {
 				br.printMessage(br.pattern, MSG_GREEN)
 			}
