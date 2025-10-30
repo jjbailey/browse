@@ -176,7 +176,7 @@ func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool)
 		// Reverse search
 		switch {
 
-		case startOfPage > dispRows:
+		case startOfPage >= dispRows:
 			// Previous page
 			newStart, wrapped = startOfPage-dispRows, false
 
@@ -245,48 +245,45 @@ func (br *browseObj) noSearchPattern() bool {
 }
 
 func (br *browseObj) doSearch(oldDir, newDir bool) bool {
-	// Search starts here
-
 	moveCursor(br.dispHeight-1, 1, true)
-	patbuf, cancelled := userSearchComp(newDir)
 
-	// dirty
+	patbuf, cancelled := userSearchComp(newDir)
 	br.shownMsg = true
 
 	if cancelled {
-		// user backed out of prompt
 		br.restoreLast()
 		return oldDir
 	}
 
-	// Save search to history
-	history := loadHistory(searchHistory)
-	history = append(history, patbuf)
-	saveHistory(history, searchHistory)
-
-	if br.pattern != "" {
-		// substitute & with the current search pattern
-		patbuf = subCommandChars(patbuf, "&", br.pattern)
+	prevPattern := br.pattern
+	if strings.TrimSpace(patbuf) == "" {
+		patbuf = prevPattern
 	}
 
-	if oldDir != newDir && (len(patbuf) > 0 || len(br.pattern) > 0) {
-		// print direction
+	// Substitute '&' with previous pattern for continued searches
+	if strings.Contains(patbuf, "&") {
+		patbuf = subCommandChars(patbuf, "&", prevPattern)
+	}
+
+	if patbuf != "" && patbuf != prevPattern {
+		history := loadHistory(searchHistory)
+		if len(history) == 0 || history[len(history)-1] != patbuf {
+			history = append(history, patbuf)
+			saveHistory(history, searchHistory)
+		}
+	}
+
+	if oldDir != newDir {
 		if newDir {
 			br.timedMessage("Searching forward", MSG_GREEN)
 		} else {
 			br.timedMessage("Searching reverse", MSG_GREEN)
 		}
-	}
-
-	if len(patbuf) == 0 {
-		// null -- change direction
-		br.searchFile(br.pattern, newDir, true)
-	} else {
-		// search this page
 		br.lastMatch = SEARCH_RESET
-		br.searchFile(patbuf, newDir, false)
 	}
 
+	continueSearch := (oldDir == newDir && patbuf == prevPattern)
+	br.searchFile(patbuf, newDir, continueSearch)
 	return newDir
 }
 
