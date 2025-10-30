@@ -130,22 +130,27 @@ func (br *browseObj) inFollow() bool {
 }
 
 func (br *browseObj) restoreLast() {
-	// the search prompt uses the last 2 lines
+	// the search prompt uses the last n lines
+
+	const promptLines = 2
 
 	if !br.shownMsg {
 		return
 	}
 
 	if br.lastRow < (br.dispHeight - 1) {
+		// partial display
 		moveCursor((br.dispHeight - 1), 1, true)
 		fmt.Print(CLEARSCREEN)
 	}
 
-	if br.lastRow > (br.dispHeight - 3) {
-		moveCursor(br.dispHeight, 1, true)
-		fmt.Print(CURUP + CURUP)
-		br.printLine(br.lastRow - 2)
-		br.printLine(br.lastRow - 1)
+	if br.lastRow >= (br.dispHeight - promptLines) {
+		// full display
+		moveCursor((br.dispHeight - promptLines), 1, false)
+
+		for i := promptLines; i > 0; i-- {
+			br.printLine(br.lastRow - i)
+		}
 	}
 
 	if br.inMotion() {
