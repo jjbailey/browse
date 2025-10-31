@@ -75,6 +75,7 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 			moveCursor(2, 1, false)
 			return false
 		}
+
 		if wrapped && !warned {
 			br.displayWrapMessage(forward)
 			warned = true
@@ -129,9 +130,11 @@ func (br *browseObj) pageIsMatch(startOfPage, endOfPage int) (int, int) {
 		if matchCount == 0 {
 			continue
 		}
+
 		if firstMatchLine == -1 {
 			firstMatchLine = lineNum
 		}
+
 		lastMatchLine = lineNum
 	}
 
@@ -166,7 +169,7 @@ func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool)
 	dispRows := br.dispRows
 
 	if forward {
-		// Forward search
+		// Search next page
 		newStart = startOfPage + dispRows
 		if newStart >= br.mapSiz {
 			// Wrap to start of file
@@ -176,9 +179,9 @@ func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool)
 		// Reverse search
 		switch {
 
-		case startOfPage >= dispRows:
-			// Previous page
-			newStart, wrapped = startOfPage-dispRows, false
+		case startOfPage > 0:
+			// Search previous page
+			newStart, wrapped = maximum(0, startOfPage-dispRows), false
 
 		case br.lastMatch < dispRows || startOfPage < dispRows:
 			// Either already searched top page, or already at top -- wrap to end
