@@ -29,7 +29,6 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 	var patternLen int
 
 	if pattern == "" {
-		// should not happen
 		br.printMessage("No search pattern", MSG_ORANGE)
 		return false
 	}
@@ -148,7 +147,7 @@ func (br *browseObj) lineIsMatch(lineno int) (int, string) {
 		return 0, ""
 	}
 
-	if br.noSearchPattern() || br.re == nil {
+	if br.noSearchPattern() {
 		return 0, string(br.readFromMap(lineno))
 	}
 
@@ -158,42 +157,39 @@ func (br *browseObj) lineIsMatch(lineno int) (int, string) {
 }
 
 func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool) {
-	// figure out which page to search next
-
-	var (
-		newStart int
-		newEnd   int
-		wrapped  bool
-	)
-
 	dispRows := br.dispRows
+	totalRows := br.mapSiz
+	wrapped := false
+
+	if totalRows <= 0 {
+		return 0, 0, false
+	}
+
+	var newStart, newEnd int
 
 	if forward {
-		// Search next page
 		newStart = startOfPage + dispRows
-		if newStart >= br.mapSiz {
-			// Wrap to start of file
-			newStart, wrapped = 0, true
+		if newStart >= totalRows {
+			newStart = 0
+			wrapped = true
 		}
+		newEnd = minimum(newStart+dispRows, totalRows)
 	} else {
-		// Reverse search
-		switch {
-
-		case startOfPage > 0:
-			// Search previous page
-			newStart, wrapped = maximum(0, startOfPage-dispRows), false
-
-		case br.lastMatch < dispRows || startOfPage < dispRows:
-			// Either already searched top page, or already at top -- wrap to end
-			newStart, wrapped = maximum(br.mapSiz-dispRows, 0), true
-
-		default:
-			// Top page but not wrapped → go to beginning
-			newStart, wrapped = 0, false
+		if startOfPage == 0 {
+			// At SOF, wrap to last page at EOF
+			newStart = maximum(totalRows-dispRows, 0)
+			newEnd = totalRows
+			wrapped = true
+		} else {
+			// Go up one page
+			newEnd = startOfPage
+			newStart = 0
+			if newEnd > dispRows {
+				newStart = newEnd - dispRows
+			}
 		}
 	}
 
-	newEnd = newStart + dispRows
 	return newStart, newEnd, wrapped
 }
 
@@ -209,7 +205,7 @@ func (br *browseObj) replaceMatch(lineno int, input string) string {
 		content = ""
 	}
 
-	if br.noSearchPattern() || br.re == nil {
+	if br.noSearchPattern() {
 		return br.formatLine(lineno, content)
 	}
 
@@ -244,13 +240,13 @@ func (br *browseObj) formatLine(lineno int, content string) string {
 }
 
 func (br *browseObj) noSearchPattern() bool {
-	return br.re == nil || br.re.String() == ""
+	return br.re == nil
 }
 
 func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 	moveCursor(br.dispHeight-1, 1, true)
 
-	patbuf, cancelled := userSearchComp(newDir)
+	pattern, cancelled := userSearchComp(newDir)
 	br.shownMsg = true
 
 	if cancelled {
@@ -259,21 +255,23 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 	}
 
 	prevPattern := br.pattern
-	if strings.TrimSpace(patbuf) == "" {
-		patbuf = prevPattern
+	if strings.TrimSpace(pattern) == "" {
+		pattern = prevPattern
+	}
+
+	if pattern == "" {
+		br.printMessage("No search pattern", MSG_ORANGE)
+		return false
 	}
 
 	// Substitute '&' with previous pattern for continued searches
-	if strings.Contains(patbuf, "&") {
-		patbuf = subCommandChars(patbuf, "&", prevPattern)
+	if strings.Contains(pattern, "&") {
+		pattern = subCommandChars(pattern, "&", prevPattern)
 	}
 
-	if patbuf != "" && patbuf != prevPattern {
+	if pattern != "" {
 		history := loadHistory(searchHistory)
-		if len(history) == 0 || history[len(history)-1] != patbuf {
-			history = append(history, patbuf)
-			saveHistory(history, searchHistory)
-		}
+		saveHistory(append(history, pattern), searchHistory)
 	}
 
 	if oldDir != newDir {
@@ -285,8 +283,8 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 		br.lastMatch = SEARCH_RESET
 	}
 
-	continueSearch := (oldDir == newDir && patbuf == prevPattern)
-	br.searchFile(patbuf, newDir, continueSearch)
+	continueSearch := (oldDir == newDir && pattern == prevPattern)
+	br.searchFile(pattern, newDir, continueSearch)
 	return newDir
 }
 
