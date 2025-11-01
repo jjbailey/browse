@@ -1,5 +1,5 @@
 // completer.go
-// central completion module (bash + file)
+// central completion module
 //
 // Copyright (c) 2024-2025 jjb
 // All rights reserved.
@@ -180,6 +180,7 @@ func expandHome(word string) string {
 
 func isAbsOrRelPath(word string) bool {
 	// Only care about the very first rune for . and ..
+
 	return strings.HasPrefix(word, "/") ||
 		strings.HasPrefix(word, "./") ||
 		strings.HasPrefix(word, "../") ||

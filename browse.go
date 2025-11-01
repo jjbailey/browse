@@ -17,7 +17,7 @@ import (
 	"syscall"
 )
 
-func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset bool) bool {
+func browseFile(br *browseObj, fileName, title string, fromStdin bool) bool {
 	targetFile := strings.TrimSuffix(fileName, "/")
 
 	// Validate and open the file
@@ -30,11 +30,6 @@ func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset boo
 	// Check if file is binary and warn user
 	checkBinaryFile(br, targetFile)
 
-	// Reset browser state if requested
-	if reset {
-		resetState(br)
-	}
-
 	br.fileInit(fp, targetFile, title, fromStdin)
 	updateFileHistory(targetFile, br)
 
@@ -43,22 +38,29 @@ func browseFile(br *browseObj, fileName, title string, fromStdin bool, reset boo
 
 func validateAndOpenFile(targetFile string, br *browseObj) (*os.File, error) {
 	// Check if file exists and get file info
+
 	stat, err := os.Stat(targetFile)
 	if err != nil {
-		br.timedMessage(fmt.Sprintf("stat error: %v", err), MSG_RED)
+		br.userAnyKey(fmt.Sprintf("%s %s: cannot open ... [press enter] %s",
+			MSG_RED, filepath.Base(targetFile), VIDOFF))
+
 		return nil, err
 	}
 
 	// Ensure it's not a directory
 	if stat.IsDir() {
-		br.timedMessage(fmt.Sprintf("%s: is a directory", filepath.Base(targetFile)), MSG_RED)
+		br.userAnyKey(fmt.Sprintf("%s %s: is a directory ... [press enter] %s",
+			MSG_RED, filepath.Base(targetFile), VIDOFF))
+
 		return nil, fmt.Errorf("file is a directory")
 	}
 
 	// Open the file
 	fp, err := os.Open(targetFile)
 	if err != nil {
-		br.timedMessage(fmt.Sprintf("open error: %v", err), MSG_RED)
+		br.userAnyKey(fmt.Sprintf("%s %s: cannot open ... [press enter] %s",
+			MSG_RED, filepath.Base(targetFile), VIDOFF))
+
 		return nil, err
 	}
 
@@ -135,22 +137,30 @@ func processPipeInput(br *browseObj) {
 		}
 	}()
 
-	browseFile(br, fpStdin.Name(), setTitle(br.title, "          "), true, false)
+	browseFile(br, fpStdin.Name(), setTitle(br.title, "          "), true)
 }
 
-func processFileList(br *browseObj, args []string) {
+func processFileList(br *browseObj, args []string, toplevel bool) {
 	if len(args) == 0 {
 		// handles file from browserc
-		browseFile(br, br.fileName, setTitle(br.title, br.fileName), false, false)
+		browseFile(br, br.fileName, setTitle(br.title, br.fileName), false)
 		return
 	}
 
 	for index, fileName := range args {
 		// handles list of files
-		browseFile(br, fileName, setTitle(fileName, fileName), false, false)
+
+		if browseFile(br, fileName, setTitle(fileName, fileName), false) == false {
+			continue
+		}
 
 		if br.exit {
-			return
+			if toplevel {
+				return
+			} else {
+				br.exit = false
+				return
+			}
 		}
 
 		if index < len(args)-1 {

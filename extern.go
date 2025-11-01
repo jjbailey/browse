@@ -18,7 +18,7 @@ import (
 // ─── Build Information ──────────────────────────────────────────────
 
 const (
-	BR_VERSION = "0.67"
+	BR_VERSION = "0.68"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -139,6 +139,7 @@ type browseObj struct {
 	seekMap    map[int]int64
 	sizeMap    map[int]int64
 	shiftWidth int
+	lastKey    byte
 
 	// Search and match
 	pattern    string

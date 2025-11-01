@@ -29,7 +29,6 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 	var patternLen int
 
 	if pattern == "" {
-		// should not happen
 		br.printMessage("No search pattern", MSG_ORANGE)
 		return false
 	}
@@ -75,6 +74,7 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 			moveCursor(2, 1, false)
 			return false
 		}
+
 		if wrapped && !warned {
 			br.displayWrapMessage(forward)
 			warned = true
@@ -129,9 +129,11 @@ func (br *browseObj) pageIsMatch(startOfPage, endOfPage int) (int, int) {
 		if matchCount == 0 {
 			continue
 		}
+
 		if firstMatchLine == -1 {
 			firstMatchLine = lineNum
 		}
+
 		lastMatchLine = lineNum
 	}
 
@@ -145,7 +147,7 @@ func (br *browseObj) lineIsMatch(lineno int) (int, string) {
 		return 0, ""
 	}
 
-	if br.noSearchPattern() || br.re == nil {
+	if br.noSearchPattern() {
 		return 0, string(br.readFromMap(lineno))
 	}
 
@@ -155,42 +157,39 @@ func (br *browseObj) lineIsMatch(lineno int) (int, string) {
 }
 
 func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool) {
-	// figure out which page to search next
-
-	var (
-		newStart int
-		newEnd   int
-		wrapped  bool
-	)
-
 	dispRows := br.dispRows
+	totalRows := br.mapSiz
+	wrapped := false
+
+	if totalRows <= 0 {
+		return 0, 0, false
+	}
+
+	var newStart, newEnd int
 
 	if forward {
-		// Forward search
 		newStart = startOfPage + dispRows
-		if newStart >= br.mapSiz {
-			// Wrap to start of file
-			newStart, wrapped = 0, true
+		if newStart >= totalRows {
+			newStart = 0
+			wrapped = true
 		}
+		newEnd = minimum(newStart+dispRows, totalRows)
 	} else {
-		// Reverse search
-		switch {
-
-		case startOfPage > dispRows:
-			// Previous page
-			newStart, wrapped = startOfPage-dispRows, false
-
-		case br.lastMatch < dispRows || startOfPage < dispRows:
-			// Either already searched top page, or already at top -- wrap to end
-			newStart, wrapped = maximum(br.mapSiz-dispRows, 0), true
-
-		default:
-			// Top page but not wrapped → go to beginning
-			newStart, wrapped = 0, false
+		if startOfPage == 0 {
+			// At SOF, wrap to last page at EOF
+			newStart = maximum(totalRows-dispRows, 0)
+			newEnd = totalRows
+			wrapped = true
+		} else {
+			// Go up one page
+			newEnd = startOfPage
+			newStart = 0
+			if newEnd > dispRows {
+				newStart = newEnd - dispRows
+			}
 		}
 	}
 
-	newEnd = newStart + dispRows
 	return newStart, newEnd, wrapped
 }
 
@@ -206,7 +205,7 @@ func (br *browseObj) replaceMatch(lineno int, input string) string {
 		content = ""
 	}
 
-	if br.noSearchPattern() || br.re == nil {
+	if br.noSearchPattern() {
 		return br.formatLine(lineno, content)
 	}
 
@@ -241,52 +240,51 @@ func (br *browseObj) formatLine(lineno int, content string) string {
 }
 
 func (br *browseObj) noSearchPattern() bool {
-	return br.re == nil || br.re.String() == ""
+	return br.re == nil
 }
 
 func (br *browseObj) doSearch(oldDir, newDir bool) bool {
-	// Search starts here
-
 	moveCursor(br.dispHeight-1, 1, true)
-	patbuf, cancelled := userSearchComp(newDir)
 
-	// dirty
+	pattern, cancelled := userSearchComp(newDir)
 	br.shownMsg = true
 
 	if cancelled {
-		// user backed out of prompt
 		br.restoreLast()
 		return oldDir
 	}
 
-	// Save search to history
-	history := loadHistory(searchHistory)
-	history = append(history, patbuf)
-	saveHistory(history, searchHistory)
-
-	if br.pattern != "" {
-		// substitute & with the current search pattern
-		patbuf = subCommandChars(patbuf, "&", br.pattern)
+	prevPattern := br.pattern
+	if strings.TrimSpace(pattern) == "" {
+		pattern = prevPattern
 	}
 
-	if oldDir != newDir && (len(patbuf) > 0 || len(br.pattern) > 0) {
-		// print direction
+	if pattern == "" {
+		br.printMessage("No search pattern", MSG_ORANGE)
+		return false
+	}
+
+	// Substitute '&' with previous pattern for continued searches
+	if strings.Contains(pattern, "&") {
+		pattern = subCommandChars(pattern, "&", prevPattern)
+	}
+
+	if pattern != "" {
+		history := loadHistory(searchHistory)
+		saveHistory(append(history, pattern), searchHistory)
+	}
+
+	if oldDir != newDir {
 		if newDir {
 			br.timedMessage("Searching forward", MSG_GREEN)
 		} else {
 			br.timedMessage("Searching reverse", MSG_GREEN)
 		}
-	}
-
-	if len(patbuf) == 0 {
-		// null -- change direction
-		br.searchFile(br.pattern, newDir, true)
-	} else {
-		// search this page
 		br.lastMatch = SEARCH_RESET
-		br.searchFile(patbuf, newDir, false)
 	}
 
+	continueSearch := (oldDir == newDir && pattern == prevPattern)
+	br.searchFile(pattern, newDir, continueSearch)
 	return newDir
 }
 

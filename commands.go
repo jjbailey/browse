@@ -275,7 +275,6 @@ func commands(br *browseObj) {
 				br.shiftWidth -= TABWIDTH
 				br.pageCurrent()
 			}
-			moveCursor(2, 1, false)
 
 		case CMD_SHIFT_RIGHT, CMD_SHIFT_RIGHT_1:
 			// horizontal scroll right
@@ -283,7 +282,6 @@ func commands(br *browseObj) {
 				br.shiftWidth += TABWIDTH
 				br.pageCurrent()
 			}
-			moveCursor(2, 1, false)
 
 		case CMD_SHIFT_ZERO:
 			// horizontal scroll left to column 1
@@ -291,13 +289,11 @@ func commands(br *browseObj) {
 				br.shiftWidth = 0
 				br.pageCurrent()
 			}
-			moveCursor(2, 1, false)
 
 		case CMD_SHIFT_LONGEST:
 			// horizontal scroll longest
 			br.shiftWidth = shiftLongest(br)
 			br.pageCurrent()
-			moveCursor(2, 1, false)
 
 		case CMD_SOF:
 			// beginning of file at column 1
@@ -360,7 +356,7 @@ func commands(br *browseObj) {
 		case CMD_SEARCH_PRINT:
 			// print the search pattern
 			if len(br.pattern) == 0 {
-				br.printMessage("No search pattern", MSG_ORANGE)
+				br.printMessage("No search pattern", MSG_GREEN)
 			} else {
 				br.printMessage(br.pattern, MSG_GREEN)
 			}
@@ -442,6 +438,7 @@ func commands(br *browseObj) {
 
 func fileCommand(br *browseObj) bool {
 	// Browse new file(s)
+
 	moveCursor(br.dispHeight, 1, true)
 
 	lbuf, cancelled := userFileComp()
@@ -481,7 +478,8 @@ func fileCommand(br *browseObj) bool {
 	}
 
 	if len(allFiles) > 0 {
-		processFileList(br, allFiles)
+		resetState(br)
+		processFileList(br, allFiles, false)
 		return true
 	}
 

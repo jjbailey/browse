@@ -45,34 +45,33 @@ func loadHistory(historyFile string) []string {
 }
 
 func saveHistory(history []string, historyFile string) {
-	// Return immediately if history is empty
 	if len(history) == 0 {
 		return
 	}
 
-	// Clean and validate history entries
-	validHistory := make([]string, 0, len(history))
+	// Clean history in-place to avoid new slice allocation
+	n := 0
 	for _, entry := range history {
 		trimmed := strings.TrimSpace(entry)
-		if trimmed == "" {
-			continue
+		if trimmed != "" {
+			history[n] = trimmed
+			n++
 		}
-		validHistory = append(validHistory, trimmed)
 	}
+	history = history[:n]
 
-	// Return if no valid entries after cleaning
-	if len(validHistory) == 0 {
+	if len(history) == 0 {
 		return
 	}
 
 	// Remove duplicate consecutive entries
-	if len(validHistory) >= 2 && validHistory[len(validHistory)-1] == validHistory[len(validHistory)-2] {
-		validHistory = validHistory[:len(validHistory)-1]
+	if len(history) >= 2 && history[len(history)-1] == history[len(history)-2] {
+		history = history[:len(history)-1]
 	}
 
 	// Ensure history doesn't exceed max size
-	if len(validHistory) > maxHistorySize {
-		validHistory = validHistory[len(validHistory)-maxHistorySize:]
+	if len(history) > maxHistorySize {
+		history = history[len(history)-maxHistorySize:]
 	}
 
 	home, err := os.UserHomeDir()
@@ -81,19 +80,16 @@ func saveHistory(history []string, historyFile string) {
 	}
 
 	historyPath := filepath.Join(home, (RCDIRNAME + "/" + historyFile))
-	file, err := os.OpenFile(historyPath, os.O_WRONLY|os.O_CREATE, 0600)
+	file, err := os.OpenFile(historyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return
 	}
 	defer file.Close()
 
-	// Truncate the file to zero length after opening
-	if err := file.Truncate(0); err != nil {
-		return
-	}
+	file.Chmod(0600)
 
 	writer := bufio.NewWriter(file)
-	for _, cmd := range validHistory {
+	for _, cmd := range history {
 		fmt.Fprintln(writer, cmd)
 	}
 	writer.Flush()
