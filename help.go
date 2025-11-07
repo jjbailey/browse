@@ -60,7 +60,8 @@ func (br *browseObj) printHelp() {
 
 	// Verify screen space
 	if br.dispHeight < (helpHeight+paddingTop+1) || br.dispWidth < (helpWidth+paddingSide) {
-		br.printMessage("Screen is too small", MSG_ORANGE)
+		br.timedMessage("Screen is too small... checking man page", MSG_ORANGE)
+		br.manPage()
 		return
 	}
 
