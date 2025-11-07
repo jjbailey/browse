@@ -25,6 +25,7 @@ A simple, unconventional file browser designed for efficient file navigation and
 
 ### 🛠️ Additional Features
 
+- File completion
 - Shell escape with command completion
 - `tail -f` functionality
 - Line numbers
