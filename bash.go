@@ -62,10 +62,8 @@ func (br *browseObj) bashCommand() {
 		history = append(history, cmdbuf)
 		saveHistory(history, commHistory)
 
-		// Display command preview
-		fmt.Print(LINEWRAPON)
-
 		// Run command in a PTY
+		fmt.Print(LINEWRAPON)
 		fmt.Print(CURSAVE)
 		resetScrRegion()
 		fmt.Print(CURRESTORE)
