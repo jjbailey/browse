@@ -141,7 +141,7 @@ func completer(d prompt.Document) []prompt.Suggest {
 	}
 
 	// Fallback: Just use whatever word we've got in current directory
-	return dirCompleter(".", originalWord, false, false)
+	return anyCompleter(".", originalWord, false, false)
 }
 
 func expandHome(word string) string {
@@ -240,7 +240,7 @@ func pathCompleter(word string) []prompt.Suggest {
 	return suggestions
 }
 
-func dirCompleter(dir, prefix string, useFullPath bool, onlyExec bool) []prompt.Suggest {
+func anyCompleter(dir, prefix string, useFullPath bool, onlyExec bool) []prompt.Suggest {
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		return nil
