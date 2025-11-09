@@ -72,10 +72,11 @@ func checkBinaryFile(br *browseObj, targetFile string) {
 
 func updateFileHistory(targetFile string, br *browseObj) {
 	if !br.fromStdin && len(targetFile) > 0 {
-		history := loadHistory(fileHistory)
-		// Use resolved symlink path for consistent history entries
-		history = append(history, resolveSymlink(targetFile))
-		saveHistory(history, fileHistory)
+		file, err := resolveSymlink(targetFile)
+		if err == nil {
+			history := append(loadHistory(fileHistory), file)
+			saveHistory(history, fileHistory)
+		}
 	}
 }
 

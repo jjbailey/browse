@@ -285,7 +285,8 @@ func matchFiles(files []os.DirEntry, dir, prefix string, useFullPath, onlyExec b
 		switch {
 
 		case file.Type()&os.ModeSymlink != 0:
-			desc = "-> " + resolveSymlink(fullPath)
+			file, _ := resolveSymlink(fullPath)
+			desc = "-> " + file
 
 		case file.Type()&os.ModeNamedPipe != 0:
 			desc = "named pipe"
