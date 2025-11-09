@@ -439,16 +439,12 @@ func commands(br *browseObj) {
 func fileCommand(br *browseObj) bool {
 	// Browse new file(s)
 
-	moveCursor(br.dispHeight, 1, true)
+	moveCursor(br.dispHeight-1, 1, true)
 
 	lbuf, cancelled := userFileComp()
-	if cancelled {
-		br.pageCurrent()
-		return false
-	}
-
 	file := strings.TrimSpace(lbuf)
-	if file == "" {
+
+	if cancelled || file == "" {
 		br.pageCurrent()
 		return false
 	}

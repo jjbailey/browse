@@ -20,12 +20,10 @@ import (
 )
 
 func (br *browseObj) writeRcFile() bool {
-	var absPath string
 	var data strings.Builder
-	var err error
 
 	rcFileName := filepath.Join(os.Getenv("HOME"), (RCDIRNAME + "/" + RCFILENAME))
-	absPath = resolveSymlink(br.fileName)
+	absPath, _ := resolveSymlink(br.fileName)
 
 	// fileName
 	data.WriteString(absPath + "\n")
@@ -46,7 +44,7 @@ func (br *browseObj) writeRcFile() bool {
 	data.WriteString(br.title + "\n")
 
 	// save
-	err = os.WriteFile(rcFileName, []byte(data.String()), 0644)
+	err := os.WriteFile(rcFileName, []byte(data.String()), 0644)
 
 	return err == nil
 }

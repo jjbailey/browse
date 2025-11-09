@@ -21,6 +21,10 @@ const (
 	browseIgnoreCase = "-i"
 )
 
+func shellEscapeSingle(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", "'\"'\"'") + "'"
+}
+
 func (br *browseObj) runGrep() {
 	if br.pattern == "" {
 		br.printMessage("No search pattern", MSG_ORANGE)
@@ -29,13 +33,13 @@ func (br *browseObj) runGrep() {
 
 	grepPath, err := exec.LookPath("grep")
 	if err != nil || grepPath == "" {
-		br.printMessage("Cannot find grep in $PATH", MSG_ORANGE)
+		br.printMessage("Cannot find 'grep' in $PATH", MSG_ORANGE)
 		return
 	}
 
 	brPath, err := exec.LookPath("browse")
 	if err != nil || brPath == "" {
-		br.printMessage("Cannot find browse in $PATH", MSG_ORANGE)
+		br.printMessage("Cannot find 'browse' in $PATH", MSG_ORANGE)
 		return
 	}
 
@@ -48,24 +52,26 @@ func (br *browseObj) runGrep() {
 	}
 
 	title := fmt.Sprintf("grep %s -e \"%s\"", grepOpts, br.pattern)
+	// Safely single-quote the pattern and title for shell
+	patternArg := shellEscapeSingle(br.pattern)
+	titleArg := shellEscapeSingle(title)
 
-	var cmd strings.Builder
-	cmd.Grow(256)
-
-	fmt.Fprintf(&cmd, "%s %s -e '%s' %s | %s %s -p '%s' -t '%s'",
-		grepPath, grepOpts, br.pattern, br.fileName,
-		brPath, brOpts, br.pattern, title)
+	cmd := fmt.Sprintf(
+		"%s %s -e %s %s | %s %s -p %s -t %s",
+		grepPath, grepOpts, patternArg, br.fileName,
+		brPath, brOpts, patternArg, titleArg,
+	)
 
 	// Display command preview
 	moveCursor(br.dispHeight, 1, true)
 	fmt.Print("---\n", LINEWRAPON)
-	fmt.Printf("$ %s\n", cmd.String())
+	fmt.Printf("$ %s\n", cmd)
 
 	// Run command in a PTY
 	fmt.Print(CURSAVE)
 	resetScrRegion()
 	fmt.Print(CURRESTORE)
-	br.runInPty(cmd.String())
+	br.runInPty(cmd)
 	br.resizeWindow()
 	fmt.Print(LINEWRAPOFF)
 }

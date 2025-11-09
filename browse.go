@@ -43,7 +43,6 @@ func validateAndOpenFile(targetFile string, br *browseObj) (*os.File, error) {
 	if err != nil {
 		br.userAnyKey(fmt.Sprintf("%s %s: cannot open ... [press enter] %s",
 			MSG_RED, filepath.Base(targetFile), VIDOFF))
-
 		return nil, err
 	}
 
@@ -55,12 +54,10 @@ func validateAndOpenFile(targetFile string, br *browseObj) (*os.File, error) {
 		return nil, fmt.Errorf("file is a directory")
 	}
 
-	// Open the file
 	fp, err := os.Open(targetFile)
 	if err != nil {
 		br.userAnyKey(fmt.Sprintf("%s %s: cannot open ... [press enter] %s",
 			MSG_RED, filepath.Base(targetFile), VIDOFF))
-
 		return nil, err
 	}
 
@@ -75,10 +72,11 @@ func checkBinaryFile(br *browseObj, targetFile string) {
 
 func updateFileHistory(targetFile string, br *browseObj) {
 	if !br.fromStdin && len(targetFile) > 0 {
-		history := loadHistory(fileHistory)
-		// Use resolved symlink path for consistent history entries
-		history = append(history, resolveSymlink(targetFile))
-		saveHistory(history, fileHistory)
+		file, err := resolveSymlink(targetFile)
+		if err == nil {
+			history := append(loadHistory(fileHistory), file)
+			saveHistory(history, fileHistory)
+		}
 	}
 }
 
@@ -111,7 +109,6 @@ func setTitle(primary, fallback string) string {
 	if primary != "" {
 		return primary
 	}
-
 	return fallback
 }
 
@@ -142,28 +139,27 @@ func processPipeInput(br *browseObj) {
 
 func processFileList(br *browseObj, args []string, toplevel bool) {
 	if len(args) == 0 {
-		// handles file from browserc
+		// Handles file from browserc
 		browseFile(br, br.fileName, setTitle(br.title, br.fileName), false)
 		return
 	}
 
-	for index, fileName := range args {
+	lastIdx := len(args) - 1
+	for i, fileName := range args {
 		// handles list of files
-
-		if browseFile(br, fileName, setTitle(fileName, fileName), false) == false {
+		if !browseFile(br, fileName, setTitle(fileName, fileName), false) {
 			continue
 		}
 
 		if br.exit {
-			if toplevel {
-				return
-			} else {
+			if !toplevel {
 				br.exit = false
-				return
 			}
+			return
 		}
 
-		if index < len(args)-1 {
+		// Only reset state if there are more files to browse
+		if i != lastIdx {
 			resetState(br)
 		}
 	}

@@ -20,7 +20,7 @@ func (br *browseObj) bashCommand() {
 	// Run a command with bash
 
 	for {
-		moveCursor(br.dispHeight, 1, true)
+		moveCursor(br.dispHeight-1, 1, true)
 
 		input, cancelled := userBashComp()
 		if cancelled {
@@ -59,13 +59,10 @@ func (br *browseObj) bashCommand() {
 
 		// Save command to history
 		history := loadHistory(commHistory)
-		history = append(history, cmdbuf)
-		saveHistory(history, commHistory)
-
-		// Display command preview
-		fmt.Print(LINEWRAPON)
+		saveHistory(append(history, cmdbuf), commHistory)
 
 		// Run command in a PTY
+		fmt.Print(LINEWRAPON)
 		fmt.Print(CURSAVE)
 		resetScrRegion()
 		fmt.Print(CURRESTORE)

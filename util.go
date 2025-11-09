@@ -150,22 +150,22 @@ func subCommandChars(input, char, repl string) string {
 	return re.ReplaceAllString(input, `${1}`+repl)
 }
 
-func resolveSymlink(path string) string {
+func resolveSymlink(path string) (string, error) {
 	if path == "" {
-		return ""
+		return "", nil
 	}
 
 	absPath, err := filepath.Abs(path)
 	if err != nil {
-		return path
+		return path, err
 	}
 
 	realPath, err := filepath.EvalSymlinks(absPath)
 	if err != nil {
-		return "broken symlink"
+		return "broken symlink", err
 	}
 
-	return filepath.Clean(realPath)
+	return filepath.Clean(realPath), nil
 }
 
 // vim: set ts=4 sw=4 noet:
