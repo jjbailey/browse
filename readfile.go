@@ -12,6 +12,7 @@ package main
 import (
 	"bufio"
 	"io"
+	"math"
 	"os"
 	"sync/atomic"
 	"time"
@@ -191,7 +192,7 @@ func (br *browseObj) readStdin(fin, fout *os.File) bool {
 		line, err := r.ReadString('\n')
 		if err == io.EOF {
 			if !empty && len(line) > 0 {
-				_, _ = w.WriteString(line)
+				w.WriteString(line)
 			}
 
 			return empty
@@ -214,7 +215,7 @@ func (br *browseObj) readStdin(fin, fout *os.File) bool {
 }
 
 func (br *browseObj) readFromMap(lineno int) []byte {
-	// use the maps to read a line from the file
+	// Use the maps to read a line from the file
 
 	br.mutex.Lock()
 	if lineno >= br.mapSiz {
@@ -226,7 +227,17 @@ func (br *browseObj) readFromMap(lineno int) []byte {
 	size := br.sizeMap[lineno]
 	br.mutex.Unlock()
 
-	data := make([]byte, size)
+	// Make sure size is reasonable to avoid panics (16MB)
+	if size < 0 || size > (16<<20) {
+		return nil
+	}
+
+	// Check for safe cast to int
+	if size > int64(math.MaxInt) {
+		return nil
+	}
+
+	data := make([]byte, int(size))
 	_, err := br.fp.ReadAt(data, seek)
 	if err != nil || len(data) == 0 {
 		return nil
