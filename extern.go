@@ -132,14 +132,15 @@ type browseObj struct {
 	lastRow    int
 
 	// File handling and structure
-	fp         *os.File
-	fileName   string
-	fromStdin  bool
-	mapSiz     int
-	seekMap    map[int]int64
-	sizeMap    map[int]int64
-	shiftWidth int
-	lastKey    byte
+	fp          *os.File
+	fileName    string
+	absFileName string
+	fromStdin   bool
+	mapSiz      int
+	seekMap     map[int]int64
+	sizeMap     map[int]int64
+	shiftWidth  int
+	lastKey     byte
 
 	// Search and match
 	pattern    string

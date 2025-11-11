@@ -46,38 +46,38 @@ func processPipeInput(br *browseObj) {
 
 func processFileList(br *browseObj, args []string, toplevel bool) {
 	if len(args) == 0 {
-		// Handles file from browserc
-		fp, err := validateAndOpenFile(br.fileName, br)
+		fp, err := validateAndOpenFile(br, br.fileName)
 		if err != nil {
 			return
 		}
 		defer fp.Close()
 
-		browseFile(br, fp, br.fileName, setTitle(br.title, br.fileName), false)
+		br.absFileName = br.fileName
+		browseFile(br, fp, br.absFileName, setTitle(br.title, br.fileName), false)
 		return
 	}
 
-	// ffu -- chdir
-	absArgs := make([]string, len(args))
+	lastIdx := len(args) - 1
 	for i, fileName := range args {
 		abs, err := filepath.Abs(fileName)
 		if err != nil {
 			abs = fileName
 		}
-		absArgs[i] = abs
-	}
 
-	lastIdx := len(args) - 1
-	for i, fileName := range args {
-		fp, err := validateAndOpenFile(fileName, br)
+		abs, err = resolveSymlink(abs)
+		if err != nil {
+			abs = fileName
+		}
+
+		fp, err := validateAndOpenFile(br, abs)
 		if err != nil {
 			continue
 		}
-		func() {
-			// Ensure close happens per file
-			defer fp.Close()
-			browseFile(br, fp, fileName, setTitle(fileName, fileName), false)
 
+		func() {
+			defer fp.Close()
+			br.absFileName = abs
+			browseFile(br, fp, br.absFileName, setTitle(fileName, fileName), false)
 			if i != lastIdx {
 				resetState(br)
 			}
@@ -94,15 +94,13 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 
 func browseFile(br *browseObj, fp *os.File, fileName, title string, fromStdin bool) {
 	targetFile := strings.TrimSuffix(fileName, "/")
-
 	checkBinaryFile(br, targetFile)
 	br.fileInit(fp, targetFile, title, fromStdin)
 	updateFileHistory(br, targetFile)
-
 	processFileBrowsing(br)
 }
 
-func validateAndOpenFile(targetFile string, br *browseObj) (*os.File, error) {
+func validateAndOpenFile(br *browseObj, targetFile string) (*os.File, error) {
 	stat, err := os.Stat(targetFile)
 	if err != nil {
 		br.userAnyKey(fmt.Sprintf("%s %s: cannot open ... [press enter] %s",
@@ -134,11 +132,8 @@ func checkBinaryFile(br *browseObj, targetFile string) {
 
 func updateFileHistory(br *browseObj, targetFile string) {
 	if !br.fromStdin && len(targetFile) > 0 {
-		file, err := resolveSymlink(targetFile)
-		if err == nil {
-			history := append(loadHistory(fileHistory), file)
-			saveHistory(history, fileHistory)
-		}
+		history := append(loadHistory(fileHistory), targetFile)
+		saveHistory(history, fileHistory)
 	}
 }
 
