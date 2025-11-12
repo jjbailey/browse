@@ -95,6 +95,8 @@ browse [OPTIONS] [FILE] [FILE...]
 | `%`, `Ctrl+G` | Show page position |
 | `!` | Run a bash command (expands `!`, `%`, `&`, `~`) |
 | `B` | Browse another file (expands `%`, `~`, shell glob) |
+| `c` | Print current working directory |
+| `C` | Change working directory |
 | `q` | Quit, save session, next file in list |
 | `Q` | Quit without saving session, next file in list |
 | `x` | Exit list, save session |
@@ -113,7 +115,7 @@ Special symbols are expanded in commands:
 
 ## ⚙️ Configuration
 
-browse stores configuration and history in `~/.browse/`:
+browse stores configuration and history in `~/.browse/`
 
 **Session File:** `~/.browse/browserc`
 

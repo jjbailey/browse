@@ -116,6 +116,7 @@ const (
 	fileHistory    = "browse_files"
 	commHistory    = "browse_shell"
 	searchHistory  = "browse_search"
+	dirHistory     = "browse_dirs"
 	maxHistorySize = 500
 )
 

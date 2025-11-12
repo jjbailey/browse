@@ -62,6 +62,8 @@ const (
 	CMD_SHIFT_LONGEST = '$'
 
 	// File operations
+	CMD_PRINTDIR     = 'c'
+	CMD_NEWDIR       = 'C'
 	CMD_NEWFILE      = 'B'
 	CMD_QUIT         = 'q'
 	CMD_QUIT_NO_SAVE = 'Q'
@@ -396,6 +398,13 @@ func commands(br *browseObj) {
 			br.printMessage(fmt.Sprintf("\"%s\" %d lines --%1.1f%%--",
 				filepath.Base(br.fileName), br.mapSiz-1, t), MSG_GREEN)
 
+		case CMD_NEWDIR:
+			dirCommand(br)
+
+		case CMD_PRINTDIR:
+			dir, _ := os.Getwd()
+			br.printMessage(dir, MSG_GREEN)
+
 		case CMD_NEWFILE:
 			if fileCommand(br) {
 				return
@@ -434,6 +443,67 @@ func commands(br *browseObj) {
 			moveCursor(2, 1, false)
 		}
 	}
+}
+
+func dirCommand(br *browseObj) bool {
+	moveCursor(br.dispHeight-1, 1, true)
+
+	lbuf, cancelled := userDirComp()
+	if cancelled {
+		br.pageCurrent()
+		return false
+	}
+
+	savDir, _ := os.Getwd()
+	newDir := strings.TrimSpace(lbuf)
+
+	if newDir == "-" {
+		history := loadHistory(dirHistory)
+
+		if len(history) < 2 {
+			br.userAnyKey(fmt.Sprintf("%s No previous directory ... [press enter] %s",
+				MSG_RED, VIDOFF))
+			br.pageCurrent()
+			return false
+		}
+
+		newDir = history[len(history)-2]
+	}
+
+	if newDir == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			br.userAnyKey(fmt.Sprintf("%s Cannot determine home directory ... [press enter] %s",
+				MSG_RED, VIDOFF))
+			br.pageCurrent()
+			return false
+		}
+		newDir = home
+	}
+
+	if newDir == savDir {
+		br.pageCurrent()
+		br.printMessage(savDir, MSG_GREEN)
+		return true
+	}
+
+	if err := os.Chdir(newDir); err != nil {
+		br.userAnyKey(fmt.Sprintf("%s Cannot chdir to %s ... [press enter] %s",
+			MSG_RED, newDir, VIDOFF))
+		br.pageCurrent()
+		return false
+	}
+
+	history := loadHistory(dirHistory)
+	saveHistory(append(history, savDir), dirHistory)
+
+	curDir, _ := os.Getwd()
+	history = loadHistory(dirHistory)
+	saveHistory(append(history, curDir), dirHistory)
+
+	br.pageCurrent()
+	br.printMessage(curDir, MSG_GREEN)
+	return true
 }
 
 func fileCommand(br *browseObj) bool {
