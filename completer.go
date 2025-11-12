@@ -170,6 +170,7 @@ func expandHome(word string) string {
 	// ~username or ~username/something
 	slashIndex := strings.IndexRune(word, '/')
 	var userName, pathSuffix string
+
 	if slashIndex == -1 {
 		userName = word[1:]
 		pathSuffix = ""

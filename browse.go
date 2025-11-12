@@ -60,7 +60,6 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 		return
 	}
 
-	// ffu -- chdir
 	absArgs := make([]string, len(args))
 	for i, fileName := range args {
 		abs, err := filepath.Abs(fileName)
@@ -78,7 +77,6 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 
 	lastIdx := len(args) - 1
 	for i, fileName := range args {
-		// ffu -- abs in case of chdir
 		fp, err := validateAndOpenFile(br, absArgs[i])
 		if err != nil {
 			continue

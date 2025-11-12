@@ -83,6 +83,7 @@ func readFile(br *browseObj, ch chan bool) {
 		}
 
 		var newSize int64
+
 		newSize, err = getFileSize(readerFp)
 		if err != nil {
 			select {
@@ -93,6 +94,7 @@ func readFile(br *browseObj, ch chan bool) {
 		}
 
 		var shouldRead bool
+
 		br.mutex.Lock()
 		br.newFileSiz = newSize
 
@@ -127,7 +129,9 @@ func readFile(br *browseObj, ch chan bool) {
 				seek int64
 				size int64
 			}
+
 			var newLines []lineInfo
+
 			currentOffset := bytesRead
 			reader := bufio.NewReader(readerFp)
 

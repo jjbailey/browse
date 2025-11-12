@@ -44,6 +44,7 @@ func (br *browseObj) pageHeader() {
 	// build header
 	// -----| title |-----
 	var sb strings.Builder
+
 	sb.Grow(br.dispWidth + 20) // Pre-allocate space
 
 	// left side

@@ -323,6 +323,7 @@ func commands(br *browseObj) {
 			lbuf, cancelled := br.userInput("Jump: ")
 			if !cancelled && len(lbuf) > 0 {
 				var n int
+
 				fmt.Sscanf(lbuf, "%d", &n)
 				br.printPage(n)
 			}
@@ -523,6 +524,7 @@ func fileCommand(br *browseObj) bool {
 	tokens := fieldsQuoted(sbuf)
 
 	var allFiles []string
+
 	for _, tok := range tokens {
 		// Expand globs for each token
 		if strings.ContainsAny(tok, "*?[") {
