@@ -159,37 +159,36 @@ func completer(d prompt.Document) []prompt.Suggest {
 }
 
 func expandHome(word string) string {
-	if len(word) == 1 || word[1] == '/' {
-		homeDir, err := os.UserHomeDir()
+	if word == "" || word[0] != '~' {
+		return word
+	}
+
+	// Handle "~" and "~/"
+	if word == "~" || strings.HasPrefix(word, "~/") {
+		home, err := os.UserHomeDir()
 		if err != nil {
 			return word
 		}
-		return filepath.Join(homeDir, word[1:])
+		return strings.Replace(word, "~", home, 1)
 	}
 
-	// ~username or ~username/something
-	slashIndex := strings.IndexRune(word, '/')
-	var userName, pathSuffix string
+	// Handle "~user" or "~user/something"
+	var userName, remaining string
 
-	if slashIndex == -1 {
+	slashIdx := strings.IndexRune(word, '/')
+	if slashIdx == -1 {
 		userName = word[1:]
-		pathSuffix = ""
 	} else {
-		userName = word[1:slashIndex]
-		pathSuffix = word[slashIndex:]
+		userName = word[1:slashIdx]
+		remaining = word[slashIdx:]
 	}
 
-	wordHome, err := getHomeDir(userName)
-	if err != nil || wordHome == "" {
+	u, err := getHomeDir(userName)
+	if err != nil {
 		return word
 	}
 
-	// Confirm the directory exists, stat once here
-	if fi, err := os.Stat(wordHome); err != nil || !fi.IsDir() {
-		return word
-	}
-
-	return filepath.Join(wordHome, pathSuffix)
+	return u + remaining
 }
 
 func isAbsOrRelPath(word string) bool {
@@ -224,8 +223,17 @@ func fileCompleter(word string) []prompt.Suggest {
 }
 
 func pathCompleter(word string) []prompt.Suggest {
-	paths := strings.Split(os.Getenv("PATH"), ":")
+	// Handle files in PATH
+
 	var suggestions []prompt.Suggest
+
+	// cannot test PATH with go run .
+	// go build .
+
+	paths := strings.Split(os.Getenv("PATH"), ":")
+	if len(paths) == 0 || (len(paths) == 1 && paths[0] == "") {
+		paths = []string{"/usr/local/bin", "/usr/bin"}
+	}
 
 	for _, dir := range paths {
 		files, err := os.ReadDir(dir)
@@ -233,41 +241,70 @@ func pathCompleter(word string) []prompt.Suggest {
 			continue
 		}
 
-		if len(suggestions) >= maxSuggestions {
-			break
-		}
-
 		suggestions = append(suggestions,
 			matchFiles(files, dir, word, false, true, false)...)
 
-		if len(suggestions) >= maxSuggestions {
+		if len(suggestions) > maxSuggestions {
+			suggestions = suggestions[:maxSuggestions]
 			break
 		}
-	}
-
-	if len(suggestions) > maxSuggestions {
-		suggestions = suggestions[:maxSuggestions]
 	}
 
 	return suggestions
 }
 
 func dirCompleter(word string) []prompt.Suggest {
-	dir := filepath.Dir(word)
-	files, err := os.ReadDir(dir)
-	if err != nil {
-		return nil
+	// Handle absolute path completions
+
+	var suggestions []prompt.Suggest
+
+	if strings.HasPrefix(word, "/") || strings.HasPrefix(word, "./") ||
+		strings.HasPrefix(word, "../") {
+
+		dir := filepath.Dir(word)
+		files, err := os.ReadDir(dir)
+		if err != nil {
+			return nil
+		}
+
+		prefix := word
+		if !strings.HasSuffix(word, "/") {
+			prefix = filepath.Base(word)
+		} else {
+			prefix = ""
+		}
+
+		suggestions = matchFiles(files, dir, prefix, true, false, true)
+
+		if len(suggestions) > maxSuggestions {
+			suggestions = suggestions[:maxSuggestions]
+			return suggestions
+		}
 	}
 
-	prefix := word
-	if !strings.HasSuffix(word, "/") {
-		prefix = filepath.Base(word)
-	} else {
-		prefix = ""
+	// Handle other paths
+
+	paths := strings.Split(os.Getenv("CDPATH"), ":")
+	if len(paths) == 0 || (len(paths) == 1 && paths[0] == "") {
+		paths = []string{".", ".."}
 	}
 
-	// Match directories only
-	return matchFiles(files, dir, prefix, true, false, true)
+	for _, dir := range paths {
+		files, err := os.ReadDir(dir)
+		if err != nil {
+			continue
+		}
+
+		suggestions = append(suggestions,
+			matchFiles(files, dir, word, true, false, true)...)
+
+		if len(suggestions) > maxSuggestions {
+			suggestions = suggestions[:maxSuggestions]
+			break
+		}
+	}
+
+	return suggestions
 }
 
 func anyCompleter(dir, prefix string, useFullPath bool, onlyExec bool) []prompt.Suggest {

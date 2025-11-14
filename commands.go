@@ -447,16 +447,19 @@ func commands(br *browseObj) {
 }
 
 func dirCommand(br *browseObj) bool {
+	// cd to new directory
+
 	moveCursor(br.dispHeight-1, 1, true)
 
 	lbuf, cancelled := userDirComp()
-	if cancelled {
+	newDir := strings.TrimSpace(lbuf)
+
+	if cancelled || newDir == "" {
 		br.pageCurrent()
 		return false
 	}
 
-	savDir, _ := os.Getwd()
-	newDir := strings.TrimSpace(lbuf)
+	newDir = expandHome(newDir)
 
 	if newDir == "-" {
 		history := loadHistory(dirHistory)
@@ -471,17 +474,7 @@ func dirCommand(br *browseObj) bool {
 		newDir = history[len(history)-2]
 	}
 
-	if newDir == "" {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			br.userAnyKey(fmt.Sprintf("%s Cannot determine home directory ... [press enter] %s",
-				MSG_RED, VIDOFF))
-			br.pageCurrent()
-			return false
-		}
-		newDir = home
-	}
-
+	savDir, _ := os.Getwd()
 	if newDir == savDir {
 		br.pageCurrent()
 		br.printMessage(savDir, MSG_GREEN)
@@ -513,14 +506,29 @@ func fileCommand(br *browseObj) bool {
 	moveCursor(br.dispHeight-1, 1, true)
 
 	lbuf, cancelled := userFileComp()
-	file := strings.TrimSpace(lbuf)
+	newFile := strings.TrimSpace(lbuf)
 
-	if cancelled || file == "" {
+	if cancelled || newFile == "" {
 		br.pageCurrent()
 		return false
 	}
 
-	sbuf := subCommandChars(file, "%", br.fileName)
+	newFile = expandHome(newFile)
+
+	if newFile == "-" {
+		history := loadHistory(fileHistory)
+
+		if len(history) < 2 {
+			br.userAnyKey(fmt.Sprintf("%s No previous file ... [press enter] %s",
+				MSG_RED, VIDOFF))
+			br.pageCurrent()
+			return false
+		}
+
+		newFile = history[len(history)-2]
+	}
+
+	sbuf := subCommandChars(newFile, "%", br.fileName)
 	tokens := fieldsQuoted(sbuf)
 
 	var allFiles []string
