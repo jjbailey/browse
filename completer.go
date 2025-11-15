@@ -158,39 +158,6 @@ func completer(d prompt.Document) []prompt.Suggest {
 	return anyCompleter(".", originalWord, false, false)
 }
 
-func expandHome(word string) string {
-	if word == "" || word[0] != '~' {
-		return word
-	}
-
-	// Handle "~" and "~/"
-	if word == "~" || strings.HasPrefix(word, "~/") {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return word
-		}
-		return strings.Replace(word, "~", home, 1)
-	}
-
-	// Handle "~user" or "~user/something"
-	var userName, remaining string
-
-	slashIdx := strings.IndexRune(word, '/')
-	if slashIdx == -1 {
-		userName = word[1:]
-	} else {
-		userName = word[1:slashIdx]
-		remaining = word[slashIdx:]
-	}
-
-	u, err := getHomeDir(userName)
-	if err != nil {
-		return word
-	}
-
-	return u + remaining
-}
-
 func isAbsOrRelPath(word string) bool {
 	// Only care about the very first rune for . and ..
 
