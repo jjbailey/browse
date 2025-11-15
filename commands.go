@@ -460,10 +460,8 @@ func dirCommand(br *browseObj) bool {
 	}
 
 	newDir = expandHome(newDir)
-
 	if newDir == "-" {
 		history := loadHistory(dirHistory)
-
 		if len(history) < 2 {
 			br.userAnyKey(fmt.Sprintf("%s No previous directory ... [press enter] %s",
 				MSG_RED, VIDOFF))
@@ -488,9 +486,11 @@ func dirCommand(br *browseObj) bool {
 		return false
 	}
 
+	// save the previous directory
 	history := loadHistory(dirHistory)
 	saveHistory(append(history, savDir), dirHistory)
 
+	// save the current directory
 	curDir, _ := os.Getwd()
 	history = loadHistory(dirHistory)
 	saveHistory(append(history, curDir), dirHistory)
@@ -514,7 +514,6 @@ func fileCommand(br *browseObj) bool {
 	}
 
 	newFile = expandHome(newFile)
-
 	if newFile == "-" {
 		history := loadHistory(fileHistory)
 
@@ -528,25 +527,27 @@ func fileCommand(br *browseObj) bool {
 		newFile = history[len(history)-2]
 	}
 
-	sbuf := subCommandChars(newFile, "%", br.fileName)
-	tokens := fieldsQuoted(sbuf)
+	tokens := fieldsQuoted(subCommandChars(newFile, "%", br.fileName))
+	if len(tokens) == 0 {
+		br.pageCurrent()
+		return false
+	}
 
-	var allFiles []string
+	// Pre-allocate with estimated capacity
+	allFiles := make([]string, 0, len(tokens))
 
 	for _, tok := range tokens {
 		// Expand globs for each token
 		if strings.ContainsAny(tok, "*?[") {
 			files, err := filepath.Glob(tok)
-			if err != nil {
-				br.timedMessage("Invalid glob pattern", MSG_ORANGE)
+			if err != nil || len(files) == 0 {
+				if err != nil {
+					br.timedMessage("Invalid glob pattern", MSG_ORANGE)
+				} else {
+					br.timedMessage(fmt.Sprintf("No files match pattern: %s", tok), MSG_ORANGE)
+				}
 				continue
 			}
-
-			if len(files) == 0 {
-				br.timedMessage(fmt.Sprintf("No files match pattern: %s", tok), MSG_ORANGE)
-				continue
-			}
-
 			allFiles = append(allFiles, files...)
 		} else {
 			allFiles = append(allFiles, tok)
@@ -612,7 +613,7 @@ func waitForInput(br *browseObj) {
 		maxAttempts      = 20
 		stableThreshold  = 10
 		waitInterval     = 100 * time.Millisecond
-		modTimeThreshold = 5 * time.Second
+		modTimeThreshold = 4 * time.Second
 	)
 
 	targetSize := br.firstRow + br.dispHeight
@@ -622,7 +623,7 @@ func waitForInput(br *browseObj) {
 	for attempt := 0; attempt < maxAttempts; attempt++ {
 		info, err := os.Stat(br.fileName)
 		if err == nil && time.Since(info.ModTime()) > modTimeThreshold {
-			// don't wait for files unchanged in the last 5 seconds
+			// don't wait for files unchanged in the last 4 seconds
 			break
 		}
 
