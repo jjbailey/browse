@@ -354,9 +354,6 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 			}
 		}
 
-		// Only stat (expensive) if necessary
-		var desc string
-
 		// If filtering for executables, only stat if not directory
 		if onlyExec && !file.IsDir() {
 			info, err := file.Info()
@@ -374,6 +371,8 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 		if useFullPath {
 			displayName = fullPath
 		}
+
+		var desc string
 
 		switch {
 

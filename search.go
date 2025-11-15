@@ -289,7 +289,7 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 }
 
 func (br *browseObj) reCompile(pattern string) (int, error) {
-	var cp string
+	// Compile regex
 
 	if pattern == "" {
 		if br.pattern == "" {
@@ -303,6 +303,8 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 		br.ignoreCase = true
 		pattern = strings.TrimPrefix(pattern, "(?i)")
 	}
+
+	var cp string
 
 	if br.ignoreCase {
 		cp = "(?i)" + pattern
