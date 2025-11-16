@@ -120,7 +120,9 @@ func browseFile(br *browseObj, fp *os.File, fileName, title string, fromStdin bo
 
 	checkBinaryFile(br, targetFile)
 	br.fileInit(fp, targetFile, title, fromStdin)
+
 	updateFileHistory(br, targetFile)
+	updateSearchHistory(br.pattern)
 
 	processFileBrowsing(br)
 }
