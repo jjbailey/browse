@@ -60,6 +60,7 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 		return
 	}
 
+	// Build absolute and symlink-resolved paths
 	absArgs := make([]string, len(args))
 	for i, fileName := range args {
 		abs, err := filepath.Abs(fileName)
@@ -81,19 +82,29 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 		if err != nil {
 			continue
 		}
-		func() {
+		func(i int) {
 			// Ensure close happens per file
 			defer fp.Close()
 
 			// Save for browserc
 			br.absFileName = absArgs[i]
 
-			browseFile(br, fp, br.absFileName, setTitle(fileName, fileName), false)
+			var title string
+
+			if i == 0 {
+				// First file: use command-line title
+				title = setTitle(br.title, fileName)
+			} else {
+				// Rest: use filename
+				title = setTitle(fileName, fileName)
+			}
+
+			browseFile(br, fp, br.absFileName, title, false)
 
 			if i != lastIdx {
 				resetState(br)
 			}
-		}()
+		}(i)
 
 		if br.exit {
 			if !toplevel {
