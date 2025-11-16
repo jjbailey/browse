@@ -244,7 +244,7 @@ func (br *browseObj) noSearchPattern() bool {
 }
 
 func (br *browseObj) doSearch(oldDir, newDir bool) bool {
-	moveCursor(br.dispHeight-1, 1, true)
+	moveCursor(br.dispRows, 1, true)
 
 	pattern, cancelled := userSearchComp(newDir)
 	br.shownMsg = true

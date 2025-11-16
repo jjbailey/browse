@@ -138,9 +138,9 @@ func (br *browseObj) restoreLast() {
 		return
 	}
 
-	if br.lastRow < (br.dispHeight - 1) {
+	if br.lastRow < br.dispRows {
 		// partial display
-		moveCursor((br.dispHeight - 1), 1, true)
+		moveCursor(br.dispRows, 1, true)
 		fmt.Print(CLEARSCREEN)
 	}
 

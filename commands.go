@@ -449,7 +449,7 @@ func commands(br *browseObj) {
 func dirCommand(br *browseObj) bool {
 	// cd to new directory
 
-	moveCursor(br.dispHeight-1, 1, true)
+	moveCursor(br.dispRows, 1, true)
 
 	lbuf, cancelled := userDirComp()
 	newDir := strings.TrimSpace(lbuf)
@@ -503,7 +503,7 @@ func dirCommand(br *browseObj) bool {
 func fileCommand(br *browseObj) bool {
 	// Browse new file(s)
 
-	moveCursor(br.dispHeight-1, 1, true)
+	moveCursor(br.dispRows, 1, true)
 
 	lbuf, cancelled := userFileComp()
 	newFile := strings.TrimSpace(lbuf)
