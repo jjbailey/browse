@@ -14,23 +14,20 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-
-	"golang.org/x/term"
 )
 
 func (br *browseObj) resizeWindow() {
 	// process window size changes
 
-	br.dispWidth, br.dispHeight, _ = term.GetSize(int(br.tty.Fd()))
-	br.dispRows = br.dispHeight - 1
-	br.lastMatch = SEARCH_RESET
-
+	br.screenInit(br.tty)
 	br.pageHeader()
 	br.pageCurrent()
 
 	if br.inMotion() {
 		fmt.Print(CURRESTORE)
 	}
+
+	br.lastMatch = SEARCH_RESET
 }
 
 func (br *browseObj) saneExit() {
