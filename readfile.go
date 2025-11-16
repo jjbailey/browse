@@ -36,7 +36,6 @@ func readFile(br *browseObj, ch chan bool) {
 
 	var bytesRead int64
 	var err error
-	var notified int32
 
 	readInit(br, &bytesRead)
 
@@ -162,7 +161,9 @@ func readFile(br *browseObj, ch chan bool) {
 			}
 			bytesRead = currentOffset
 
-			if atomic.CompareAndSwapInt32(&notified, 0, 1) {
+			var notified atomic.Int32
+
+			if notified.CompareAndSwap(0, 1) {
 				select {
 				case ch <- true:
 				default:
