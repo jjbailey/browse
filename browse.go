@@ -41,7 +41,7 @@ func processPipeInput(br *browseObj) {
 	}
 	defer fp.Close()
 
-	browseFile(br, fp, fpStdin.Name(), setTitle(br.title, "          "), true)
+	browseFile(br, fp, fpStdin.Name(), "          ", true)
 }
 
 func processFileList(br *browseObj, args []string, toplevel bool) {
@@ -56,7 +56,7 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 		// Save for browserc
 		br.absFileName = br.fileName
 
-		browseFile(br, fp, br.absFileName, setTitle(br.title, br.fileName), false)
+		browseFile(br, fp, br.absFileName, br.fileName, false)
 		return
 	}
 
@@ -89,7 +89,11 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 			// Save for browserc
 			br.absFileName = absArgs[i]
 
-			browseFile(br, fp, br.absFileName, setTitle(fileName, fileName), false)
+			if br.title == "" {
+				br.title = fileName
+			}
+
+			browseFile(br, fp, br.absFileName, br.title, false)
 
 			if i != lastIdx {
 				resetState(br)
@@ -100,6 +104,7 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 			if !toplevel {
 				br.exit = false
 			}
+
 			break
 		}
 	}
@@ -168,6 +173,9 @@ func processFileBrowsing(br *browseObj) {
 	if !br.fromStdin && br.saveRC {
 		br.writeRcFile()
 	}
+
+	// Reset the title
+	br.title = ""
 }
 
 func resetState(br *browseObj) {
