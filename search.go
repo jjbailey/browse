@@ -147,7 +147,7 @@ func (br *browseObj) lineIsMatch(lineno int) (int, string) {
 		return 0, ""
 	}
 
-	if br.noSearchPattern() {
+	if br.re == nil {
 		return 0, string(br.readFromMap(lineno))
 	}
 
@@ -205,7 +205,7 @@ func (br *browseObj) replaceMatch(lineno int, input string) string {
 		content = ""
 	}
 
-	if br.noSearchPattern() {
+	if br.re == nil {
 		return br.formatLine(lineno, content)
 	}
 
@@ -239,12 +239,8 @@ func (br *browseObj) formatLine(lineno int, content string) string {
 	return content
 }
 
-func (br *browseObj) noSearchPattern() bool {
-	return br.re == nil
-}
-
 func (br *browseObj) doSearch(oldDir, newDir bool) bool {
-	moveCursor(br.dispHeight-1, 1, true)
+	moveCursor(br.dispRows, 1, true)
 
 	pattern, cancelled := userSearchComp(newDir)
 	br.shownMsg = true
@@ -269,10 +265,7 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 		pattern = subCommandChars(pattern, "&", prevPattern)
 	}
 
-	if pattern != "" {
-		history := loadHistory(searchHistory)
-		saveHistory(append(history, pattern), searchHistory)
-	}
+	updateSearchHistory(pattern)
 
 	if oldDir != newDir {
 		if newDir {
@@ -288,8 +281,15 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 	return newDir
 }
 
+func updateSearchHistory(targetSearch string) {
+	if len(targetSearch) > 0 {
+		history := append(loadHistory(searchHistory), targetSearch)
+		saveHistory(history, searchHistory)
+	}
+}
+
 func (br *browseObj) reCompile(pattern string) (int, error) {
-	var cp string
+	// Compile regex
 
 	if pattern == "" {
 		if br.pattern == "" {
@@ -303,6 +303,8 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 		br.ignoreCase = true
 		pattern = strings.TrimPrefix(pattern, "(?i)")
 	}
+
+	var cp string
 
 	if br.ignoreCase {
 		cp = "(?i)" + pattern

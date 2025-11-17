@@ -20,7 +20,7 @@ func (br *browseObj) bashCommand() {
 	// Run a command with bash
 
 	for {
-		moveCursor(br.dispHeight-1, 1, true)
+		moveCursor(br.dispRows, 1, true)
 
 		input, cancelled := userBashComp()
 		if cancelled {

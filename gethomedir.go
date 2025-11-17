@@ -12,6 +12,7 @@ package main
 import (
 	"bufio"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -45,6 +46,44 @@ func getHomeDir(username string) (string, error) {
 	}
 
 	return "", err
+}
+
+func expandHome(path string) string {
+	if path == "~" || strings.HasPrefix(path, "~/") {
+		if home, err := os.UserHomeDir(); err == nil {
+			return filepath.Join(home, path[1:])
+		}
+
+		return path
+	}
+
+	if strings.HasPrefix(path, "~") {
+		remaining := path[1:]
+
+		var userPart, relative string
+
+		if idx := strings.IndexByte(remaining, '/'); idx >= 0 {
+			userPart = remaining[:idx]
+			relative = remaining[idx+1:]
+		} else {
+			userPart = remaining
+			relative = ""
+		}
+
+		homeDir, err := getHomeDir(userPart)
+		if err == nil && homeDir != "" {
+			if relative != "" {
+				return filepath.Join(homeDir, relative)
+			}
+
+			return homeDir
+		}
+
+		// User not found, do not expand
+		return path
+	}
+
+	return path
 }
 
 // vim: set ts=4 sw=4 noet:

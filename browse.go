@@ -17,28 +17,117 @@ import (
 	"syscall"
 )
 
-func browseFile(br *browseObj, fileName, title string, fromStdin bool) bool {
-	targetFile := strings.TrimSuffix(fileName, "/")
-
-	// Validate and open the file
-	fp, err := validateAndOpenFile(targetFile, br)
+func processPipeInput(br *browseObj) {
+	fpStdin, err := os.CreateTemp("", "browse")
 	if err != nil {
-		return false
+		errorExit(fmt.Errorf("error creating temporary file: %v", err))
+		return
+	}
+	defer os.Remove(fpStdin.Name())
+	defer fpStdin.Close()
+
+	go func() {
+		empty := br.readStdin(os.Stdin, fpStdin)
+		if empty {
+			br.saneExit()
+		}
+	}()
+
+	// Fast path for stdin: open temp file ourselves and pass to browseFile
+	fp, err := os.Open(fpStdin.Name())
+	if err != nil {
+		errorExit(fmt.Errorf("cannot open temporary browse file: %v", err))
+		return
 	}
 	defer fp.Close()
 
-	// Check if file is binary and warn user
-	checkBinaryFile(br, targetFile)
-
-	br.fileInit(fp, targetFile, title, fromStdin)
-	updateFileHistory(targetFile, br)
-
-	return processFileBrowsing(br)
+	browseFile(br, fp, fpStdin.Name(), setTitle(br.title, "          "), true)
 }
 
-func validateAndOpenFile(targetFile string, br *browseObj) (*os.File, error) {
-	// Check if file exists and get file info
+func processFileList(br *browseObj, args []string, toplevel bool) {
+	if len(args) == 0 {
+		// Handles file from browserc
+		fp, err := validateAndOpenFile(br, br.fileName)
+		if err != nil {
+			return
+		}
+		defer fp.Close()
 
+		// Save for browserc
+		br.absFileName = br.fileName
+
+		browseFile(br, fp, br.absFileName, setTitle(br.title, br.fileName), false)
+		return
+	}
+
+	// Build absolute and symlink-resolved paths
+	absArgs := make([]string, len(args))
+	for i, fileName := range args {
+		abs, err := filepath.Abs(fileName)
+		if err != nil {
+			abs = fileName
+		}
+
+		abs, err = resolveSymlink(abs)
+		if err != nil {
+			abs = fileName
+		}
+
+		absArgs[i] = abs
+	}
+
+	lastIdx := len(args) - 1
+	for i, fileName := range args {
+		fp, err := validateAndOpenFile(br, absArgs[i])
+		if err != nil {
+			continue
+		}
+		func(i int) {
+			// Ensure close happens per file
+			defer fp.Close()
+
+			// Save for browserc
+			br.absFileName = absArgs[i]
+
+			var title string
+
+			if i == 0 {
+				// First file: use command-line title
+				title = setTitle(br.title, fileName)
+			} else {
+				// Rest: use filename
+				title = setTitle(fileName, fileName)
+			}
+
+			browseFile(br, fp, br.absFileName, title, false)
+
+			if i != lastIdx {
+				resetState(br)
+			}
+		}(i)
+
+		if br.exit {
+			if !toplevel {
+				br.exit = false
+			}
+			break
+		}
+	}
+}
+
+func browseFile(br *browseObj, fp *os.File, fileName, title string, fromStdin bool) {
+	targetFile := strings.TrimSuffix(fileName, "/")
+
+	checkBinaryFile(br, targetFile)
+	br.fileInit(fp, targetFile, title, fromStdin)
+
+	updateFileHistory(br, targetFile)
+	updateSearchHistory(br.pattern)
+
+	processFileBrowsing(br)
+}
+
+func validateAndOpenFile(br *browseObj, targetFile string) (*os.File, error) {
 	stat, err := os.Stat(targetFile)
 	if err != nil {
 		br.userAnyKey(fmt.Sprintf("%s %s: cannot open ... [press enter] %s",
@@ -46,11 +135,9 @@ func validateAndOpenFile(targetFile string, br *browseObj) (*os.File, error) {
 		return nil, err
 	}
 
-	// Ensure it's not a directory
 	if stat.IsDir() {
 		br.userAnyKey(fmt.Sprintf("%s %s: is a directory ... [press enter] %s",
 			MSG_RED, filepath.Base(targetFile), VIDOFF))
-
 		return nil, fmt.Errorf("file is a directory")
 	}
 
@@ -70,17 +157,14 @@ func checkBinaryFile(br *browseObj, targetFile string) {
 	}
 }
 
-func updateFileHistory(targetFile string, br *browseObj) {
+func updateFileHistory(br *browseObj, targetFile string) {
 	if !br.fromStdin && len(targetFile) > 0 {
-		file, err := resolveSymlink(targetFile)
-		if err == nil {
-			history := append(loadHistory(fileHistory), file)
-			saveHistory(history, fileHistory)
-		}
+		history := append(loadHistory(fileHistory), targetFile)
+		saveHistory(history, fileHistory)
 	}
 }
 
-func processFileBrowsing(br *browseObj) bool {
+func processFileBrowsing(br *browseObj) {
 	// Start file reading in background
 	syncOK := make(chan bool, 1)
 	go readFile(br, syncOK)
@@ -94,8 +178,6 @@ func processFileBrowsing(br *browseObj) bool {
 	if !br.fromStdin && br.saveRC {
 		br.writeRcFile()
 	}
-
-	return true
 }
 
 func resetState(br *browseObj) {
@@ -105,64 +187,10 @@ func resetState(br *browseObj) {
 	br.modeScroll = MODE_SCROLL_NONE
 }
 
-func setTitle(primary, fallback string) string {
-	if primary != "" {
-		return primary
-	}
-	return fallback
-}
-
 func preInitialization(br *browseObj) {
 	ttySaveTerm()
 	syscall.Umask(077)
 	br.browseInit()
-}
-
-func processPipeInput(br *browseObj) {
-	fpStdin, err := os.CreateTemp("", "browse")
-	if err != nil {
-		errorExit(fmt.Errorf("error creating temporary file: %v", err))
-		return
-	}
-	defer os.Remove(fpStdin.Name())
-	defer fpStdin.Close()
-
-	go func() {
-		empty := br.readStdin(os.Stdin, fpStdin)
-		if empty {
-			br.saneExit()
-		}
-	}()
-
-	browseFile(br, fpStdin.Name(), setTitle(br.title, "          "), true)
-}
-
-func processFileList(br *browseObj, args []string, toplevel bool) {
-	if len(args) == 0 {
-		// Handles file from browserc
-		browseFile(br, br.fileName, setTitle(br.title, br.fileName), false)
-		return
-	}
-
-	lastIdx := len(args) - 1
-	for i, fileName := range args {
-		// handles list of files
-		if !browseFile(br, fileName, setTitle(fileName, fileName), false) {
-			continue
-		}
-
-		if br.exit {
-			if !toplevel {
-				br.exit = false
-			}
-			return
-		}
-
-		// Only reset state if there are more files to browse
-		if i != lastIdx {
-			resetState(br)
-		}
-	}
 }
 
 // vim: set ts=4 sw=4 noet:

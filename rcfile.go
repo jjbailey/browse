@@ -23,10 +23,9 @@ func (br *browseObj) writeRcFile() bool {
 	var data strings.Builder
 
 	rcFileName := filepath.Join(os.Getenv("HOME"), (RCDIRNAME + "/" + RCFILENAME))
-	absPath, _ := resolveSymlink(br.fileName)
 
-	// fileName
-	data.WriteString(absPath + "\n")
+	// abs fileName
+	data.WriteString(br.absFileName + "\n")
 
 	// firstRow
 	data.WriteString(strconv.Itoa(br.firstRow) + "\n")

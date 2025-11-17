@@ -15,9 +15,7 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-var (
-	savedTermios *unix.Termios
-)
+var savedTermios *unix.Termios
 
 func ttySaveTerm() {
 	// Get the current terminal settings

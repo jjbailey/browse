@@ -45,6 +45,7 @@ func (br *browseObj) printLine(lineno int) {
 
 	// Build output using a Builder to reduce stdout calls
 	var lineOut strings.Builder
+
 	// rough guess with margin
 	lineOut.Grow(len(output) + 16)
 

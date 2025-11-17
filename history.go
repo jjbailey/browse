@@ -31,6 +31,7 @@ func loadHistory(historyFile string) []string {
 	defer file.Close()
 
 	var history []string
+
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		history = append(history, scanner.Text())

@@ -18,7 +18,7 @@ import (
 // ─── Build Information ──────────────────────────────────────────────
 
 const (
-	BR_VERSION = "0.69"
+	BR_VERSION = "0.70"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -116,6 +116,7 @@ const (
 	fileHistory    = "browse_files"
 	commHistory    = "browse_shell"
 	searchHistory  = "browse_search"
+	dirHistory     = "browse_dirs"
 	maxHistorySize = 500
 )
 
@@ -132,14 +133,15 @@ type browseObj struct {
 	lastRow    int
 
 	// File handling and structure
-	fp         *os.File
-	fileName   string
-	fromStdin  bool
-	mapSiz     int
-	seekMap    map[int]int64
-	sizeMap    map[int]int64
-	shiftWidth int
-	lastKey    byte
+	fp          *os.File
+	fileName    string
+	absFileName string
+	fromStdin   bool
+	mapSiz      int
+	seekMap     map[int]int64
+	sizeMap     map[int]int64
+	shiftWidth  int
+	lastKey     byte
 
 	// Search and match
 	pattern    string

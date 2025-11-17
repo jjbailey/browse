@@ -36,7 +36,6 @@ func readFile(br *browseObj, ch chan bool) {
 
 	var bytesRead int64
 	var err error
-	var notified int32
 
 	readInit(br, &bytesRead)
 
@@ -83,6 +82,7 @@ func readFile(br *browseObj, ch chan bool) {
 		}
 
 		var newSize int64
+
 		newSize, err = getFileSize(readerFp)
 		if err != nil {
 			select {
@@ -93,6 +93,7 @@ func readFile(br *browseObj, ch chan bool) {
 		}
 
 		var shouldRead bool
+
 		br.mutex.Lock()
 		br.newFileSiz = newSize
 
@@ -127,7 +128,9 @@ func readFile(br *browseObj, ch chan bool) {
 				seek int64
 				size int64
 			}
+
 			var newLines []lineInfo
+
 			currentOffset := bytesRead
 			reader := bufio.NewReader(readerFp)
 
@@ -158,7 +161,9 @@ func readFile(br *browseObj, ch chan bool) {
 			}
 			bytesRead = currentOffset
 
-			if atomic.CompareAndSwapInt32(&notified, 0, 1) {
+			var notified atomic.Int32
+
+			if notified.CompareAndSwap(0, 1) {
 				select {
 				case ch <- true:
 				default:

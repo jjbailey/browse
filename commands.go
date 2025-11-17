@@ -62,6 +62,8 @@ const (
 	CMD_SHIFT_LONGEST = '$'
 
 	// File operations
+	CMD_PRINTDIR     = 'c'
+	CMD_NEWDIR       = 'C'
 	CMD_NEWFILE      = 'B'
 	CMD_QUIT         = 'q'
 	CMD_QUIT_NO_SAVE = 'Q'
@@ -321,6 +323,7 @@ func commands(br *browseObj) {
 			lbuf, cancelled := br.userInput("Jump: ")
 			if !cancelled && len(lbuf) > 0 {
 				var n int
+
 				fmt.Sscanf(lbuf, "%d", &n)
 				br.printPage(n)
 			}
@@ -396,6 +399,13 @@ func commands(br *browseObj) {
 			br.printMessage(fmt.Sprintf("\"%s\" %d lines --%1.1f%%--",
 				filepath.Base(br.fileName), br.mapSiz-1, t), MSG_GREEN)
 
+		case CMD_NEWDIR:
+			dirCommand(br)
+
+		case CMD_PRINTDIR:
+			dir, _ := os.Getwd()
+			br.printMessage(dir, MSG_GREEN)
+
 		case CMD_NEWFILE:
 			if fileCommand(br) {
 				return
@@ -436,37 +446,108 @@ func commands(br *browseObj) {
 	}
 }
 
-func fileCommand(br *browseObj) bool {
-	// Browse new file(s)
+func dirCommand(br *browseObj) bool {
+	// cd to new directory
 
-	moveCursor(br.dispHeight-1, 1, true)
+	moveCursor(br.dispRows, 1, true)
 
-	lbuf, cancelled := userFileComp()
-	file := strings.TrimSpace(lbuf)
+	lbuf, cancelled := userDirComp()
+	newDir := strings.TrimSpace(lbuf)
 
-	if cancelled || file == "" {
+	if cancelled || newDir == "" {
 		br.pageCurrent()
 		return false
 	}
 
-	sbuf := subCommandChars(file, "%", br.fileName)
-	tokens := fieldsQuoted(sbuf)
+	newDir = expandHome(newDir)
+	if newDir == "-" {
+		history := loadHistory(dirHistory)
+		if len(history) < 2 {
+			br.userAnyKey(fmt.Sprintf("%s No previous directory ... [press enter] %s",
+				MSG_RED, VIDOFF))
+			br.pageCurrent()
+			return false
+		}
 
-	var allFiles []string
+		newDir = history[len(history)-2]
+	}
+
+	savDir, _ := os.Getwd()
+	if newDir == savDir {
+		br.pageCurrent()
+		br.printMessage(savDir, MSG_GREEN)
+		return true
+	}
+
+	if err := os.Chdir(newDir); err != nil {
+		br.userAnyKey(fmt.Sprintf("%s Cannot chdir to %s ... [press enter] %s",
+			MSG_RED, newDir, VIDOFF))
+		br.pageCurrent()
+		return false
+	}
+
+	// save the previous directory
+	history := loadHistory(dirHistory)
+	saveHistory(append(history, savDir), dirHistory)
+
+	// save the current directory
+	curDir, _ := os.Getwd()
+	history = loadHistory(dirHistory)
+	saveHistory(append(history, curDir), dirHistory)
+
+	br.pageCurrent()
+	br.printMessage(curDir, MSG_GREEN)
+	return true
+}
+
+func fileCommand(br *browseObj) bool {
+	// Browse new file(s)
+
+	moveCursor(br.dispRows, 1, true)
+
+	lbuf, cancelled := userFileComp()
+	newFile := strings.TrimSpace(lbuf)
+
+	if cancelled || newFile == "" {
+		br.pageCurrent()
+		return false
+	}
+
+	newFile = expandHome(newFile)
+	if newFile == "-" {
+		history := loadHistory(fileHistory)
+
+		if len(history) < 2 {
+			br.userAnyKey(fmt.Sprintf("%s No previous file ... [press enter] %s",
+				MSG_RED, VIDOFF))
+			br.pageCurrent()
+			return false
+		}
+
+		newFile = history[len(history)-2]
+	}
+
+	tokens := fieldsQuoted(subCommandChars(newFile, "%", br.fileName))
+	if len(tokens) == 0 {
+		br.pageCurrent()
+		return false
+	}
+
+	// Pre-allocate with estimated capacity
+	allFiles := make([]string, 0, len(tokens))
+
 	for _, tok := range tokens {
 		// Expand globs for each token
 		if strings.ContainsAny(tok, "*?[") {
 			files, err := filepath.Glob(tok)
-			if err != nil {
-				br.timedMessage("Invalid glob pattern", MSG_ORANGE)
+			if err != nil || len(files) == 0 {
+				if err != nil {
+					br.timedMessage("Invalid glob pattern", MSG_ORANGE)
+				} else {
+					br.timedMessage(fmt.Sprintf("No files match pattern: %s", tok), MSG_ORANGE)
+				}
 				continue
 			}
-
-			if len(files) == 0 {
-				br.timedMessage(fmt.Sprintf("No files match pattern: %s", tok), MSG_ORANGE)
-				continue
-			}
-
 			allFiles = append(allFiles, files...)
 		} else {
 			allFiles = append(allFiles, tok)
@@ -532,7 +613,7 @@ func waitForInput(br *browseObj) {
 		maxAttempts      = 20
 		stableThreshold  = 10
 		waitInterval     = 100 * time.Millisecond
-		modTimeThreshold = 5 * time.Second
+		modTimeThreshold = 4 * time.Second
 	)
 
 	targetSize := br.firstRow + br.dispHeight
@@ -542,7 +623,7 @@ func waitForInput(br *browseObj) {
 	for attempt := 0; attempt < maxAttempts; attempt++ {
 		info, err := os.Stat(br.fileName)
 		if err == nil && time.Since(info.ModTime()) > modTimeThreshold {
-			// don't wait for files unchanged in the last 5 seconds
+			// don't wait for files unchanged in the last 4 seconds
 			break
 		}
 
