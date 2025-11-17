@@ -82,29 +82,19 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 		if err != nil {
 			continue
 		}
-		func(i int) {
+		func() {
 			// Ensure close happens per file
 			defer fp.Close()
 
 			// Save for browserc
 			br.absFileName = absArgs[i]
 
-			var title string
-
-			if i == 0 {
-				// First file: use command-line title
-				title = setTitle(br.title, fileName)
-			} else {
-				// Rest: use filename
-				title = setTitle(fileName, fileName)
-			}
-
-			browseFile(br, fp, br.absFileName, title, false)
+			browseFile(br, fp, br.absFileName, setTitle(fileName, fileName), false)
 
 			if i != lastIdx {
 				resetState(br)
 			}
-		}(i)
+		}()
 
 		if br.exit {
 			if !toplevel {
