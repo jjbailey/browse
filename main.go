@@ -72,7 +72,9 @@ func main() {
 	}
 
 	if len(*titleStr) > 0 {
-		br.title = *titleStr
+		br.initTitle = *titleStr
+	} else {
+		br.initTitle = ""
 	}
 
 	// init tty and signals

@@ -554,9 +554,6 @@ func fileCommand(br *browseObj) bool {
 		}
 	}
 
-	// Reset the title
-	br.title = ""
-
 	if len(allFiles) > 0 {
 		resetState(br)
 		processFileList(br, allFiles, false)

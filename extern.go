@@ -125,6 +125,7 @@ const (
 type browseObj struct {
 	// Terminal configuration
 	tty        *os.File
+	initTitle  string
 	title      string
 	dispWidth  int
 	dispHeight int
