@@ -27,6 +27,9 @@ func (br *browseObj) userAnyKey(promptStr string) {
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
 	defer signal.Reset(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
 
+	// reset tty
+	ttyBrowser()
+
 	// promptStr is optional
 
 	if promptStr == "" {
