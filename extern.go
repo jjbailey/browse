@@ -18,7 +18,7 @@ import (
 // ─── Build Information ──────────────────────────────────────────────
 
 const (
-	BR_VERSION = "0.70"
+	BR_VERSION = "0.71"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -125,6 +125,7 @@ const (
 type browseObj struct {
 	// Terminal configuration
 	tty        *os.File
+	initTitle  string
 	title      string
 	dispWidth  int
 	dispHeight int

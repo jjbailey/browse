@@ -66,14 +66,6 @@ func printSEOF(what string) {
 	fmt.Printf("\r %s%s%s\r", VIDBLINK, what, VIDOFF)
 }
 
-func setTitle(primary, fallback string) string {
-	if primary != "" {
-		return primary
-	}
-
-	return fallback
-}
-
 func windowAtEOF(lineno, mapsiz int) bool {
 	return lineno == mapsiz
 }

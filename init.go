@@ -22,7 +22,14 @@ func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin boo
 	br.fp = fp
 	br.fromStdin = fromStdin
 	br.lastMatch = SEARCH_RESET
-	br.title = title
+
+	if br.initTitle != "" {
+		// one-time use of -t option
+		br.title = br.initTitle
+		br.initTitle = ""
+	} else {
+		br.title = title
+	}
 }
 
 func (br *browseObj) browseInit() {

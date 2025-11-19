@@ -463,7 +463,7 @@ func dirCommand(br *browseObj) bool {
 	if newDir == "-" {
 		history := loadHistory(dirHistory)
 		if len(history) < 2 {
-			br.userAnyKey(fmt.Sprintf("%s No previous directory ... [press enter] %s",
+			br.userAnyKey(fmt.Sprintf("%s No previous directory ... [press any key] %s",
 				MSG_RED, VIDOFF))
 			br.pageCurrent()
 			return false
@@ -480,7 +480,7 @@ func dirCommand(br *browseObj) bool {
 	}
 
 	if err := os.Chdir(newDir); err != nil {
-		br.userAnyKey(fmt.Sprintf("%s Cannot chdir to %s ... [press enter] %s",
+		br.userAnyKey(fmt.Sprintf("%s Cannot chdir to %s ... [press any key] %s",
 			MSG_RED, newDir, VIDOFF))
 		br.pageCurrent()
 		return false
@@ -518,7 +518,7 @@ func fileCommand(br *browseObj) bool {
 		history := loadHistory(fileHistory)
 
 		if len(history) < 2 {
-			br.userAnyKey(fmt.Sprintf("%s No previous file ... [press enter] %s",
+			br.userAnyKey(fmt.Sprintf("%s No previous file ... [press any key] %s",
 				MSG_RED, VIDOFF))
 			br.pageCurrent()
 			return false

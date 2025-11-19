@@ -41,7 +41,7 @@ func processPipeInput(br *browseObj) {
 	}
 	defer fp.Close()
 
-	browseFile(br, fp, fpStdin.Name(), setTitle(br.title, "          "), true)
+	browseFile(br, fp, fpStdin.Name(), "          ", true)
 }
 
 func processFileList(br *browseObj, args []string, toplevel bool) {
@@ -89,7 +89,7 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 			// Save for browserc
 			br.absFileName = absArgs[i]
 
-			browseFile(br, fp, br.absFileName, setTitle(fileName, fileName), false)
+			browseFile(br, fp, br.absFileName, fileName, false)
 
 			if i != lastIdx {
 				resetState(br)
@@ -100,6 +100,7 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 			if !toplevel {
 				br.exit = false
 			}
+
 			break
 		}
 	}
@@ -120,20 +121,20 @@ func browseFile(br *browseObj, fp *os.File, fileName, title string, fromStdin bo
 func validateAndOpenFile(br *browseObj, targetFile string) (*os.File, error) {
 	stat, err := os.Stat(targetFile)
 	if err != nil {
-		br.userAnyKey(fmt.Sprintf("%s %s: cannot open ... [press enter] %s",
+		br.userAnyKey(fmt.Sprintf("%s %s: cannot open ... [press any key] %s",
 			MSG_RED, filepath.Base(targetFile), VIDOFF))
 		return nil, err
 	}
 
 	if stat.IsDir() {
-		br.userAnyKey(fmt.Sprintf("%s %s: is a directory ... [press enter] %s",
+		br.userAnyKey(fmt.Sprintf("%s %s: is a directory ... [press any key] %s",
 			MSG_RED, filepath.Base(targetFile), VIDOFF))
 		return nil, fmt.Errorf("file is a directory")
 	}
 
 	fp, err := os.Open(targetFile)
 	if err != nil {
-		br.userAnyKey(fmt.Sprintf("%s %s: cannot open ... [press enter] %s",
+		br.userAnyKey(fmt.Sprintf("%s %s: cannot open ... [press any key] %s",
 			MSG_RED, filepath.Base(targetFile), VIDOFF))
 		return nil, err
 	}
@@ -181,6 +182,14 @@ func preInitialization(br *browseObj) {
 	ttySaveTerm()
 	syscall.Umask(077)
 	br.browseInit()
+}
+
+func setTitle(primary, fallback string) string {
+	if primary != "" {
+		return primary
+	}
+
+	return fallback
 }
 
 // vim: set ts=4 sw=4 noet:
