@@ -494,17 +494,10 @@ func dirCommand(br *browseObj) bool {
 		return false
 	}
 
-	// saveHistory checks for dups
-
-	// save the previous directory
-	history := loadHistory(dirHistory)
-	saveHistory(append(history, savDir), dirHistory)
-
-	// save the current directory
+	// save directories
 	curDir, _ := os.Getwd()
 	if curDir != savDir {
-		history = loadHistory(dirHistory)
-		saveHistory(append(history, curDir), dirHistory)
+		updateDirHistory(savDir, curDir)
 	}
 
 	br.pageCurrent()

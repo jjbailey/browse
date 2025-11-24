@@ -58,8 +58,7 @@ func (br *browseObj) bashCommand() {
 		}
 
 		// Save command to history
-		history := loadHistory(commHistory)
-		saveHistory(append(history, cmdbuf), commHistory)
+		updateCommHistory(cmdbuf)
 
 		// Run command in a PTY
 		fmt.Print(LINEWRAPON)

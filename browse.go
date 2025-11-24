@@ -148,13 +148,6 @@ func checkBinaryFile(br *browseObj, targetFile string) {
 	}
 }
 
-func updateFileHistory(br *browseObj, targetFile string) {
-	if !br.fromStdin && len(targetFile) > 0 {
-		history := append(loadHistory(fileHistory), targetFile)
-		saveHistory(history, fileHistory)
-	}
-}
-
 func processFileBrowsing(br *browseObj) {
 	// Start file reading in background
 	syncOK := make(chan bool, 1)
