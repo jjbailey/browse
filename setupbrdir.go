@@ -22,12 +22,7 @@ func setupBrDir() error {
 		return err
 	}
 
-	// If RCDIRNAME already exists, return nil
 	newDir := filepath.Join(home, RCDIRNAME)
-	if info, err := os.Stat(newDir); err == nil && info.IsDir() {
-		return nil
-	}
-
 	if err := os.MkdirAll(newDir, 0700); err != nil {
 		return err
 	}
