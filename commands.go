@@ -452,12 +452,20 @@ func dirCommand(br *browseObj) bool {
 	moveCursor(br.dispRows, 1, true)
 
 	lbuf, cancelled := userDirComp()
-	newDir := strings.TrimSpace(lbuf)
+	dirBuf := strings.TrimSpace(lbuf)
 
-	if cancelled || newDir == "" {
+	if cancelled || dirBuf == "" {
 		br.pageCurrent()
 		return false
 	}
+
+	// remove quotes from dirnames with spaces
+	fields := fieldsQuoted(dirBuf)
+	if len(fields) == 0 {
+		br.pageCurrent()
+		return false
+	}
+	newDir := strings.Join(fields, " ")
 
 	newDir = expandHome(newDir)
 	if newDir == "-" {
@@ -531,6 +539,7 @@ func fileCommand(br *browseObj) bool {
 		newFile = history[len(history)-2]
 	}
 
+	// remove quotes from filenames with spaces
 	tokens := fieldsQuoted(subCommandChars(newFile, "%", br.fileName))
 	if len(tokens) == 0 {
 		br.pageCurrent()
