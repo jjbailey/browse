@@ -102,13 +102,13 @@ func updateDirHistory(savDir, curDir string) {
 	// save the previous directory
 	if len(savDir) > 0 {
 		history := append(loadHistory(dirHistory), savDir)
-		saveHistory(history, fileHistory)
+		saveHistory(history, dirHistory)
 	}
 
 	// save the current directory
 	if len(curDir) > 0 {
 		history := append(loadHistory(dirHistory), curDir)
-		saveHistory(history, fileHistory)
+		saveHistory(history, dirHistory)
 	}
 }
 
