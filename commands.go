@@ -447,27 +447,27 @@ func commands(br *browseObj) {
 }
 
 func dirCommand(br *browseObj) bool {
-	// cd to new directory
+	// Change working directory with completion and history jump.
 
 	moveCursor(br.dispRows, 1, true)
 
 	lbuf, cancelled := userDirComp()
-	dirBuf := strings.TrimSpace(lbuf)
+	dirInput := strings.TrimSpace(lbuf)
 
-	if cancelled || dirBuf == "" {
+	if cancelled || dirInput == "" {
 		br.pageCurrent()
 		return false
 	}
 
-	// remove quotes from dirnames with spaces
-	fields := fieldsQuoted(dirBuf)
+	// Unquote/expand fields to one path
+	fields := fieldsQuoted(dirInput)
 	if len(fields) == 0 {
 		br.pageCurrent()
 		return false
 	}
-	newDir := strings.Join(fields, " ")
+	newDir := expandHome(strings.Join(fields, " "))
 
-	newDir = expandHome(newDir)
+	// Handle "cd -" (jump to previous)
 	if newDir == "-" {
 		history := loadHistory(dirHistory)
 		if len(history) < 2 {
@@ -476,17 +476,26 @@ func dirCommand(br *browseObj) bool {
 			br.pageCurrent()
 			return false
 		}
-
 		newDir = history[len(history)-2]
 	}
 
-	savDir, _ := os.Getwd()
+	// Save original working directory
+	savDir, err := os.Getwd()
+	if err != nil {
+		br.userAnyKey(fmt.Sprintf("%s Cannot get current directory ... [press any key] %s",
+			MSG_RED, VIDOFF))
+		br.pageCurrent()
+		return false
+	}
+
+	// No-op if already in target directory
 	if newDir == savDir {
 		br.pageCurrent()
 		br.printMessage(savDir, MSG_GREEN)
 		return true
 	}
 
+	// Try to change directory
 	if err := os.Chdir(newDir); err != nil {
 		br.userAnyKey(fmt.Sprintf("%s Cannot chdir to %s ... [press any key] %s",
 			MSG_RED, newDir, VIDOFF))
@@ -494,7 +503,7 @@ func dirCommand(br *browseObj) bool {
 		return false
 	}
 
-	// save directories
+	// Save directory history (only if actually changed)
 	curDir, _ := os.Getwd()
 	if curDir != savDir {
 		updateDirHistory(savDir, curDir)

@@ -1,5 +1,5 @@
 // bash.go
-// run a command with bash
+// Run a command with bash
 //
 // Copyright (c) 2024-2025 jjb
 // All rights reserved.
@@ -34,21 +34,24 @@ func (br *browseObj) bashCommand() {
 			return
 		}
 
-		// limit input length to prevent buffer overflows
+		// Prevent overflows
 		if len(input) > READBUFSIZ {
 			br.printMessage("Command too long", MSG_RED)
 			return
 		}
 
-		// substitute ! with the previous command
-		bangbuf := subCommandChars(input, "!", prevCommand)
-		prevCommand = bangbuf
+		// Fast-path: batch substitutions
+		cmdbuf := input
+		if strings.Contains(cmdbuf, "!") {
+			cmdbuf = subCommandChars(cmdbuf, "!", prevCommand)
+		}
+		prevCommand = cmdbuf
 
-		// substitute % with the current file name
-		cmdbuf := subCommandChars(bangbuf, "%", `'`+br.fileName+`'`)
+		if strings.Contains(cmdbuf, "%") {
+			cmdbuf = subCommandChars(cmdbuf, "%", `'`+br.fileName+`'`)
+		}
 
-		if br.pattern != "" {
-			// substitute & with the current search pattern
+		if br.pattern != "" && strings.Contains(cmdbuf, "&") {
 			cmdbuf = subCommandChars(cmdbuf, "&", `'`+br.pattern+`'`)
 		}
 
@@ -60,14 +63,12 @@ func (br *browseObj) bashCommand() {
 		// Save command to history
 		updateCommHistory(cmdbuf)
 
-		// Run command in a PTY
-		fmt.Print(LINEWRAPON)
-		fmt.Print(CURSAVE)
+		fmt.Print(LINEWRAPON, CURSAVE)
 		resetScrRegion()
 		fmt.Print(CURRESTORE)
 		br.runInPty(cmdbuf)
 
-		// Run another command if requested
+		// Repeat only if lastKey is bang
 		if br.lastKey != '!' {
 			break
 		}
