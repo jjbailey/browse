@@ -447,7 +447,7 @@ func commands(br *browseObj) {
 }
 
 func dirCommand(br *browseObj) bool {
-	// Change working directory with completion and history jump.
+	// Change working directory with completion
 
 	moveCursor(br.dispRows, 1, true)
 
