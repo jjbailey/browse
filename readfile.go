@@ -81,9 +81,7 @@ func readFile(br *browseObj, ch chan bool) {
 			return
 		}
 
-		var newSize int64
-
-		newSize, err = getFileSize(readerFp)
+		br.newFileSiz, err = getFileSize(readerFp)
 		if err != nil {
 			select {
 			case ch <- false:
@@ -95,7 +93,6 @@ func readFile(br *browseObj, ch chan bool) {
 		var shouldRead bool
 
 		br.mutex.Lock()
-		br.newFileSiz = newSize
 
 		// Handle file truncation
 		if br.newFileSiz < br.savFileSiz {
