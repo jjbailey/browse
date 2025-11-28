@@ -154,9 +154,12 @@ func processFileBrowsing(br *browseObj) {
 	go readFile(br, syncOK)
 
 	// Wait for reader to be ready and process commands
-	if readerOK := <-syncOK; readerOK {
-		commands(br)
+	readerOK := <-syncOK
+	if !readerOK {
+		return
 	}
+
+	commands(br)
 
 	// Save session state if requested
 	if !br.fromStdin && br.saveRC {
