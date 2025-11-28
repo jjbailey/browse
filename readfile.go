@@ -14,7 +14,6 @@ import (
 	"io"
 	"math"
 	"os"
-	"sync/atomic"
 	"time"
 
 	"golang.org/x/sys/unix"
@@ -28,6 +27,8 @@ func readInit(br *browseObj, bytesRead *int64) {
 	br.sizeMap = map[int]int64{0: 0}
 	br.newFileSiz = 0
 	br.savFileSiz = 0
+	br.newInode = 0
+	br.savInode = 0
 	*bytesRead = 0
 }
 
@@ -67,7 +68,7 @@ func readFile(br *browseObj, ch chan bool) {
 
 	// Get initial filename with mutex protection
 	br.mutex.Lock()
-	saveFileName := br.fileName
+	savFileName := br.fileName
 	br.mutex.Unlock()
 
 	for {
@@ -76,12 +77,12 @@ func readFile(br *browseObj, ch chan bool) {
 		currentFileName := br.fileName
 		br.mutex.Unlock()
 
-		if currentFileName != saveFileName {
+		if currentFileName != savFileName {
 			// new file -- exit thread
 			return
 		}
 
-		br.newFileSiz, err = getFileSize(readerFp)
+		br.newFileSiz, br.newInode, err = getFileInodeSize(currentFileName)
 		if err != nil {
 			select {
 			case ch <- false:
@@ -94,24 +95,27 @@ func readFile(br *browseObj, ch chan bool) {
 
 		br.mutex.Lock()
 
-		// Handle file truncation
-		if br.newFileSiz < br.savFileSiz {
-			br.printMessage("File truncated", MSG_RED)
+		handleFileReset := func(msg string) {
+			br.printMessage(msg, MSG_RED)
 			readInit(br, &bytesRead)
 			br.modeScroll = MODE_SCROLL_NONE
-			br.shownMsg = false
+			br.shownMsg = true
 			shouldRead = true
+		}
+
+		if br.savInode > 0 && br.newInode != br.savInode {
+			handleFileReset("File replaced")
+		} else if br.newFileSiz < br.savFileSiz {
+			handleFileReset("File truncated")
 		} else {
-			// Check if file grew
 			shouldRead = br.savFileSiz == 0 || br.savFileSiz < br.newFileSiz
 		}
+
 		br.mutex.Unlock()
 
 		if shouldRead {
 			// Seek to the last known end of file (or beginning if truncated)
-			_, err = readerFp.Seek(bytesRead, io.SeekStart)
-			if err != nil {
-				// Cannot seek, exit
+			if _, err := readerFp.Seek(bytesRead, io.SeekStart); err != nil {
 				select {
 				case ch <- false:
 				default:
@@ -119,52 +123,52 @@ func readFile(br *browseObj, ch chan bool) {
 				return
 			}
 
-			// Read new lines into temporary structures without holding the lock
-			// to avoid blocking the UI.
-			type lineInfo struct {
-				seek int64
-				size int64
-			}
+			readOffset := bytesRead
+			bufReader := bufio.NewReader(readerFp)
 
-			var newLines []lineInfo
-
-			currentOffset := bytesRead
-			reader := bufio.NewReader(readerFp)
+			// We accumulate new lines' offsets/lengths before locking and merging
+			type lineMeta struct{ offset, length int64 }
+			var pendingLines []lineMeta
 
 			for {
-				line, err := reader.ReadString('\n')
+				line, err := bufReader.ReadString('\n')
 				if err != nil {
-					break
+					if err == io.EOF {
+						break
+					}
+					// Report and exit for unexpected error
+					select {
+					case ch <- false:
+					default:
+					}
+					return
 				}
 				lineLen := len(line)
-				newLines = append(newLines, lineInfo{
-					seek: currentOffset,
-					size: int64(minimum(lineLen-1, READBUFSIZ)),
-				})
-				currentOffset += int64(lineLen)
+				cappedLen := int64(lineLen - 1)
+				if cappedLen > READBUFSIZ {
+					cappedLen = READBUFSIZ
+				}
+				pendingLines = append(pendingLines, lineMeta{offset: readOffset, length: cappedLen})
+				readOffset += int64(lineLen)
 			}
 
-			// Now, lock and merge the temporary maps into the main ones
-			if len(newLines) > 0 {
+			if len(pendingLines) > 0 {
 				br.mutex.Lock()
-				for _, info := range newLines {
-					br.seekMap[br.mapSiz] = info.seek
-					br.sizeMap[br.mapSiz] = info.size
+				for _, info := range pendingLines {
+					br.seekMap[br.mapSiz] = info.offset
+					br.sizeMap[br.mapSiz] = info.length
 					br.mapSiz++
 				}
 				br.hitEOF = false
 				br.savFileSiz = br.newFileSiz
+				br.savInode = br.newInode
 				br.mutex.Unlock()
 			}
-			bytesRead = currentOffset
+			bytesRead = readOffset
 
-			var notified atomic.Int32
-
-			if notified.CompareAndSwap(0, 1) {
-				select {
-				case ch <- true:
-				default:
-				}
+			select {
+			case ch <- true:
+			default:
 			}
 		}
 
@@ -172,13 +176,17 @@ func readFile(br *browseObj, ch chan bool) {
 	}
 }
 
-func getFileSize(fp *os.File) (int64, error) {
-	fInfo, err := fp.Stat()
+func getFileInodeSize(filename string) (int64, uint64, error) {
+	// Returns size, inode, error for given filename
+
+	var stat unix.Stat_t
+
+	err := unix.Stat(filename, &stat)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
-	return fInfo.Size(), nil
+	return stat.Size, stat.Ino, nil
 }
 
 func (br *browseObj) readStdin(fin, fout *os.File) bool {
