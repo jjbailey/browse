@@ -281,13 +281,6 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 	return newDir
 }
 
-func updateSearchHistory(targetSearch string) {
-	if len(targetSearch) > 0 {
-		history := append(loadHistory(searchHistory), targetSearch)
-		saveHistory(history, searchHistory)
-	}
-}
-
 func (br *browseObj) reCompile(pattern string) (int, error) {
 	// Compile regex
 

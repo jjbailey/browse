@@ -66,7 +66,7 @@ func (br *browseObj) printLine(lineno int) {
 }
 
 func (br *browseObj) printPage(lineno int) {
-	// print a page -- full screen if possible
+	// print/refresh a page -- full screen if possible
 	// lineno is the top line
 
 	lineno = adjustLineNumber(lineno, br.dispRows, br.mapSiz)
@@ -88,12 +88,7 @@ func (br *browseObj) printPage(lineno int) {
 
 	// reset these
 	br.firstRow, br.lastRow = sop, eop
-
-	if br.inMotion() {
-		fmt.Print(CURRESTORE)
-	} else {
-		moveCursor(2, 1, false)
-	}
+	moveCursor(2, 1, false)
 }
 
 func adjustLineNumber(lineno, dispRows, mapSiz int) int {
@@ -136,7 +131,7 @@ func (br *browseObj) printMessage(msg string, color string) {
 	br.shownMsg = true
 }
 
-func (br *browseObj) debugPrintf(format string, args ...interface{}) {
+func (br *browseObj) debugPrintf(format string, args ...any) {
 	// for debugging
 
 	moveCursor(br.dispHeight, 1, true)

@@ -447,19 +447,27 @@ func commands(br *browseObj) {
 }
 
 func dirCommand(br *browseObj) bool {
-	// cd to new directory
+	// Change working directory with completion
 
 	moveCursor(br.dispRows, 1, true)
 
 	lbuf, cancelled := userDirComp()
-	newDir := strings.TrimSpace(lbuf)
+	dirInput := strings.TrimSpace(lbuf)
 
-	if cancelled || newDir == "" {
+	if cancelled || dirInput == "" {
 		br.pageCurrent()
 		return false
 	}
 
-	newDir = expandHome(newDir)
+	// Unquote/expand fields to one path
+	fields := fieldsQuoted(dirInput)
+	if len(fields) == 0 {
+		br.pageCurrent()
+		return false
+	}
+	newDir := expandHome(strings.Join(fields, " "))
+
+	// Handle "cd -" (jump to previous)
 	if newDir == "-" {
 		history := loadHistory(dirHistory)
 		if len(history) < 2 {
@@ -468,17 +476,26 @@ func dirCommand(br *browseObj) bool {
 			br.pageCurrent()
 			return false
 		}
-
 		newDir = history[len(history)-2]
 	}
 
-	savDir, _ := os.Getwd()
+	// Save original working directory
+	savDir, err := os.Getwd()
+	if err != nil {
+		br.userAnyKey(fmt.Sprintf("%s Cannot get current directory ... [press any key] %s",
+			MSG_RED, VIDOFF))
+		br.pageCurrent()
+		return false
+	}
+
+	// No-op if already in target directory
 	if newDir == savDir {
 		br.pageCurrent()
 		br.printMessage(savDir, MSG_GREEN)
 		return true
 	}
 
+	// Try to change directory
 	if err := os.Chdir(newDir); err != nil {
 		br.userAnyKey(fmt.Sprintf("%s Cannot chdir to %s ... [press any key] %s",
 			MSG_RED, newDir, VIDOFF))
@@ -486,14 +503,11 @@ func dirCommand(br *browseObj) bool {
 		return false
 	}
 
-	// save the previous directory
-	history := loadHistory(dirHistory)
-	saveHistory(append(history, savDir), dirHistory)
-
-	// save the current directory
+	// Save directory history (only if actually changed)
 	curDir, _ := os.Getwd()
-	history = loadHistory(dirHistory)
-	saveHistory(append(history, curDir), dirHistory)
+	if curDir != savDir {
+		updateDirHistory(savDir, curDir)
+	}
 
 	br.pageCurrent()
 	br.printMessage(curDir, MSG_GREEN)
@@ -527,6 +541,7 @@ func fileCommand(br *browseObj) bool {
 		newFile = history[len(history)-2]
 	}
 
+	// remove quotes from filenames with spaces
 	tokens := fieldsQuoted(subCommandChars(newFile, "%", br.fileName))
 	if len(tokens) == 0 {
 		br.pageCurrent()

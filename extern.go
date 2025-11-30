@@ -18,7 +18,7 @@ import (
 // ─── Build Information ──────────────────────────────────────────────
 
 const (
-	BR_VERSION = "0.71"
+	BR_VERSION = "0.72"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -161,6 +161,8 @@ type browseObj struct {
 	// File size tracking
 	newFileSiz int64
 	savFileSiz int64
+	newInode   uint64
+	savInode   uint64
 
 	// Marks (bookmarks within the file)
 	marks [MAXMARKS]int
