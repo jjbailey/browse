@@ -170,4 +170,15 @@ func resolveSymlink(path string) (string, error) {
 	return filepath.Clean(realPath), nil
 }
 
+func lastNChars(s string, dispWidth int) string {
+	const padding = 45
+
+	usable := maximum(dispWidth-padding, dispWidth>>1)
+	runes := []rune(s)
+	runeLen := len(runes)
+	size := minimum(usable, runeLen)
+
+	return string(runes[len(runes)-size:])
+}
+
 // vim: set ts=4 sw=4 noet:
