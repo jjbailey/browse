@@ -79,6 +79,10 @@ func (br *browseObj) userInput(promptStr string) (string, bool) {
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGWINCH)
+	defer func() {
+		signal.Stop(sigChan)
+		close(sigChan)
+	}()
 
 	ttyPrompter()
 	fmt.Printf("\r%s", CURSAVE)
@@ -87,18 +91,17 @@ func (br *browseObj) userInput(promptStr string) (string, bool) {
 	br.shownMsg = true
 
 	for {
-		go func() {
-			for sig := range sigChan {
-				switch sig {
-
-				case syscall.SIGWINCH:
+	DrainSignals:
+		for {
+			select {
+			case sig := <-sigChan:
+				if sig == syscall.SIGWINCH {
 					winchCaught = true
-
-				default:
-					// do nothing
 				}
+			default:
+				break DrainSignals
 			}
-		}()
+		}
 
 		b := make([]byte, 1)
 		_, err := br.tty.Read(b)
@@ -108,6 +111,7 @@ func (br *browseObj) userInput(promptStr string) (string, bool) {
 			// restore and reset window size
 			br.resizeWindow()
 			moveCursor(br.dispHeight, 1, true)
+			winchCaught = false
 		}
 
 		if err != nil {
