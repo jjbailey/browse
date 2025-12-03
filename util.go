@@ -174,6 +174,9 @@ func lastNChars(s string, dispWidth int) string {
 	const padding = 45
 
 	usable := maximum(dispWidth-padding, dispWidth>>1)
+	if usable < 0 {
+		usable = 0
+	}
 	runes := []rune(s)
 	runeLen := len(runes)
 	size := minimum(usable, runeLen)
