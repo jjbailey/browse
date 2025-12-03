@@ -304,11 +304,6 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 			continue
 		}
 
-		// quote names with spaces
-		if strings.ContainsAny(name, " ") {
-			name = "'" + name + "'"
-		}
-
 		fullPath := filepath.Join(dir, name)
 
 		// Handle onlyDirs filter
@@ -345,9 +340,17 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 			}
 		}
 
-		displayName := name
+		// Determine display name (quote if contains spaces)
+		var displayName string
+
 		if useFullPath {
 			displayName = fullPath
+		} else {
+			displayName = name
+		}
+
+		if strings.ContainsAny(name, " ") {
+			displayName = "'" + displayName + "'"
 		}
 
 		var desc string
