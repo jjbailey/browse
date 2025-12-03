@@ -129,7 +129,7 @@ func validateAndOpenFile(br *browseObj, targetFile string) (*os.File, error) {
 	if stat.IsDir() {
 		br.userAnyKey(fmt.Sprintf("%s %s: is a directory ... [press any key] %s",
 			MSG_RED, lastNChars(targetFile, br.dispWidth), VIDOFF))
-		return nil, err
+		return nil, fmt.Errorf("%s: is a directory", targetFile)
 	}
 
 	fp, err := os.Open(targetFile)
