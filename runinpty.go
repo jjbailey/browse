@@ -54,15 +54,21 @@ func (br *browseObj) runInPty(cmdbuf string) {
 	go func(ch chan bool) {
 		// Custom copy that captures the last key press
 		buf := make([]byte, 1)
+
 		for {
 			n, err := br.tty.Read(buf)
 			if err != nil || n == 0 {
 				break
 			}
+
 			// Store the last pressed key
 			br.lastKey = buf[0]
+
 			// Write to ptmx
-			ptmx.Write(buf[:n])
+			if _, err := ptmx.Write(buf[:n]); err != nil {
+				// ptmx may be closed, break out of loop
+				break
+			}
 		}
 		ch <- true
 	}(execOK)
