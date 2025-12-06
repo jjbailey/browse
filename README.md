@@ -31,6 +31,7 @@ A simple, unconventional file browser designed for efficient file navigation and
 - Line numbers
 - Session saving
 - Shell command history
+- Change working directory
 - Built-in help screen
 
 ## 📖 Usage
