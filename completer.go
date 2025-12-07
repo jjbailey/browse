@@ -27,6 +27,12 @@ const (
 	searchDirs      = 4
 )
 
+const (
+	onlyDirs  = 1
+	onlyExec  = 2
+	onlyFiles = 3
+)
+
 var searchType int
 
 func userDirComp() (string, bool) {
@@ -155,7 +161,7 @@ func completer(d prompt.Document) []prompt.Suggest {
 		return pathCompleter(word)
 	}
 
-	return anyCompleter(".", originalWord, false, false)
+	return anyCompleter(".", originalWord, false, onlyFiles)
 }
 
 func isAbsOrRelPath(word string) bool {
@@ -186,7 +192,7 @@ func fileCompleter(word string) []prompt.Suggest {
 		prefix = ""
 	}
 
-	return matchFiles(files, dir, prefix, true, false, false)
+	return matchFiles(files, dir, prefix, true, onlyFiles)
 }
 
 func pathCompleter(word string) []prompt.Suggest {
@@ -209,7 +215,7 @@ func pathCompleter(word string) []prompt.Suggest {
 		}
 
 		suggestions = append(suggestions,
-			matchFiles(files, dir, word, false, true, false)...)
+			matchFiles(files, dir, word, false, onlyExec)...)
 
 		if len(suggestions) > maxSuggestions {
 			suggestions = suggestions[:maxSuggestions]
@@ -241,7 +247,7 @@ func dirCompleter(word string) []prompt.Suggest {
 			prefix = ""
 		}
 
-		suggestions = matchFiles(files, dir, prefix, true, false, true)
+		suggestions = matchFiles(files, dir, prefix, true, onlyDirs)
 
 		if len(suggestions) > maxSuggestions {
 			suggestions = suggestions[:maxSuggestions]
@@ -263,7 +269,7 @@ func dirCompleter(word string) []prompt.Suggest {
 		}
 
 		suggestions = append(suggestions,
-			matchFiles(files, dir, word, true, false, true)...)
+			matchFiles(files, dir, word, true, onlyDirs)...)
 
 		if len(suggestions) > maxSuggestions {
 			suggestions = suggestions[:maxSuggestions]
@@ -274,18 +280,18 @@ func dirCompleter(word string) []prompt.Suggest {
 	return suggestions
 }
 
-func anyCompleter(dir, prefix string, useFullPath bool, onlyExec bool) []prompt.Suggest {
+func anyCompleter(dir, prefix string, useFullPath bool, onlyType int) []prompt.Suggest {
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		return nil
 	}
 
 	// Match all directory entries
-	return matchFiles(files, dir, prefix, useFullPath, onlyExec, false)
+	return matchFiles(files, dir, prefix, useFullPath, onlyType)
 }
 
 func matchFiles(files []os.DirEntry, dir, prefix string,
-	useFullPath, onlyExec, onlyDirs bool) []prompt.Suggest {
+	useFullPath bool, onlyType int) []prompt.Suggest {
 
 	suggestions := make([]prompt.Suggest, 0, dispSuggestions)
 	for _, file := range files {
@@ -298,15 +304,10 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 			continue
 		}
 
-		// quote names with spaces
-		if strings.ContainsAny(name, " ") {
-			name = "'" + name + "'"
-		}
-
 		fullPath := filepath.Join(dir, name)
 
 		// Handle onlyDirs filter
-		if onlyDirs {
+		if onlyType == onlyDirs {
 			isDir := file.IsDir()
 			isSymlink := file.Type()&os.ModeSymlink != 0
 			if !isDir && !isSymlink {
@@ -327,7 +328,7 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 		}
 
 		// If filtering for executables, only stat if not directory
-		if onlyExec && !file.IsDir() {
+		if onlyType == onlyExec && !file.IsDir() {
 			info, err := file.Info()
 			if err != nil {
 				continue
@@ -339,9 +340,17 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 			}
 		}
 
-		displayName := name
+		// Determine display name (quote if contains spaces)
+		var displayName string
+
 		if useFullPath {
 			displayName = fullPath
+		} else {
+			displayName = name
+		}
+
+		if strings.ContainsAny(name, " ") {
+			displayName = "'" + displayName + "'"
 		}
 
 		var desc string

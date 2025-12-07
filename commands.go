@@ -395,7 +395,12 @@ func commands(br *browseObj) {
 		case CMD_PERCENT, CMD_PERCENT_1:
 			// page position
 			// -1 for SOF
-			t := float32(br.firstRow) / float32(br.mapSiz-1) * 100.0
+			var t float32
+			if br.mapSiz <= 1 {
+				t = 0.0
+			} else {
+				t = float32(br.firstRow) / float32(br.mapSiz-1) * 100.0
+			}
 			br.printMessage(fmt.Sprintf("\"%s\" %d lines --%1.1f%%--",
 				filepath.Base(br.fileName), br.mapSiz-1, t), MSG_GREEN)
 

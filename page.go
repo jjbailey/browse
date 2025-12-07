@@ -1,5 +1,5 @@
 // page.go
-// paging and some support functions
+// Paging and some support functions
 //
 // Copyright (c) 2024-2025 jjb
 // All rights reserved.
@@ -27,25 +27,37 @@ func (br *browseObj) pageDown() {
 }
 
 func (br *browseObj) pageHeader() {
-	// calculate available width for title
-	// account for tees and spaces
-	availableWidth := br.dispWidth - 4
+	// Minimum required width for the header (tees, spaces, and some title)
+	const minHeaderWidth = 10
 
-	// prepare title with ellipsis if needed
-	dispTitle := br.title
-	if len(br.title) > availableWidth {
-		// leave room for ellipsis
-		dispTitle = "..." + br.title[len(br.title)-availableWidth+4+3:]
+	// Validate display width
+	if br.dispWidth < minHeaderWidth {
+		return
 	}
 
-	// calculate padding for centering
+	// Calculate available width for title (account for tees and spaces)
+	availableWidth := br.dispWidth - 4
+
+	// Prepare title with ellipsis if needed
+	dispTitle := br.title
+	if len(br.title) > availableWidth {
+		// Calculate start index for the title substring
+		// Leave room for ellipsis (3 chars) and some title text
+		startIndex := len(br.title) - (availableWidth - 7)
+		if startIndex < 0 {
+			startIndex = 0
+		}
+		dispTitle = "..." + br.title[startIndex:]
+	}
+
+	// Calculate padding for centering
 	padding := (availableWidth - len(dispTitle)) >> 1
 
 	// build header
 	// -----| title |-----
 	var sb strings.Builder
 
-	sb.Grow(br.dispWidth + 20) // Pre-allocate space
+	sb.Grow(br.dispWidth + 20)
 
 	// left side
 	sb.WriteString(ENTERGRAPHICS)

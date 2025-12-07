@@ -149,7 +149,10 @@ func (br *browseObj) restoreLast() {
 		moveCursor((br.dispHeight - promptLines), 1, false)
 
 		for i := promptLines; i > 0; i-- {
-			br.printLine(br.lastRow - i)
+			lineNum := br.lastRow - i
+			if lineNum > 0 {
+				br.printLine(lineNum)
+			}
 		}
 	}
 

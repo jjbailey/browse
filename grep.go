@@ -52,13 +52,14 @@ func (br *browseObj) runGrep() {
 	}
 
 	title := fmt.Sprintf("grep %s -e \"%s\"", grepOpts, br.pattern)
-	// Safely single-quote the pattern and title for shell
+	// Safely single-quote the pattern, title, and filename for shell
 	patternArg := shellEscapeSingle(br.pattern)
 	titleArg := shellEscapeSingle(title)
+	fileNameArg := shellEscapeSingle(br.fileName)
 
 	cmd := fmt.Sprintf(
 		"%s %s -e %s %s | %s %s -p %s -t %s",
-		grepPath, grepOpts, patternArg, br.fileName,
+		grepPath, grepOpts, patternArg, fileNameArg,
 		brPath, brOpts, patternArg, titleArg,
 	)
 

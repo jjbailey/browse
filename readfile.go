@@ -249,7 +249,7 @@ func (br *browseObj) readFromMap(lineno int) []byte {
 
 	data := make([]byte, int(size))
 	_, err := br.fp.ReadAt(data, seek)
-	if err != nil || len(data) == 0 {
+	if err != nil {
 		return nil
 	}
 

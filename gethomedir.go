@@ -45,13 +45,22 @@ func getHomeDir(username string) (string, error) {
 		return "", err
 	}
 
-	return "", err
+	// User not found
+	return "", nil
 }
 
 func expandHome(path string) string {
-	if path == "~" || strings.HasPrefix(path, "~/") {
+	if path == "~" {
 		if home, err := os.UserHomeDir(); err == nil {
-			return filepath.Join(home, path[1:])
+			return home
+		}
+
+		return path
+	}
+
+	if strings.HasPrefix(path, "~/") {
+		if home, err := os.UserHomeDir(); err == nil {
+			return filepath.Join(home, path[2:])
 		}
 
 		return path
@@ -78,9 +87,6 @@ func expandHome(path string) string {
 
 			return homeDir
 		}
-
-		// User not found, do not expand
-		return path
 	}
 
 	return path

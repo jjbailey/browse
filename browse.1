@@ -32,6 +32,20 @@ Browse and search text files, follow changes.
 features while maintaining a user-friendly interface.
 It\[cq]s ideal for developers and system administrators who need a
 lightweight, keyboard-driven alternative to traditional file viewers.
+.PP
+The browser supports multi-file browsing by accepting a list of files
+(or globs expanded by your shell), ensuring each path is resolved and
+validated before browsing.
+Input via pipe is supported and handled as if it were a temporary file.
+Invalid files, such as directories or non-existent files, are safely
+skipped with feedback.
+.PP
+The browser enables you to temporarily leave your current file list to
+browse a new set of files; when you finish browsing the new list,
+\f[B]browse\f[R] automatically returns you to where you left off in the
+previous list.
+This \[lq]recursive file list\[rq] feature lets you explore deeply and
+flexibly without losing your place.
 .SS ✨ Features
 .SS 🧭 Navigation
 .IP \[bu] 2
@@ -66,6 +80,8 @@ Line numbers
 Session saving
 .IP \[bu] 2
 Shell command history
+.IP \[bu] 2
+Change working directory
 .IP \[bu] 2
 Built-in help screen
 .SS 📖 Usage
@@ -380,6 +396,28 @@ Search pattern
 Marks
 .IP "5." 3
 Page title
+.SS 🕑 Histories
+.PP
+\f[B]browse\f[R] maintains persistent histories to streamline your
+workflow and make repeated tasks faster and easier.
+If you\[cq]re familiar with Linux tools like bash, these history
+features will feel instantly familiar:
+.IP \[bu] 2
+\f[B]Bash Command History:\f[R] Every time you run a shell command from
+within browse (using the \f[V]!\f[R] key), it\[cq]s remembered.
+You can quickly recall, edit, and rerun previous commands\[em]just like
+using the up-arrow in bash.
+.IP \[bu] 2
+\f[B]Search Pattern History:\f[R] Search patterns entered for regex or
+text searches are saved.
+This feature lets you easily repeat searches or revisit common queries
+without retyping them.
+.IP \[bu] 2
+\f[B]Directory History:\f[R] Whenever you change your working directory
+within browse, it\[cq]s recorded.
+You can quickly cycle through or return to recently used directories,
+helping you navigate large projects or complex file trees more
+efficiently.
 .PP
 \f[B]History Files:\f[R]
 .IP \[bu] 2
