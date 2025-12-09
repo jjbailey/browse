@@ -1,6 +1,5 @@
 // setupbrdir.go
-// create .browse directory and possibly move pre-0.67 default files into it
-// remove this file at some point in the future
+// create .browse directory
 //
 // Copyright (c) 2024-2025 jjb
 // All rights reserved.
@@ -26,6 +25,8 @@ func setupBrDir() error {
 	if err := os.MkdirAll(newDir, 0700); err != nil {
 		return err
 	}
+
+	// remove this pre-0.67 default file code at some point
 
 	pattern := filepath.Join(home, (RCDIRNAME + "*"))
 	matches, err := filepath.Glob(pattern)

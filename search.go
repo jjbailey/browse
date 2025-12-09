@@ -265,7 +265,7 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 		pattern = subCommandChars(pattern, "&", prevPattern)
 	}
 
-	updateSearchHistory(pattern)
+	updateHistory(pattern, searchHistory)
 
 	if oldDir != newDir {
 		if newDir {

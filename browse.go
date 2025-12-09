@@ -129,8 +129,9 @@ func browseFile(br *browseObj, fp *os.File, fileName, title string, fromStdin bo
 	checkBinaryFile(br, targetFile)
 	br.fileInit(fp, targetFile, title, fromStdin)
 
-	updateFileHistory(br, targetFile)
-	updateSearchHistory(br.pattern)
+	if !br.fromStdin {
+		updateHistory(targetFile, fileHistory)
+	}
 
 	processFileBrowsing(br)
 }
@@ -192,6 +193,7 @@ func resetState(br *browseObj) {
 }
 
 func preInitialization(br *browseObj) {
+	setupBrDir()
 	ttySaveTerm()
 	syscall.Umask(077)
 	br.browseInit()

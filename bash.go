@@ -61,7 +61,7 @@ func (br *browseObj) bashCommand() {
 		}
 
 		// Save command to history
-		updateCommHistory(cmdbuf)
+		updateHistory(cmdbuf, commHistory)
 
 		fmt.Print(LINEWRAPON, CURSAVE)
 		resetScrRegion()
