@@ -5,10 +5,10 @@ go 1.24.11
 // Direct dependencies
 require (
 	github.com/creack/pty v1.1.24
-	github.com/jjbailey/go-prompt v0.1.6
+	github.com/jjbailey/go-prompt v0.1.7
 	github.com/pborman/getopt/v2 v2.1.0
-	golang.org/x/sys v0.37.0
-	golang.org/x/term v0.36.0
+	golang.org/x/sys v0.39.0
+	golang.org/x/term v0.38.0
 )
 
 // Indirect dependencies
