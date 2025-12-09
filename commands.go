@@ -71,6 +71,7 @@ const (
 	CMD_EXIT_NO_SAVE = 'X'
 
 	// Other commands
+	CMD_ARGLIST   = 'a'
 	CMD_BASH      = '!'
 	CMD_HELP      = 'h'
 	CMD_JUMP      = 'j'
@@ -415,6 +416,9 @@ func commands(br *browseObj) {
 			if fileCommand(br) {
 				return
 			}
+
+		case CMD_ARGLIST:
+			br.printCurrentList()
 
 		case CMD_QUIT:
 			br.saveRC = true

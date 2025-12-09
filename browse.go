@@ -17,6 +17,8 @@ import (
 	"syscall"
 )
 
+var CurrentList []string
+
 func processPipeInput(br *browseObj) {
 	fpStdin, err := os.CreateTemp("", "browse")
 	if err != nil {
@@ -41,22 +43,32 @@ func processPipeInput(br *browseObj) {
 	}
 	defer fp.Close()
 
+	// Save arg list
+	CurrentList = []string{fpStdin.Name()}
 	browseFile(br, fp, fpStdin.Name(), "          ", true)
 }
 
 func processFileList(br *browseObj, args []string, toplevel bool) {
 	if len(args) == 0 {
 		// Handles file from browserc
-		fp, err := validateAndOpenFile(br, br.fileName)
+		abs, err := filepath.Abs(br.fileName)
+		if err != nil {
+			abs = br.fileName
+		}
+
+		fp, err := validateAndOpenFile(br, abs)
 		if err != nil {
 			return
 		}
-		defer fp.Close()
+
+		// Save arg list
+		CurrentList = []string{abs}
 
 		// Save for browserc
-		br.absFileName = br.fileName
+		br.absFileName = abs
 
-		browseFile(br, fp, br.absFileName, setTitle(br.title, br.fileName), false)
+		browseFile(br, fp, br.absFileName, setTitle(br.title, abs), false)
+		fp.Close()
 		return
 	}
 
@@ -82,19 +94,24 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 		if err != nil {
 			continue
 		}
-		func() {
-			// Ensure close happens per file
+
+		// Save arg list
+		CurrentList = args[i:]
+
+		// Use a closure to ensure fp.Close() is called after each file.
+		func(fp *os.File, absPath, fileName string) {
 			defer fp.Close()
 
 			// Save for browserc
-			br.absFileName = absArgs[i]
+			br.absFileName = absPath
 
-			browseFile(br, fp, br.absFileName, fileName, false)
+			browseFile(br, fp, absPath, fileName, false)
 
-			if i != lastIdx {
-				resetState(br)
-			}
-		}()
+		}(fp, absArgs[i], fileName)
+
+		if i != lastIdx {
+			resetState(br)
+		}
 
 		if br.exit {
 			if !toplevel {
