@@ -33,20 +33,20 @@ const (
 	onlyFiles = 3
 )
 
-var searchType int
+var SearchType int
 
 func userDirComp() (string, bool) {
-	searchType = searchDirs
+	SearchType = searchDirs
 	return runCompleter("Dir: ", dirHistory)
 }
 
 func userFileComp() (string, bool) {
-	searchType = searchFiles
+	SearchType = searchFiles
 	return runCompleter("File: ", fileHistory)
 }
 
 func userBashComp() (string, bool) {
-	searchType = searchPath
+	SearchType = searchPath
 	return runCompleter("$ ", commHistory)
 }
 
@@ -56,7 +56,7 @@ func userSearchComp(searchDir bool) (string, bool) {
 		promptStr = "?"
 	}
 
-	searchType = searchSearch
+	SearchType = searchSearch
 	return runCompleter(promptStr, searchHistory)
 }
 
@@ -123,7 +123,7 @@ func getHostnameTitle() string {
 func completer(d prompt.Document) []prompt.Suggest {
 	// Use local variable for efficiency, also avoids race if global is modified mid-call
 
-	switch searchType {
+	switch SearchType {
 
 	case searchSearch:
 		return searchCompleter()
@@ -147,7 +147,7 @@ func completer(d prompt.Document) []prompt.Suggest {
 	}
 
 	// Directories for chdir
-	if searchType == searchDirs {
+	if SearchType == searchDirs {
 		return dirCompleter(word)
 	}
 
@@ -157,7 +157,7 @@ func completer(d prompt.Document) []prompt.Suggest {
 	}
 
 	// Fallback: Just use whatever word we've got in current directory
-	if searchType == searchPath && !strings.Contains(d.TextBeforeCursor(), " ") {
+	if SearchType == searchPath && !strings.Contains(d.TextBeforeCursor(), " ") {
 		return pathCompleter(word)
 	}
 

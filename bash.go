@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-var prevCommand string
+var PrevCommand string
 
 func (br *browseObj) bashCommand() {
 	// Run a command with bash
@@ -43,9 +43,9 @@ func (br *browseObj) bashCommand() {
 		// Fast-path: batch substitutions
 		cmdbuf := input
 		if strings.Contains(cmdbuf, "!") {
-			cmdbuf = subCommandChars(cmdbuf, "!", prevCommand)
+			cmdbuf = subCommandChars(cmdbuf, "!", PrevCommand)
 		}
-		prevCommand = cmdbuf
+		PrevCommand = cmdbuf
 
 		if strings.Contains(cmdbuf, "%") {
 			cmdbuf = subCommandChars(cmdbuf, "%", `'`+br.fileName+`'`)
