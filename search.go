@@ -251,7 +251,7 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 	}
 
 	prevPattern := br.pattern
-	if strings.TrimSpace(pattern) == "" {
+	if pattern == "" {
 		pattern = prevPattern
 	}
 
