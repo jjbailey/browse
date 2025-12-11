@@ -87,8 +87,6 @@ func saveHistory(history []string, historyFile string) {
 	}
 	defer file.Close()
 
-	file.Chmod(0600)
-
 	writer := bufio.NewWriter(file)
 	for _, cmd := range history {
 		fmt.Fprintln(writer, cmd)
