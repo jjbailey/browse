@@ -48,11 +48,11 @@ func (br *browseObj) bashCommand() {
 		PrevCommand = cmdbuf
 
 		if strings.Contains(cmdbuf, "%") {
-			cmdbuf = subCommandChars(cmdbuf, "%", `'`+br.fileName+`'`)
+			cmdbuf = subCommandChars(cmdbuf, "%", shellEscapeSingle(br.fileName))
 		}
 
 		if br.pattern != "" && strings.Contains(cmdbuf, "&") {
-			cmdbuf = subCommandChars(cmdbuf, "&", `'`+br.pattern+`'`)
+			cmdbuf = subCommandChars(cmdbuf, "&", shellEscapeSingle(br.pattern))
 		}
 
 		if cmdbuf == "" {

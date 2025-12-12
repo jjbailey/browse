@@ -12,7 +12,6 @@ package main
 import (
 	"fmt"
 	"os/exec"
-	"strings"
 )
 
 const (
@@ -20,10 +19,6 @@ const (
 	grepIgnoreCase   = "-inP"
 	browseIgnoreCase = "-i"
 )
-
-func shellEscapeSingle(s string) string {
-	return "'" + strings.ReplaceAll(s, "'", "'\"'\"'") + "'"
-}
 
 func (br *browseObj) runGrep() {
 	if br.pattern == "" {
@@ -52,7 +47,6 @@ func (br *browseObj) runGrep() {
 	}
 
 	title := fmt.Sprintf("grep %s -e \"%s\"", grepOpts, br.pattern)
-	// Safely single-quote the pattern, title, and filename for shell
 	patternArg := shellEscapeSingle(br.pattern)
 	titleArg := shellEscapeSingle(title)
 	fileNameArg := shellEscapeSingle(br.fileName)
