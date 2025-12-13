@@ -595,10 +595,10 @@ func fieldsQuoted(s string) []string {
 		field   strings.Builder
 	)
 
-	for _, r := range s {
+	for i, r := range s {
 		switch {
 
-		case (r == '\'' || r == '"'):
+		case r == '\'' || r == '"':
 			switch inQuote {
 
 			case 0:
@@ -611,18 +611,23 @@ func fieldsQuoted(s string) []string {
 				field.WriteRune(r)
 			}
 
-		case unicode.IsSpace(r) && inQuote == 0:
-			if field.Len() > 0 {
-				fields = append(fields, field.String())
-				field.Reset()
+		case unicode.IsSpace(r):
+			if inQuote == 0 {
+				if field.Len() > 0 || i > 0 && !unicode.IsSpace(rune(s[i-1])) {
+					fields = append(fields, field.String())
+					field.Reset()
+				}
+				continue
 			}
+			fallthrough
 
 		default:
 			field.WriteRune(r)
 		}
 	}
 
-	if field.Len() > 0 {
+	// Add the last field if not empty
+	if field.Len() > 0 || (len(s) > 0 && !unicode.IsSpace(rune(s[len(s)-1]))) {
 		fields = append(fields, field.String())
 	}
 
