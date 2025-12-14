@@ -100,6 +100,7 @@ browse [OPTIONS] [FILE] [FILE...]
 | `%`, `Ctrl+G` | Show page position |
 | `!` | Run a bash command (expands `!`, `%`, `&`, `~`) |
 | `B` | Browse another file (expands `%`, `~`, shell glob) |
+| `a` | Print filenames in the browse list |
 | `c` | Print current working directory |
 | `C` | Change working directory |
 | `q` | Quit, save session, next file in list |

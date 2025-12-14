@@ -46,6 +46,7 @@ func (br *browseObj) printHelp() {
 		"  t                             Tail mode                            ",
 		"  !                             bash command                         ",
 		"  B                             Browse file (expands %, ~, glob)     ",
+		"  a                             Print filenames in the browse list   ",
 		"  c C                           Print/Change working directory       ",
 		"  q Q                           Quit, save/don't save browserc       ",
 		"  x X                           Exit list, save/don't save browserc  ",
