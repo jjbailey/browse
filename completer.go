@@ -135,10 +135,6 @@ func completer(d prompt.Document) []prompt.Suggest {
 		return searchCompleter()
 
 	case searchDirs:
-		if strings.HasPrefix(word, "/") || strings.HasPrefix(word, "./") ||
-			strings.HasPrefix(word, "../") || strings.Contains(word, "/") {
-			return dirCompleter(word)
-		}
 		return dirCompleter(word)
 
 	case searchFiles:
