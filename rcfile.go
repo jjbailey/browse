@@ -49,10 +49,6 @@ func (br *browseObj) writeRcFile() bool {
 }
 
 func (br *browseObj) readRcFile() bool {
-	// default file reorg for pre-0.67
-	// remove this reference at some point in the future
-	setupBrDir()
-
 	rcFileName := path.Join(os.Getenv("HOME"), (RCDIRNAME + "/" + RCFILENAME))
 	rcFileName = os.ExpandEnv(rcFileName)
 

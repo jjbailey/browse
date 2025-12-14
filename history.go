@@ -87,8 +87,6 @@ func saveHistory(history []string, historyFile string) {
 	}
 	defer file.Close()
 
-	file.Chmod(0600)
-
 	writer := bufio.NewWriter(file)
 	for _, cmd := range history {
 		fmt.Fprintln(writer, cmd)
@@ -97,40 +95,26 @@ func saveHistory(history []string, historyFile string) {
 }
 
 func updateDirHistory(savDir, curDir string) {
-	// saveHistory checks for dups
-
 	// save the previous directory
-	if len(savDir) > 0 {
-		history := append(loadHistory(dirHistory), savDir)
-		saveHistory(history, dirHistory)
-	}
+	updateHistory(savDir, dirHistory)
 
 	// save the current directory
-	if len(curDir) > 0 {
-		history := append(loadHistory(dirHistory), curDir)
-		saveHistory(history, dirHistory)
-	}
+	updateHistory(curDir, dirHistory)
 }
 
-func updateFileHistory(br *browseObj, targetFile string) {
-	if !br.fromStdin && len(targetFile) > 0 {
-		history := append(loadHistory(fileHistory), targetFile)
-		saveHistory(history, fileHistory)
-	}
-}
+func updateHistory(newEntry, historyFile string) {
+	// saveHistory checks for dups
 
-func updateSearchHistory(targetSearch string) {
-	if len(targetSearch) > 0 {
-		history := append(loadHistory(searchHistory), targetSearch)
-		saveHistory(history, searchHistory)
+	if newEntry == "" {
+		return
 	}
-}
 
-func updateCommHistory(targetComm string) {
-	if len(targetComm) > 0 {
-		history := append(loadHistory(commHistory), targetComm)
-		saveHistory(history, commHistory)
+	if strings.ContainsAny(newEntry, " ") && !strings.ContainsAny(newEntry, "'") {
+		newEntry = "'" + newEntry + "'"
 	}
+
+	history := append(loadHistory(historyFile), newEntry)
+	saveHistory(history, historyFile)
 }
 
 // vim: set ts=4 sw=4 noet:

@@ -87,6 +87,34 @@ func (br *browseObj) printPage(lineno int) {
 	moveCursor(2, 1, false)
 }
 
+func (br *browseObj) printCurrentList() {
+	// Print the arg list
+
+	line := ""
+
+	// Leave room for ellipsis (3 chars)
+	maxLen := br.dispWidth - 8
+
+	for i, name := range CurrentList {
+		var part string
+
+		if i == 0 {
+			part = "[" + name + "]"
+		} else {
+			part = " " + name
+		}
+
+		if len(line)+len(part) > maxLen {
+			line += " " + "..."
+			break
+		}
+
+		line += part
+	}
+
+	br.printMessage(line, MSG_GREEN)
+}
+
 func adjustLineNumber(lineno, dispRows, mapSiz int) int {
 	maxTopLine := mapSiz - dispRows + 1
 	if maxTopLine < 0 {

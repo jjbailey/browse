@@ -184,4 +184,10 @@ func lastNChars(s string, dispWidth int) string {
 	return string(runes[len(runes)-size:])
 }
 
+func shellEscapeSingle(s string) string {
+	// Safely single-quote the pattern, title, and filename for shell
+
+	return "'" + strings.ReplaceAll(s, "'", "'\"'\"'") + "'"
+}
+
 // vim: set ts=4 sw=4 noet:

@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-var prevCommand string
+var PrevCommand string
 
 func (br *browseObj) bashCommand() {
 	// Run a command with bash
@@ -43,16 +43,16 @@ func (br *browseObj) bashCommand() {
 		// Fast-path: batch substitutions
 		cmdbuf := input
 		if strings.Contains(cmdbuf, "!") {
-			cmdbuf = subCommandChars(cmdbuf, "!", prevCommand)
+			cmdbuf = subCommandChars(cmdbuf, "!", PrevCommand)
 		}
-		prevCommand = cmdbuf
+		PrevCommand = cmdbuf
 
 		if strings.Contains(cmdbuf, "%") {
-			cmdbuf = subCommandChars(cmdbuf, "%", `'`+br.fileName+`'`)
+			cmdbuf = subCommandChars(cmdbuf, "%", shellEscapeSingle(br.fileName))
 		}
 
 		if br.pattern != "" && strings.Contains(cmdbuf, "&") {
-			cmdbuf = subCommandChars(cmdbuf, "&", `'`+br.pattern+`'`)
+			cmdbuf = subCommandChars(cmdbuf, "&", shellEscapeSingle(br.pattern))
 		}
 
 		if cmdbuf == "" {
@@ -61,7 +61,7 @@ func (br *browseObj) bashCommand() {
 		}
 
 		// Save command to history
-		updateCommHistory(cmdbuf)
+		updateHistory(cmdbuf, commHistory)
 
 		fmt.Print(LINEWRAPON, CURSAVE)
 		resetScrRegion()
