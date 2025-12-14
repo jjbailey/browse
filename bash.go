@@ -40,6 +40,11 @@ func (br *browseObj) bashCommand() {
 			return
 		}
 
+		// Unquote bash commands
+		if strings.Contains(input, " ") || strings.Contains(input, "|") {
+			input = strings.ReplaceAll(input, "'", "")
+		}
+
 		// Fast-path: batch substitutions
 		cmdbuf := input
 		if strings.Contains(cmdbuf, "!") {
