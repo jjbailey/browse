@@ -1,5 +1,5 @@
 // runinpty.go
-// run a bash command in a pseudo tty
+// Run a bash command in a pseudo tty
 //
 // Copyright (c) 2024-2025 jjb
 // All rights reserved.
@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/creack/pty"
@@ -26,16 +27,15 @@ const (
 	WAITSIGS = 2
 )
 
-// global to avoid race
-var ptmx *os.File
-
 func (br *browseObj) runInPty(cmdbuf string) {
 	var err error
 
 	cmd := exec.Command("bash", "-c", cmdbuf)
+
 	// child signals
-	br.ptySignals(RUNSIGS)
-	ptmx, err = pty.Start(cmd)
+	br.ptySignals(RUNSIGS, nil)
+
+	ptmx, err := pty.Start(cmd)
 	if err != nil {
 		// reset signals
 		br.catchSignals()
@@ -44,14 +44,26 @@ func (br *browseObj) runInPty(cmdbuf string) {
 
 	// need CURSAVE and CURRESTORE before this point
 	defer ptmx.Close()
+
 	pty.InheritSize(os.Stdout, ptmx)
-	ptySave, _ := term.MakeRaw(int(os.Stdout.Fd()))
+	ptySave, err := term.MakeRaw(int(os.Stdout.Fd()))
+	if err != nil {
+		// Failed to set raw mode - restore signals and return
+		ptmx.Close()
+		br.catchSignals()
+		return
+	}
 
-	// parent signals
-	br.ptySignals(WAITSIGS)
+	// parent signals - pass ptmx to signal handler
+	br.ptySignals(WAITSIGS, ptmx)
 
-	execOK := make(chan bool)
-	go func(ch chan bool) {
+	execOK := make(chan bool, 1)
+	var wg sync.WaitGroup
+
+	// Goroutine to copy from tty to ptmx
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
 		// Custom copy that captures the last key press
 		buf := make([]byte, 1)
 
@@ -70,25 +82,37 @@ func (br *browseObj) runInPty(cmdbuf string) {
 				break
 			}
 		}
-		ch <- true
-	}(execOK)
+
+		// Send completion signal - channel is buffered so won't block
+		execOK <- true
+	}()
+
+	// Copy from ptmx to stdout
 	io.Copy(os.Stdout, ptmx)
+
+	// Wait for command to finish
 	cmd.Wait()
 
-	// restore and reset window size
+	// Restore terminal and reset window size BEFORE waiting for input
 	term.Restore(int(os.Stdout.Fd()), ptySave)
 	pty.InheritSize(os.Stdout, ptmx)
 	br.dispHeight, br.dispWidth, _ = pty.Getsize(ptmx)
 	br.dispRows = br.dispHeight - 1
 
+	// Wait for the input goroutine to finish
 	moveCursor(br.dispHeight, 1, true)
 	fmt.Printf(MSG_GREEN + " Press any key to continue... " + VIDOFF)
+
+	// Wait for user input or goroutine completion
 	<-execOK
+
+	// Ensure goroutine completes
+	wg.Wait()
 
 	br.catchSignals()
 }
 
-func (br *browseObj) ptySignals(sigSet int) {
+func (br *browseObj) ptySignals(sigSet int, ptmx *os.File) {
 	// signals for pty processing
 
 	sigChan := make(chan os.Signal, 1)
@@ -105,13 +129,18 @@ func (br *browseObj) ptySignals(sigSet int) {
 	}
 
 	go func() {
+		defer signal.Stop(sigChan)
+
 		for sig := range sigChan {
 			switch sig {
 
 			case syscall.SIGWINCH:
-				pty.InheritSize(os.Stdout, ptmx)
+				// Only handle SIGWINCH if we have a valid ptmx
+				if ptmx != nil {
+					pty.InheritSize(os.Stdout, ptmx)
+				}
 
-			default:
+			case syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM:
 				br.printMessage(fmt.Sprintf("%v \n", sig), MSG_RED)
 				br.saneExit()
 			}
