@@ -43,10 +43,8 @@ func (br *browseObj) printLine(lineno int) {
 	output := br.replaceMatch(lineno, input)
 
 	// Use a Builder for line output, reducing allocations and Print calls
-	lineLen := len(output)
-	const extra = 32 // Extra slack for control codes
 	var sb strings.Builder
-	sb.Grow(lineLen + extra)
+	sb.Grow(len(output) + 32)
 	sb.WriteString(LINEWRAPOFF)
 	sb.WriteByte('\n')
 	sb.WriteString(output)
@@ -90,29 +88,28 @@ func (br *browseObj) printPage(lineno int) {
 func (br *browseObj) printCurrentList() {
 	// Print the arg list
 
-	line := ""
+	var sb strings.Builder
 
 	// Leave room for ellipsis (3 chars)
 	maxLen := br.dispWidth - 8
 
 	for i, name := range CurrentList {
-		var part string
-
+		// Add brackets to the current file in the list
 		if i == 0 {
-			part = "[" + name + "]"
+			name = "[" + name + "]"
 		} else {
-			part = " " + name
+			name = " " + name
 		}
 
-		if len(line)+len(part) > maxLen {
-			line += " " + "..."
+		if sb.Len()+len(name) > maxLen {
+			sb.WriteString(" ...")
 			break
 		}
 
-		line += part
+		sb.WriteString(name)
 	}
 
-	br.printMessage(line, MSG_GREEN)
+	br.printMessage(sb.String(), MSG_GREEN)
 }
 
 func adjustLineNumber(lineno, dispRows, mapSiz int) int {
