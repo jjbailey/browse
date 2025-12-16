@@ -144,6 +144,10 @@ func completer(d prompt.Document) []prompt.Suggest {
 		return anyCompleter(".", originalWord, false, onlyFiles)
 
 	case searchPath:
+		if isAbsOrRelPath(word) {
+			return fileCompleter(word)
+		}
+
 		// Path completions at beginning of input or after |
 		if !strings.Contains(d.TextBeforeCursor(), " ") ||
 			len(word) == 2 || strings.TrimSuffix(word, " ") == "|" ||
