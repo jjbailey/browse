@@ -94,7 +94,7 @@ browse [OPTIONS] [FILE] [FILE...]
 .PP
 .TS
 tab(@);
-l l.
+lw(21.0n) lw(49.0n).
 T{
 Option
 T}@T{
@@ -142,7 +142,7 @@ T}
 .PP
 .TS
 tab(@);
-l l.
+lw(23.3n) lw(46.7n).
 T{
 Key
 T}@T{
@@ -234,7 +234,7 @@ T}
 .PP
 .TS
 tab(@);
-lw(23.3n) lw(46.7n).
+lw(3.1n) lw(66.9n).
 T{
 Key
 T}@T{
@@ -352,7 +352,7 @@ T}
 .TE
 .SS Symbol Expansions
 .PP
-Special symbols are expanded in commands:
+Special symbols expanded in commands:
 .PP
 .TS
 tab(@);
@@ -413,24 +413,29 @@ within browse (using the \f[V]!\f[R] key), it\[cq]s remembered.
 You can quickly recall, edit, and rerun previous commands\[em]just like
 using the up-arrow in bash.
 .IP \[bu] 2
-\f[B]Search Pattern History:\f[R] Search patterns entered for regex or
-text searches are saved.
-This feature lets you easily repeat searches or revisit common queries
-without retyping them.
-.IP \[bu] 2
 \f[B]Directory History:\f[R] Whenever you change your working directory
 within browse, it\[cq]s recorded.
 You can quickly cycle through or return to recently used directories,
 helping you navigate large projects or complex file trees more
 efficiently.
+.IP \[bu] 2
+\f[B]File History:\f[R] Files browsed are saved (as full pathnames) for
+easy access in the current or future sessions.
+.IP \[bu] 2
+\f[B]Search Pattern History:\f[R] Search patterns entered for regex or
+text searches are saved.
+This feature lets you easily repeat searches or revisit common queries
+without retyping them.
 .PP
 \f[B]History Files:\f[R]
 .IP \[bu] 2
+\f[V]\[ti]/.browse/browse_dirs\f[R] - Directory history
+.IP \[bu] 2
 \f[V]\[ti]/.browse/browse_files\f[R] - File browsing history
 .IP \[bu] 2
-\f[V]\[ti]/.browse/browse_shell\f[R] - Shell command history
-.IP \[bu] 2
 \f[V]\[ti]/.browse/browse_search\f[R] - Search pattern history
+.IP \[bu] 2
+\f[V]\[ti]/.browse/browse_shell\f[R] - Shell command history
 .SS ⚠️ Limitations
 .IP \[bu] 2
 Xterm specific
