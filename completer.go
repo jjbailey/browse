@@ -232,7 +232,7 @@ func dirCompleter(word string) []prompt.Suggest {
 	var suggestions []prompt.Suggest
 
 	if strings.HasPrefix(word, "/") || strings.HasPrefix(word, "./") ||
-		strings.HasPrefix(word, "../") {
+		strings.HasPrefix(word, "../") || strings.Contains(word, "/") {
 
 		dir := filepath.Dir(word)
 		files, err := os.ReadDir(dir)
@@ -349,7 +349,7 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 			displayName = name
 		}
 
-		if strings.ContainsAny(name, " ") {
+		if strings.ContainsAny(displayName, " ") {
 			displayName = "'" + displayName + "'"
 		}
 
