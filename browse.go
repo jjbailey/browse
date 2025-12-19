@@ -67,6 +67,9 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 		return
 	}
 
+	savedList := CurrentList
+	defer func() { CurrentList = savedList }()
+
 	// Build absolute and symlink-resolved paths
 	absArgs := make([]string, len(args))
 	for i, fileName := range args {
@@ -74,9 +77,8 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 		if err != nil {
 			abs = fileName
 		}
-		abs, err = resolveSymlink(abs)
-		if err != nil {
-			abs = fileName
+		if resolved, err := resolveSymlink(abs); err == nil {
+			abs = resolved
 		}
 		absArgs[i] = abs
 	}
