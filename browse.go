@@ -185,7 +185,6 @@ func preInitialization(br *browseObj) {
 	setupBrDir()
 	ttySaveTerm()
 	syscall.Umask(077)
-	br.browseInit()
 }
 
 func setTitle(primary, fallback string) string {
