@@ -50,7 +50,6 @@ func processPipeInput(br *browseObj) {
 
 func processFileList(br *browseObj, args []string, toplevel bool) {
 	if len(args) == 0 {
-		// Handles file from browserc
 		abs, err := filepath.Abs(br.fileName)
 		if err != nil {
 			abs = br.fileName
@@ -60,17 +59,16 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 		if err != nil {
 			return
 		}
+		defer fp.Close()
 
-		// Save arg list
 		CurrentList = []string{abs}
-
-		// Save for browserc
 		br.absFileName = abs
-
 		browseFile(br, fp, br.absFileName, setTitle(br.title, abs), false)
-		fp.Close()
 		return
 	}
+
+	savedList := CurrentList
+	defer func() { CurrentList = savedList }()
 
 	// Build absolute and symlink-resolved paths
 	absArgs := make([]string, len(args))
@@ -79,35 +77,26 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 		if err != nil {
 			abs = fileName
 		}
-
-		abs, err = resolveSymlink(abs)
-		if err != nil {
-			abs = fileName
+		if resolved, err := resolveSymlink(abs); err == nil {
+			abs = resolved
 		}
-
 		absArgs[i] = abs
 	}
 
+	CurrentList = args
 	lastIdx := len(args) - 1
+
 	for i, fileName := range args {
 		fp, err := validateAndOpenFile(br, absArgs[i])
 		if err != nil {
 			continue
 		}
 
-		// Save arg list
+		// Save for browserc
+		br.absFileName = absArgs[i]
 		CurrentList = args[i:]
-
-		// Use a closure to ensure fp.Close() is called after each file.
-		func(fp *os.File, absPath, fileName string) {
-			defer fp.Close()
-
-			// Save for browserc
-			br.absFileName = absPath
-
-			browseFile(br, fp, absPath, fileName, false)
-
-		}(fp, absArgs[i], fileName)
+		browseFile(br, fp, absArgs[i], fileName, false)
+		fp.Close()
 
 		if i != lastIdx {
 			resetState(br)
@@ -196,7 +185,6 @@ func preInitialization(br *browseObj) {
 	setupBrDir()
 	ttySaveTerm()
 	syscall.Umask(077)
-	br.browseInit()
 }
 
 func setTitle(primary, fallback string) string {

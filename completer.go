@@ -78,7 +78,6 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 		prompt.OptionHistory(history),
 		prompt.OptionMaxSuggestion(dispSuggestions),
 		prompt.OptionPrefix(promptStr),
-		prompt.OptionPrefixTextColor(prompt.White),
 		prompt.OptionScrollbarBGColor(prompt.DefaultColor),
 		prompt.OptionScrollbarThumbColor(prompt.DefaultColor),
 		prompt.OptionSelectedSuggestionBGColor(prompt.DarkGray),
@@ -121,44 +120,44 @@ func getHostnameTitle() string {
 }
 
 func completer(d prompt.Document) []prompt.Suggest {
-	// Use local variable for efficiency, also avoids race if global is modified mid-call
+	word := strings.ReplaceAll(d.GetWordBeforeCursor(), "//", "/")
+	originalWord := word
+
+	// Handle ~ expansion early to prevent duplicated code
+	if strings.HasPrefix(word, "~") {
+		word = expandHome(word)
+	}
 
 	switch SearchType {
 
 	case searchSearch:
 		return searchCompleter()
 
+	case searchDirs:
+		return dirCompleter(word)
+
 	case searchFiles:
-		// Fall through
+		if isAbsOrRelPath(word) {
+			return fileCompleter(word)
+		}
+		return anyCompleter(".", originalWord, false, onlyFiles)
 
 	case searchPath:
-		// Fall through
+		if isAbsOrRelPath(word) {
+			return fileCompleter(word)
+		}
 
-	case searchDirs:
-		// Fall through
-	}
-
-	word := strings.ReplaceAll(d.GetWordBeforeCursor(), "//", "/")
-	originalWord := word
-
-	// Home directory expansion (including ~user)
-	if strings.HasPrefix(word, "~") {
-		word = expandHome(word)
-	}
-
-	// Directories for chdir
-	if SearchType == searchDirs {
-		return dirCompleter(word)
-	}
-
-	// Fast path: raw path or file completion
-	if isAbsOrRelPath(word) {
-		return fileCompleter(word)
-	}
-
-	// Fallback: Just use whatever word we've got in current directory
-	if SearchType == searchPath && !strings.Contains(d.TextBeforeCursor(), " ") {
-		return pathCompleter(word)
+		// Path completions at beginning of input or after |
+		if !strings.Contains(d.TextBeforeCursor(), " ") ||
+			len(word) == 2 || strings.TrimSuffix(word, " ") == "|" ||
+			strings.HasPrefix(word, "|") {
+			// Remove leading | if present (for pipes)
+			if strings.HasPrefix(word, "|") {
+				return pathCompleter(word[1:])
+			}
+			return pathCompleter(word)
+		}
+		return anyCompleter(".", originalWord, false, onlyFiles)
 	}
 
 	return anyCompleter(".", originalWord, false, onlyFiles)
@@ -232,7 +231,7 @@ func dirCompleter(word string) []prompt.Suggest {
 	var suggestions []prompt.Suggest
 
 	if strings.HasPrefix(word, "/") || strings.HasPrefix(word, "./") ||
-		strings.HasPrefix(word, "../") {
+		strings.HasPrefix(word, "../") || strings.Contains(word, "/") {
 
 		dir := filepath.Dir(word)
 		files, err := os.ReadDir(dir)
@@ -349,7 +348,7 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 			displayName = name
 		}
 
-		if strings.ContainsAny(name, " ") {
+		if strings.ContainsAny(displayName, " ") {
 			displayName = "'" + displayName + "'"
 		}
 

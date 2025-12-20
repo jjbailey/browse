@@ -1,6 +1,6 @@
 // commands.go
-// the command processor
-// all user activity starts here
+// The command processor
+// All user activity starts here
 //
 // Copyright (c) 2024-2025 jjb
 // All rights reserved.
@@ -137,11 +137,11 @@ func commands(br *browseObj) {
 		// scan for input -- compare 4 characters
 
 		b := make([]byte, 4)
-		_, err := br.tty.Read(b)
+		n, err := br.tty.Read(b)
 
 		// continuous modes
 
-		if err != nil {
+		if err != nil || n == 0 {
 			switch br.modeScroll {
 
 			case MODE_SCROLL_UP:
@@ -325,8 +325,14 @@ func commands(br *browseObj) {
 			if !cancelled && len(lbuf) > 0 {
 				var n int
 
-				fmt.Sscanf(lbuf, "%d", &n)
-				br.printPage(n)
+				// Validate input is a valid integer
+				if _, err := fmt.Sscanf(lbuf, "%d", &n); err != nil {
+					br.printMessage("Invalid line number", MSG_ORANGE)
+				} else if n < 0 {
+					br.printMessage("Line number must be positive", MSG_ORANGE)
+				} else {
+					br.printPage(n)
+				}
 			}
 
 		case CMD_SEARCH_FWD:
@@ -375,7 +381,10 @@ func commands(br *browseObj) {
 			// mark page
 			lbuf, cancelled := br.userInput("Mark: ")
 			if !cancelled && len(lbuf) > 0 {
-				if m := getMark(lbuf); m != 0 {
+				m := getMark(lbuf)
+				if m == 0 {
+					br.printMessage("Invalid mark (use 1-9)", MSG_ORANGE)
+				} else {
 					br.marks[m] = br.firstRow
 					br.printMessage(fmt.Sprintf("Mark %d at line %d", m, br.marks[m]), MSG_GREEN)
 				}
@@ -447,10 +456,17 @@ func commands(br *browseObj) {
 		default:
 			// if digit, go to marked page
 			if unicode.IsDigit(rune(b[0])) {
-				br.pageMarked(getMark(string(b)))
+				m := getMark(string(b))
+				if m == 0 {
+					// Invalid mark - just move cursor
+					moveCursor(2, 1, false)
+				} else {
+					br.pageMarked(m)
+				}
+			} else {
+				// no modes active
+				moveCursor(2, 1, false)
 			}
-			// no modes active
-			moveCursor(2, 1, false)
 		}
 	}
 }

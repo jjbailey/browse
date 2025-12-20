@@ -19,6 +19,9 @@ const (
 	// %6d + one space
 	LINENUMBERS = "%6d %s"
 	NUMCOLWIDTH = 7
+
+	// Maximum regex pattern length to prevent ReDoS attacks
+	MAX_PATTERN_LENGTH = 1000
 )
 
 func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
@@ -195,6 +198,9 @@ func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool)
 
 func (br *browseObj) replaceMatch(lineno int, input string) string {
 	sol := br.shiftWidth
+	if sol < 0 {
+		sol = 0
+	}
 
 	// Slice safely
 	var content string
@@ -292,6 +298,11 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 		pattern = br.pattern
 	}
 
+	// Validate pattern length to prevent ReDoS attacks
+	if len(pattern) > MAX_PATTERN_LENGTH {
+		return 0, fmt.Errorf("pattern too long (max %d characters)", MAX_PATTERN_LENGTH)
+	}
+
 	if strings.HasPrefix(pattern, "(?i)") {
 		br.ignoreCase = true
 		pattern = strings.TrimPrefix(pattern, "(?i)")
@@ -303,6 +314,11 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 		cp = "(?i)" + pattern
 	} else {
 		cp = pattern
+	}
+
+	// Additional validation: check combined length after flag prefix
+	if len(cp) > MAX_PATTERN_LENGTH {
+		return 0, fmt.Errorf("pattern too long (max %d characters)", MAX_PATTERN_LENGTH)
 	}
 
 	re, err := regexp.Compile(cp)
@@ -324,6 +340,11 @@ func (br *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
 		return false, false
 	}
 
+	// Bounds check for sol parameter
+	if sol < 0 {
+		sol = 0
+	}
+
 	// Use FindAllStringIndex (not Submatch) for efficiency
 	matches := br.re.FindAllStringIndex(input, -1)
 	if len(matches) == 0 {
@@ -335,6 +356,11 @@ func (br *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
 		displayWidth -= NUMCOLWIDTH
 	}
 
+	// Additional safety: ensure displayWidth is positive
+	if displayWidth <= 0 {
+		return false, false
+	}
+
 	leftMatch, rightMatch := false, false
 
 	for _, index := range matches {
@@ -343,11 +369,18 @@ func (br *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
 			continue
 		}
 
+		// Validate index bounds
+		if index[0] < 0 || index[0] >= len(input) {
+			continue
+		}
+
 		if !leftMatch && index[0] < sol {
 			leftMatch = true
 		}
 
-		if !rightMatch && index[0]-br.shiftWidth+2 > displayWidth {
+		// Calculate right boundary with safety checks
+		rightBoundary := index[0] - br.shiftWidth + 2
+		if !rightMatch && rightBoundary > displayWidth {
 			// NB: off by two
 			rightMatch = true
 		}

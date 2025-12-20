@@ -47,6 +47,9 @@ func (br *browseObj) pageHeader() {
 		if startIndex < 0 {
 			startIndex = 0
 		}
+		if startIndex > len(br.title) {
+			startIndex = len(br.title)
+		}
 		dispTitle = "..." + br.title[startIndex:]
 	}
 

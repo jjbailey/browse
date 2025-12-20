@@ -63,6 +63,7 @@ func (br *browseObj) runGrep() {
 	fmt.Printf("$ %s\n", cmd)
 
 	// Run command in a PTY
+	fmt.Print(LINEWRAPON)
 	fmt.Print(CURSAVE)
 	resetScrRegion()
 	fmt.Print(CURRESTORE)

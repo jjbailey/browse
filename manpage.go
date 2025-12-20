@@ -10,10 +10,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
 )
 
 func (br *browseObj) manPage() {
@@ -23,27 +22,29 @@ func (br *browseObj) manPage() {
 		return
 	}
 
+	// Check if man page for 'browse' exists
+	cmdOut, err := exec.Command(manPath, "-w", "browse").CombinedOutput()
+
+	if err != nil && !bytes.Contains(cmdOut, []byte{'/'}) {
+		msg := string(bytes.TrimSpace(cmdOut))
+		br.printMessage(msg, MSG_ORANGE)
+		return
+	}
+
 	brPath, err := exec.LookPath("browse")
 	if err != nil || brPath == "" {
 		br.printMessage("Cannot find 'browse' in $PATH", MSG_ORANGE)
 		return
 	}
 
-	manpageFile := "/usr/local/man/man1/browse.1.gz"
-	if _, err := os.Stat(manpageFile); os.IsNotExist(err) {
-		br.printMessage(fmt.Sprintf("Manpage '%s' not found",
-			filepath.Base(manpageFile)), MSG_ORANGE)
-		return
-	}
-
-	cmd := manPath + " browse | " + brPath + " -t browse.1"
+	cmdStr := manPath + " browse | " + brPath + " -t browse.1"
 
 	// Run command in a PTY
 	fmt.Print(LINEWRAPON)
 	fmt.Print(CURSAVE)
 	resetScrRegion()
 	fmt.Print(CURRESTORE)
-	br.runInPty(cmd)
+	br.runInPty(cmdStr)
 	br.resizeWindow()
 	fmt.Print(LINEWRAPOFF)
 }

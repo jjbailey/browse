@@ -32,29 +32,19 @@ func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin boo
 	}
 }
 
-func (br *browseObj) browseInit() {
-	// screen initializations
-
-	br.hitEOF = false
-	br.ignoreCase = false
-	br.lastMatch = SEARCH_RESET
-	br.modeNumbers = false
-	br.modeScroll = MODE_SCROLL_NONE
-	br.shiftWidth = 0
-	br.shownEOF = false
-	br.shownMsg = false
-
-	br.saveRC = false
-	br.exit = false
-}
-
 func (br *browseObj) screenInit(tty *os.File) {
 	// tty initializations
 
 	br.tty = tty
 
-	width, height, err := term.GetSize(int(tty.Fd()))
-	if err != nil {
+	var width, height int
+	var err error
+
+	if tty != nil {
+		width, height, err = term.GetSize(int(tty.Fd()))
+	}
+
+	if tty == nil || err != nil {
 		br.dispWidth = 80
 		br.dispHeight = 25
 	} else {

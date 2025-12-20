@@ -1,5 +1,5 @@
 // readfile.go
-// the go routine for reading files
+// The go routine for reading files
 //
 // Copyright (c) 2024-2025 jjb
 // All rights reserved.
@@ -61,10 +61,7 @@ func readFile(br *browseObj, ch chan bool) {
 		}
 		return
 	}
-	defer func() {
-		readerFp.Close()
-		unix.Close(dupFd)
-	}()
+	defer readerFp.Close()
 
 	// Get initial filename with mutex protection
 	br.mutex.Lock()
@@ -72,7 +69,7 @@ func readFile(br *browseObj, ch chan bool) {
 	br.mutex.Unlock()
 
 	for {
-		// Check if file changed with mutex protection
+		// Get current filename snapshot under lock
 		br.mutex.Lock()
 		currentFileName := br.fileName
 		br.mutex.Unlock()
@@ -82,8 +79,11 @@ func readFile(br *browseObj, ch chan bool) {
 			return
 		}
 
-		br.newFileSiz, br.newInode, err = getFileInodeSize(currentFileName)
+		// Get file info using our filename snapshot
+		// This could fail if file was deleted/moved, which is fine
+		newFileSiz, newInode, err := getFileInodeSize(currentFileName)
 		if err != nil {
+			// File no longer accessible - signal failure and exit
 			select {
 			case ch <- false:
 			default:
@@ -94,6 +94,10 @@ func readFile(br *browseObj, ch chan bool) {
 		var shouldRead bool
 
 		br.mutex.Lock()
+
+		// Store the file info we just retrieved
+		br.newFileSiz = newFileSiz
+		br.newInode = newInode
 
 		handleFileReset := func(msg string) {
 			br.printMessage(msg, MSG_RED)
