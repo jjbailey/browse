@@ -344,9 +344,6 @@ func (br *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
 	if sol < 0 {
 		sol = 0
 	}
-	if sol >= len(input) {
-		return false, false
-	}
 
 	// Use FindAllStringIndex (not Submatch) for efficiency
 	matches := br.re.FindAllStringIndex(input, -1)
