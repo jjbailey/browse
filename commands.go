@@ -137,11 +137,11 @@ func commands(br *browseObj) {
 		// scan for input -- compare 4 characters
 
 		b := make([]byte, 4)
-		_, err := br.tty.Read(b)
+		n, err := br.tty.Read(b)
 
 		// continuous modes
 
-		if err != nil {
+		if err != nil || n == 0 {
 			switch br.modeScroll {
 
 			case MODE_SCROLL_UP:
