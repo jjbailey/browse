@@ -94,6 +94,7 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 
 		// Save for browserc
 		br.absFileName = absArgs[i]
+		CurrentList = args[i:]
 		browseFile(br, fp, absArgs[i], fileName, false)
 		fp.Close()
 
