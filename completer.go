@@ -78,6 +78,7 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 		prompt.OptionHistory(history),
 		prompt.OptionMaxSuggestion(dispSuggestions),
 		prompt.OptionPrefix(promptStr),
+		prompt.OptionPrefixTextColor(prompt.White),
 		prompt.OptionScrollbarBGColor(prompt.DefaultColor),
 		prompt.OptionScrollbarThumbColor(prompt.DefaultColor),
 		prompt.OptionSelectedSuggestionBGColor(prompt.DarkGray),

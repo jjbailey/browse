@@ -181,7 +181,7 @@ func resetState(br *browseObj) {
 	br.modeScroll = MODE_SCROLL_NONE
 }
 
-func preInitialization(br *browseObj) {
+func preInitialization() {
 	setupBrDir()
 	ttySaveTerm()
 	syscall.Umask(077)

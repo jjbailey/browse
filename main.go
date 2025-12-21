@@ -48,7 +48,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	preInitialization(&br)
+	preInitialization()
 
 	if fromStdin = !term.IsTerminal(int(os.Stdin.Fd())); !fromStdin {
 		if argc == 0 {
