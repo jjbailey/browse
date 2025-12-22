@@ -27,7 +27,8 @@ func (br *browseObj) scrollDown(count int) {
 	for i := 0; i < count && !br.hitEOF; i++ {
 		// printLine finds EOF, sets hitEOF
 		// add line -- +1 for header
-		moveCursor(br.lastRow-br.firstRow+1, 1, false)
+		// potential race -- don't touch
+		moveCursor(br.lastRow+1, 1, false)
 
 		if br.shownEOF {
 			// print previous line before printing the current line
