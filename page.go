@@ -57,7 +57,8 @@ func (br *browseObj) pageHeader() {
 	padding := (availableWidth - len(dispTitle)) >> 1
 
 	// build header
-	// -----| title |-----
+	// ─────┤ title ├─────
+
 	var sb strings.Builder
 
 	sb.Grow(br.dispWidth + 20)
@@ -82,12 +83,15 @@ func (br *browseObj) pageHeader() {
 	sb.WriteString(EXITGRAPHICS)
 
 	// display header
-	resetScrRegion()
-	moveCursor(1, 1, true)
-	fmt.Print(CLEARSCREEN)
-	fmt.Print(LINEWRAPOFF)
+	header := sb.String()
+	sb.Reset()
+
+	sb.WriteString(fmt.Sprintf(CURPOS, 1, 1))
+	sb.WriteString(CLEARSCREEN)
+	sb.WriteString(LINEWRAPOFF)
+	sb.WriteString(fmt.Sprintf(SCROLLREGION, 2, br.dispHeight))
+	sb.WriteString(header)
 	fmt.Print(sb.String())
-	setScrRegion(2, br.dispHeight)
 }
 
 func (br *browseObj) pageLast() {
