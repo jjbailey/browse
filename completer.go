@@ -374,11 +374,14 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 		case file.Type()&os.ModeNamedPipe != 0:
 			desc = "named pipe"
 
-		case file.Type()&os.ModeDevice != 0:
-			desc = "block device"
+		case file.Type()&os.ModeSocket != 0:
+			desc = "socket"
 
 		case file.Type()&os.ModeCharDevice != 0:
 			desc = "character device"
+
+		case file.Type()&os.ModeDevice != 0:
+			desc = "block device"
 
 		default:
 			desc = ""
