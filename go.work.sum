@@ -1,3 +1,4 @@
-github.com/jjbailey/go-prompt v0.1.7 h1:afLJ/Vu6AwpjhHvWbMWCvyQsEqXDkMbbuneeaVVgF0g=
-github.com/jjbailey/go-prompt v0.1.7/go.mod h1:rd3NTyZ2zRc6l8Wd2EToqTJkmI4PSIz/pCNp/8XRLWs=
+github.com/creack/pty v1.1.24 h1:bJrF4RRfyJnbTJqzRLHzcGaZK1NeM5kTC9jGgovnR1s=
+github.com/pborman/getopt/v2 v2.1.0 h1:eNfR+r+dWLdWmV8g5OlpyrTYHkhVNxHBdN2cCrJmOEA=
 github.com/rivo/uniseg v0.4.7/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
+golang.org/x/term v0.38.0 h1:PQ5pkm/rLO6HnxFR7N2lJHOZX6Kez5Y1gDSJla6jo7Q=
