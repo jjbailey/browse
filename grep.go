@@ -64,8 +64,7 @@ func (br *browseObj) runGrep() {
 
 	// Display command preview
 	moveCursor(br.dispHeight, 1, true)
-	fmt.Print("---\n", LINEWRAPON)
-	fmt.Printf("$ %s\n", cmd)
+	fmt.Printf("---\n%s$ %s\n", LINEWRAPON, cmd)
 
 	// Run command in a PTY
 	fmt.Print(LINEWRAPON)
