@@ -492,23 +492,21 @@ func dirCommand(br *browseObj) bool {
 	}
 	newDir := expandHome(strings.Join(fields, " "))
 
-	// Handle "cd -" (jump to previous)
-	if newDir == "-" {
-		history := loadHistory(dirHistory)
-		if len(history) < 2 {
-			br.userAnyKey(fmt.Sprintf("%s No previous directory ... [press any key] %s",
-				MSG_RED, VIDOFF))
+	// Handle "cd -"
+	if newDir == "-" || newDir == "~-" {
+		ndir := prevDirectory()
+		if ndir == "" {
+			br.timedMessage("No previous directory", MSG_ORANGE)
 			br.pageCurrent()
 			return false
 		}
-		newDir = history[len(history)-2]
+		newDir = ndir
 	}
 
 	// Save original working directory
 	savDir, err := os.Getwd()
 	if err != nil {
-		br.userAnyKey(fmt.Sprintf("%s Cannot get current directory ... [press any key] %s",
-			MSG_RED, VIDOFF))
+		br.timedMessage("Cannot get current directory", MSG_ORANGE)
 		br.pageCurrent()
 		return false
 	}
@@ -522,8 +520,7 @@ func dirCommand(br *browseObj) bool {
 
 	// Try to change directory
 	if err := os.Chdir(newDir); err != nil {
-		br.userAnyKey(fmt.Sprintf("%s Cannot chdir to %s ... [press any key] %s",
-			MSG_RED, newDir, VIDOFF))
+		br.timedMessage(fmt.Sprintf("Cannot chdir to %s", newDir), MSG_ORANGE)
 		br.pageCurrent()
 		return false
 	}

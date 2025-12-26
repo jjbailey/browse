@@ -190,4 +190,13 @@ func shellEscapeSingle(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", "'\"'\"'") + "'"
 }
 
+func prevDirectory() string {
+	history := loadHistory(dirHistory)
+	if len(history) < 2 {
+		return ""
+	}
+
+	return history[len(history)-2]
+}
+
 // vim: set ts=4 sw=4 noet:
