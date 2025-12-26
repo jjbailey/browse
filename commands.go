@@ -48,7 +48,6 @@ const (
 	CMD_SEARCH_NEXT     = 'n'
 	CMD_SEARCH_NEXT_REV = 'N'
 	CMD_SEARCH_IGN_CASE = 'i'
-	CMD_GREP            = '&'
 	CMD_SEARCH_PRINT    = 'p'
 	CMD_SEARCH_CLEAR    = 'P'
 
@@ -73,6 +72,8 @@ const (
 	// Other commands
 	CMD_ARGLIST   = 'a'
 	CMD_BASH      = '!'
+	CMD_FORMAT    = 'F'
+	CMD_GREP      = '&'
 	CMD_HELP      = 'h'
 	CMD_JUMP      = 'j'
 	CMD_MARK      = 'm'
@@ -359,10 +360,6 @@ func commands(br *browseObj) {
 				br.printMessage("Search considers case", MSG_GREEN)
 			}
 
-		case CMD_GREP:
-			// grep -nP pattern
-			br.runGrep()
-
 		case CMD_SEARCH_PRINT:
 			// print the search pattern
 			if len(br.pattern) == 0 {
@@ -392,6 +389,14 @@ func commands(br *browseObj) {
 
 		case CMD_BASH:
 			br.bashCommand()
+
+		case CMD_FORMAT:
+			// fmt -su
+			br.runFormat()
+
+		case CMD_GREP:
+			// grep -nP pattern
+			br.runGrep()
 
 		case CMD_HALF_PAGE_DN, CMD_HALF_PAGE_DN_1, CMD_HALF_PAGE_DN_2:
 			// scroll half page forward/down
