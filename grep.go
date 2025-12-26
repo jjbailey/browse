@@ -11,7 +11,9 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 const (
@@ -27,14 +29,14 @@ func (br *browseObj) runGrep() {
 	}
 
 	grepPath, err := exec.LookPath("grep")
-	if err != nil || grepPath == "" {
+	if err != nil {
 		br.printMessage("Cannot find 'grep' in $PATH", MSG_ORANGE)
 		return
 	}
 
-	brPath, err := exec.LookPath("browse")
-	if err != nil || brPath == "" {
-		br.printMessage("Cannot find 'browse' in $PATH", MSG_ORANGE)
+	brPath, err := os.Executable()
+	if err != nil {
+		br.printMessage("Cannot find 'browse' executable", MSG_ORANGE)
 		return
 	}
 
@@ -47,6 +49,9 @@ func (br *browseObj) runGrep() {
 	}
 
 	title := fmt.Sprintf("grep %s -e \"%s\"", grepOpts, br.pattern)
+	if !br.fromStdin {
+		title += " " + filepath.Base(br.fileName)
+	}
 	patternArg := shellEscapeSingle(br.pattern)
 	titleArg := shellEscapeSingle(title)
 	fileNameArg := shellEscapeSingle(br.fileName)
