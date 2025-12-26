@@ -40,7 +40,7 @@ func (br *browseObj) printHelp() {
 		"  / ?                           Regex search forward/reverse         ",
 		"  n N                           Repeat search forward/reverse        ",
 		"  i                             Case-sensitive search                ",
-		"  F                             Run 'fmt -su' on the current file    ",
+		"  F                             Run 'fmt -s' on the current file     ",
 		"  &                             Run 'grep -nP' for pattern           ",
 		"  p P                           Print/Clear search pattern           ",
 		"  e [END]                       Follow mode                          ",

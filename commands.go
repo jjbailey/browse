@@ -391,7 +391,7 @@ func commands(br *browseObj) {
 			br.bashCommand()
 
 		case CMD_FORMAT:
-			// fmt -su
+			// fmt -s
 			br.runFormat()
 
 		case CMD_GREP:

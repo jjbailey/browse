@@ -29,9 +29,9 @@ func (br *browseObj) runFormat() {
 		return
 	}
 
-	formatOpts := fmt.Sprintf("-su -w %d", maximum(10, br.dispWidth-NUMCOLWIDTH-1))
+	formatOpts := fmt.Sprintf("-s -w %d", maximum(10, br.dispWidth-NUMCOLWIDTH-1))
 
-	title := "fmt -su"
+	title := "fmt -s"
 	if !br.fromStdin {
 		title += " " + filepath.Base(br.fileName)
 	}

@@ -99,7 +99,7 @@ browse [OPTIONS] [FILE] [FILE...]
 | `#`           | Toggle line numbers on/off                           |
 | `%`, `Ctrl+G` | Show page position                                   |
 | `!`           | Run a bash command (expands `!`, `%`, `&`, `~`)      |
-| `F`           | Run `fmt -su` on the current file in a new session   |
+| `F`           | Run `fmt -s` on the current file in a new session    |
 | `B`           | Browse another file (expands `%`, `~`, shell glob)   |
 | `a`           | Print filenames in the browse list                   |
 | `c`           | Print current working directory                      |
