@@ -1,5 +1,5 @@
-// grep.go
-// pipe the current search to grep -nP
+// format.go
+// pipe the current file to fmt
 //
 // Copyright (c) 2024-2025 jjb
 // All rights reserved.
@@ -16,21 +16,10 @@ import (
 	"path/filepath"
 )
 
-const (
-	grepDefaultOpts  = "-nP"
-	grepIgnoreCase   = "-inP"
-	browseIgnoreCase = "-i"
-)
-
-func (br *browseObj) runGrep() {
-	if br.pattern == "" {
-		br.printMessage("No search pattern", MSG_ORANGE)
-		return
-	}
-
-	grepPath, err := exec.LookPath("grep")
+func (br *browseObj) runFormat() {
+	formatPath, err := exec.LookPath("fmt")
 	if err != nil {
-		br.printMessage("Cannot find 'grep' in $PATH", MSG_ORANGE)
+		br.printMessage("Cannot find 'fmt' in $PATH", MSG_ORANGE)
 		return
 	}
 
@@ -40,26 +29,19 @@ func (br *browseObj) runGrep() {
 		return
 	}
 
-	// case sensitivity
-	grepOpts := grepDefaultOpts
-	brOpts := ""
-	if br.ignoreCase {
-		grepOpts = grepIgnoreCase
-		brOpts = browseIgnoreCase
-	}
+	formatOpts := fmt.Sprintf("-s -w %d", maximum(10, br.dispWidth-NUMCOLWIDTH-1))
 
-	title := fmt.Sprintf("grep %s -e \"%s\"", grepOpts, br.pattern)
+	title := "fmt -s"
 	if !br.fromStdin {
 		title += " " + filepath.Base(br.fileName)
 	}
-	patternArg := shellEscapeSingle(br.pattern)
 	titleArg := shellEscapeSingle(title)
 	fileNameArg := shellEscapeSingle(br.fileName)
 
 	cmd := fmt.Sprintf(
-		"%s %s -e %s %s | %s %s -p %s -t %s",
-		grepPath, grepOpts, patternArg, fileNameArg,
-		brPath, brOpts, patternArg, titleArg,
+		"%s %s %s | %s -t %s",
+		formatPath, formatOpts, fileNameArg,
+		brPath, titleArg,
 	)
 
 	// Display command preview

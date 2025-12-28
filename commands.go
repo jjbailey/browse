@@ -48,7 +48,6 @@ const (
 	CMD_SEARCH_NEXT     = 'n'
 	CMD_SEARCH_NEXT_REV = 'N'
 	CMD_SEARCH_IGN_CASE = 'i'
-	CMD_GREP            = '&'
 	CMD_SEARCH_PRINT    = 'p'
 	CMD_SEARCH_CLEAR    = 'P'
 
@@ -73,6 +72,8 @@ const (
 	// Other commands
 	CMD_ARGLIST   = 'a'
 	CMD_BASH      = '!'
+	CMD_FORMAT    = 'F'
+	CMD_GREP      = '&'
 	CMD_HELP      = 'h'
 	CMD_JUMP      = 'j'
 	CMD_MARK      = 'm'
@@ -359,10 +360,6 @@ func commands(br *browseObj) {
 				br.printMessage("Search considers case", MSG_GREEN)
 			}
 
-		case CMD_GREP:
-			// grep -nP pattern
-			br.runGrep()
-
 		case CMD_SEARCH_PRINT:
 			// print the search pattern
 			if len(br.pattern) == 0 {
@@ -392,6 +389,14 @@ func commands(br *browseObj) {
 
 		case CMD_BASH:
 			br.bashCommand()
+
+		case CMD_FORMAT:
+			// fmt -s
+			br.runFormat()
+
+		case CMD_GREP:
+			// grep -nP pattern
+			br.runGrep()
 
 		case CMD_HALF_PAGE_DN, CMD_HALF_PAGE_DN_1, CMD_HALF_PAGE_DN_2:
 			// scroll half page forward/down
@@ -492,23 +497,21 @@ func dirCommand(br *browseObj) bool {
 	}
 	newDir := expandHome(strings.Join(fields, " "))
 
-	// Handle "cd -" (jump to previous)
-	if newDir == "-" {
-		history := loadHistory(dirHistory)
-		if len(history) < 2 {
-			br.userAnyKey(fmt.Sprintf("%s No previous directory ... [press any key] %s",
-				MSG_RED, VIDOFF))
+	// Handle "cd -"
+	if newDir == "-" || newDir == "~-" {
+		ndir := prevDirectory()
+		if ndir == "" {
+			br.timedMessage("No previous directory", MSG_ORANGE)
 			br.pageCurrent()
 			return false
 		}
-		newDir = history[len(history)-2]
+		newDir = ndir
 	}
 
 	// Save original working directory
 	savDir, err := os.Getwd()
 	if err != nil {
-		br.userAnyKey(fmt.Sprintf("%s Cannot get current directory ... [press any key] %s",
-			MSG_RED, VIDOFF))
+		br.timedMessage("Cannot get current directory", MSG_ORANGE)
 		br.pageCurrent()
 		return false
 	}
@@ -522,8 +525,7 @@ func dirCommand(br *browseObj) bool {
 
 	// Try to change directory
 	if err := os.Chdir(newDir); err != nil {
-		br.userAnyKey(fmt.Sprintf("%s Cannot chdir to %s ... [press any key] %s",
-			MSG_RED, newDir, VIDOFF))
+		br.timedMessage(fmt.Sprintf("Cannot chdir to %s", newDir), MSG_ORANGE)
 		br.pageCurrent()
 		return false
 	}

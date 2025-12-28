@@ -81,32 +81,33 @@ browse [OPTIONS] [FILE] [FILE...]
 
 #### Search
 
-| Key | Function                                                          |
-| --- | ----------------------------------------------------------------- |
-| `/` | Regex search forward (empty pattern repeats or changes direction) |
-| `?` | Regex search reverse (empty pattern repeats or changes direction) |
-| `n` | Repeat search in current direction                                |
-| `N` | Repeat search in opposite direction                               |
-| `i` | Toggle case-sensitive/insensitive search                          |
-| `p` | Print current search pattern                                      |
-| `P` | Clear search pattern                                              |
-| `&` | Run `grep -nP` on current file for search pattern                 |
+| Key | Function                                                            |
+| --- | ------------------------------------------------------------------- |
+| `/` | Regex search forward (empty pattern repeats or changes direction)   |
+| `?` | Regex search reverse (empty pattern repeats or changes direction)   |
+| `n` | Repeat search in current direction                                  |
+| `N` | Repeat search in opposite direction                                 |
+| `i` | Toggle case-sensitive/insensitive search                            |
+| `p` | Print current search pattern                                        |
+| `P` | Clear search pattern                                                |
+| `&` | Run `grep -nP` on current file for search pattern in a new session  |
 
 #### Miscellaneous
 
-| Key           | Function                                           |
-| ------------- | -------------------------------------------------- |
-| `#`           | Toggle line numbers on/off                         |
-| `%`, `Ctrl+G` | Show page position                                 |
-| `!`           | Run a bash command (expands `!`, `%`, `&`, `~`)    |
-| `B`           | Browse another file (expands `%`, `~`, shell glob) |
-| `a`           | Print filenames in the browse list                 |
-| `c`           | Print current working directory                    |
-| `C`           | Change working directory                           |
-| `q`           | Quit, save session, next file in list              |
-| `Q`           | Quit without saving session, next file in list     |
-| `x`           | Exit list, save session                            |
-| `X`           | Exit list, don't save session                      |
+| Key           | Function                                             |
+| ------------- | ---------------------------------------------------- |
+| `#`           | Toggle line numbers on/off                           |
+| `%`, `Ctrl+G` | Show page position                                   |
+| `!`           | Run a bash command (expands `!`, `%`, `&`, `~`)      |
+| `F`           | Run `fmt -s` on the current file in a new session    |
+| `B`           | Browse another file (expands `%`, `~`, shell glob)   |
+| `a`           | Print filenames in the browse list                   |
+| `c`           | Print current working directory                      |
+| `C`           | Change working directory                             |
+| `q`           | Quit, save session, next file in list                |
+| `Q`           | Quit without saving session, next file in list       |
+| `x`           | Exit list, save session                              |
+| `X`           | Exit list, don't save session                        |
 
 ### Symbol Expansions
 

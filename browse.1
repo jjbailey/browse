@@ -94,7 +94,7 @@ browse [OPTIONS] [FILE] [FILE...]
 .PP
 .TS
 tab(@);
-lw(20.0n) lw(60.0n).
+lw(20.0n) lx.
 T{
 Option
 T}@T{
@@ -142,7 +142,7 @@ T}
 .PP
 .TS
 tab(@);
-lw(20.0n) lw(60.0n).
+lw(20.0n) lx.
 T{
 Key
 T}@T{
@@ -234,7 +234,7 @@ T}
 .PP
 .TS
 tab(@);
-lw(20.0n) lw(60.0n).
+lw(20.0n) lx.
 T{
 Key
 T}@T{
@@ -279,14 +279,15 @@ T}
 T{
 \f[V]&\f[R]
 T}@T{
-Run \f[V]grep -nP\f[R] on current file for search pattern
+Run \f[V]grep -nP\f[R] on current file for search pattern in a new
+session
 T}
 .TE
 .SS Miscellaneous
 .PP
 .TS
 tab(@);
-lw(20.0n) lw(60.0n).
+lw(20.0n) lx.
 T{
 Key
 T}@T{
@@ -308,6 +309,11 @@ T{
 T}@T{
 Run a bash command (expands \f[V]!\f[R], \f[V]%\f[R], \f[V]&\f[R],
 \f[V]\[ti]\f[R])
+T}
+T{
+\f[V]F\f[R]
+T}@T{
+Run \f[V]fmt -s\f[R] on the current file in a new session
 T}
 T{
 \f[V]B\f[R]
@@ -356,7 +362,7 @@ Special symbols expanded in commands:
 .PP
 .TS
 tab(@);
-lw(20.0n) lw(60.0n).
+lw(20.0n) lx.
 T{
 Symbol
 T}@T{
