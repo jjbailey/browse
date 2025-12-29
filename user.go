@@ -87,8 +87,10 @@ func (br *browseObj) userInput(promptStr string) (string, bool) {
 	ttyPrompter()
 	fmt.Printf("\r%s", CURSAVE)
 	moveCursor(br.dispHeight, 1, true)
-	fmt.Printf("%s", promptStr)
+	fmt.Print(promptStr)
 	br.shownMsg = true
+
+	b := make([]byte, 1)
 
 	for {
 	DrainSignals:
@@ -103,7 +105,6 @@ func (br *browseObj) userInput(promptStr string) (string, bool) {
 			}
 		}
 
-		b := make([]byte, 1)
 		_, err := br.tty.Read(b)
 		fmt.Print(CURSAVE)
 
@@ -132,9 +133,9 @@ func (br *browseObj) userInput(promptStr string) (string, bool) {
 
 		case BACKSPACE, DELETE:
 			if len(linebuf) > 0 {
-				linebuf = strings.TrimSuffix(linebuf, string(linebuf[len(linebuf)-1]))
+				linebuf = linebuf[:len(linebuf)-1]
 				moveCursor(br.dispHeight, 1, true)
-				fmt.Printf("%s%s", promptStr, linebuf)
+				fmt.Print(promptStr, linebuf)
 			} else {
 				cancelled = true
 			}
@@ -147,12 +148,12 @@ func (br *browseObj) userInput(promptStr string) (string, bool) {
 			}
 
 			moveCursor(br.dispHeight, 1, true)
-			fmt.Printf("%s%s", promptStr, linebuf)
+			fmt.Print(promptStr, linebuf)
 
 		case ERASELINE:
 			linebuf = ""
 			moveCursor(br.dispHeight, 1, true)
-			fmt.Printf("%s%s", promptStr, linebuf)
+			fmt.Print(promptStr, linebuf)
 
 		default:
 			linebuf += string(inputChar)
