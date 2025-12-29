@@ -40,8 +40,7 @@ func (br *browseObj) manPage() {
 	cmdStr := manPath + " browse | " + brPath + " -t browse.1"
 
 	// Run command in a PTY
-	fmt.Print(LINEWRAPON)
-	fmt.Print(CURSAVE)
+	fmt.Print(LINEWRAPON, CURSAVE)
 	resetScrRegion()
 	fmt.Print(CURRESTORE)
 	br.runInPty(cmdStr)
