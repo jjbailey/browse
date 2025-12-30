@@ -187,7 +187,7 @@ func completer(d prompt.Document) []prompt.Suggest {
 		}
 
 		// If second or later word supplied, drop to anyCompleter
-		if numParts >= 2 {
+		if numParts > 1 || (numParts == 1 && word == "") {
 			return anyCompleter(".", originalWord, false, onlyFiles)
 		}
 
