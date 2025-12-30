@@ -165,21 +165,24 @@ func completer(d prompt.Document) []prompt.Suggest {
 
 		// If currently typing (partial) after a pipe: "|cmd"
 		if strings.HasPrefix(word, "|") {
-			return pathCompleter(word[1:])
+			if word == "|" {
+				return nil
+			}
+
+			suggestions := pathCompleter(word[1:])
+			for i := range suggestions {
+				suggestions[i].Text = "|" + suggestions[i].Text
+			}
+			return suggestions
 		}
 
 		// Split on whitespace for tokens *before* current cursor position
 		parts := strings.Fields(text)
 		numParts := len(parts)
 
-		// If previous *token* is a pipe (either at end or after a space,
-		// eg "foo | ", "foo |cmd", etc)
-		if numParts > 1 && parts[numParts-2] == "|" {
-			return pathCompleter(word)
-		}
-
-		// If previous token itself is a pipe and no other words
-		if numParts == 1 && parts[0] == "|" {
+		// If previous *token* is a pipe
+		if numParts > 0 && ((word == "" && parts[numParts-1] == "|") ||
+			(word != "" && numParts > 1 && parts[numParts-2] == "|")) {
 			return pathCompleter(word)
 		}
 
