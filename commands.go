@@ -668,21 +668,22 @@ func waitForInput(br *browseObj) {
 	stableCount := 0
 
 	for attempt := 0; attempt < maxAttempts; attempt++ {
+		curMapSiz := br.mapSiz
+		if curMapSiz >= targetSize {
+			break
+		}
+
 		info, err := os.Stat(br.fileName)
 		if err == nil && time.Since(info.ModTime()) > modTimeThreshold {
-			// don't wait for files unchanged in the last 4 seconds
+			// don't wait for unchanged files
 			break
 		}
 
-		if br.mapSiz >= targetSize {
-			break
-		}
-
-		if br.mapSiz == lastMapSize {
+		if curMapSiz == lastMapSize {
 			stableCount++
 		} else {
 			stableCount = 0
-			lastMapSize = br.mapSiz
+			lastMapSize = curMapSiz
 		}
 
 		if stableCount > stableThreshold {

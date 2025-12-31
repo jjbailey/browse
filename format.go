@@ -49,7 +49,6 @@ func (br *browseObj) runFormat() {
 	fmt.Printf("---\n%s$ %s\n", LINEWRAPON, cmd)
 
 	// Run command in a PTY
-	fmt.Print(LINEWRAPON)
 	fmt.Print(CURSAVE)
 	resetScrRegion()
 	fmt.Print(CURRESTORE)

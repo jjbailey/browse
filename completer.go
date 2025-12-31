@@ -70,7 +70,8 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 	// reset go-prompt BackedOut flag
 	prompt.BackedOut = false
 
-	// set rawPrefix to allow escape chars in prefix
+	// set RawPrefix to allow escape chars in prefix, turns off color
+	// escape char usage works only in simple cases, not here
 	prompt.RawPrefix = true
 
 	p := prompt.New(
@@ -80,12 +81,11 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 		prompt.OptionDescriptionTextColor(prompt.Yellow),
 		prompt.OptionHistory(history),
 		prompt.OptionMaxSuggestion(dispSuggestions),
-		prompt.OptionPrefix(_VID_BOLD+promptStr+_VID_OFF),
+		prompt.OptionPrefix(promptStr),
 		prompt.OptionScrollbarBGColor(prompt.DefaultColor),
 		prompt.OptionScrollbarThumbColor(prompt.DefaultColor),
 		prompt.OptionSelectedSuggestionBGColor(prompt.DarkGray),
 		prompt.OptionSelectedSuggestionTextColor(prompt.Yellow),
-		prompt.OptionSuggestionTextColor(prompt.White),
 		prompt.OptionSwitchKeyBindMode(prompt.EmacsKeyBind),
 		prompt.OptionTitle(title),
 		prompt.OptionAddKeyBind(prompt.KeyBind{
@@ -155,17 +155,44 @@ func completer(d prompt.Document) []prompt.Suggest {
 			return fileCompleter(word)
 		}
 
-		// Path completions at beginning of input or after |
-		if !strings.Contains(d.TextBeforeCursor(), " ") ||
-			len(word) == 2 || strings.TrimSuffix(word, " ") == "|" ||
-			strings.HasPrefix(word, "|") {
-			// Remove leading | if present (for pipes)
-			if strings.HasPrefix(word, "|") {
-				return pathCompleter(word[1:])
+		// Current user input before the cursor
+		text := d.TextBeforeCursor()
+
+		// If just at the very start
+		if strings.TrimSpace(text) == "" {
+			return pathCompleter("")
+		}
+
+		// If currently typing (partial) after a pipe: "|cmd"
+		if strings.HasPrefix(word, "|") {
+			if word == "|" {
+				return nil
 			}
+
+			suggestions := pathCompleter(word[1:])
+			for i := range suggestions {
+				suggestions[i].Text = "|" + suggestions[i].Text
+			}
+			return suggestions
+		}
+
+		// Split on whitespace for tokens *before* current cursor position
+		parts := strings.Fields(text)
+		numParts := len(parts)
+
+		// If previous *token* is a pipe
+		if numParts > 0 && ((word == "" && parts[numParts-1] == "|") ||
+			(word != "" && numParts > 1 && parts[numParts-2] == "|")) {
 			return pathCompleter(word)
 		}
-		return anyCompleter(".", originalWord, false, onlyFiles)
+
+		// If second or later word supplied, drop to anyCompleter
+		if numParts > 1 || (numParts == 1 && word == "") {
+			return anyCompleter(".", originalWord, false, onlyFiles)
+		}
+
+		// By default, normal path completion
+		return pathCompleter(word)
 	}
 
 	return anyCompleter(".", originalWord, false, onlyFiles)
@@ -174,10 +201,8 @@ func completer(d prompt.Document) []prompt.Suggest {
 func isAbsOrRelPath(word string) bool {
 	// Only care about the very first rune for . and ..
 
-	return strings.HasPrefix(word, "/") ||
-		strings.HasPrefix(word, "./") ||
-		strings.HasPrefix(word, "../") ||
-		strings.Contains(word, "/")
+	return strings.HasPrefix(word, "/") || strings.Contains(word, "/") ||
+		strings.HasPrefix(word, "./") || strings.HasPrefix(word, "../")
 }
 
 func searchCompleter() []prompt.Suggest {
@@ -212,7 +237,7 @@ func pathCompleter(word string) []prompt.Suggest {
 
 	paths := strings.Split(os.Getenv("PATH"), ":")
 	if len(paths) == 0 || (len(paths) == 1 && paths[0] == "") {
-		paths = []string{"/usr/local/bin", "/usr/bin"}
+		paths = []string{"/usr/local/bin", "/usr/bin", "/usr/sbin"}
 	}
 
 	for _, dir := range paths {

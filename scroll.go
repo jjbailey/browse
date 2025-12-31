@@ -32,7 +32,7 @@ func (br *browseObj) scrollDown(count int) {
 
 		if br.shownEOF {
 			// print previous line before printing the current line
-			fmt.Printf("%s%s", CURRESTORE, CURUP)
+			fmt.Print(CURRESTORE, CURUP)
 			br.printLine(br.lastRow - 1)
 		}
 
@@ -87,12 +87,16 @@ func (br *browseObj) scrollUp(count int) {
 func (br *browseObj) tryScroll(sop int) bool {
 	// attempt to scroll based on current position and target position
 
-	if sop > br.firstRow && sop-br.firstRow <= br.dispRows>>2 {
-		br.scrollDown(sop - br.firstRow)
-		return true
-	} else if br.firstRow > sop && br.firstRow-sop <= br.dispRows>>2 {
-		br.scrollUp(br.firstRow - sop)
-		return true
+	if sop > br.firstRow {
+		if diff := sop - br.firstRow; diff <= br.dispRows>>2 {
+			br.scrollDown(diff)
+			return true
+		}
+	} else if br.firstRow > sop {
+		if diff := br.firstRow - sop; diff <= br.dispRows>>2 {
+			br.scrollUp(diff)
+			return true
+		}
 	}
 
 	return false
