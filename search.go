@@ -73,7 +73,7 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 		firstMatch, lastMatch := br.pageIsMatch(startOfPage, endOfPage)
 
 		if wrapped && warned {
-			br.printMessage("Pattern not found: "+br.pattern, MSG_ORANGE)
+			br.printMessage("Pattern not found", MSG_ORANGE)
 			moveCursor(2, 1, false)
 			return false
 		}
