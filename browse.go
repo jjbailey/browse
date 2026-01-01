@@ -126,24 +126,26 @@ func browseFile(br *browseObj, fp *os.File, fileName, title string, fromStdin bo
 }
 
 func validateAndOpenFile(br *browseObj, targetFile string) (*os.File, error) {
-	stat, err := os.Stat(targetFile)
+	fp, err := os.Open(targetFile)
 	if err != nil {
+		br.userAnyKey(fmt.Sprintf("%s %s: cannot open ... [press any key] %s",
+			MSG_RED, lastNChars(targetFile, br.dispWidth), VIDOFF))
+		return nil, err
+	}
+
+	stat, err := fp.Stat()
+	if err != nil {
+		fp.Close()
 		br.userAnyKey(fmt.Sprintf("%s %s: cannot open ... [press any key] %s",
 			MSG_RED, lastNChars(targetFile, br.dispWidth), VIDOFF))
 		return nil, err
 	}
 
 	if stat.IsDir() {
+		fp.Close()
 		br.userAnyKey(fmt.Sprintf("%s %s: is a directory ... [press any key] %s",
 			MSG_RED, lastNChars(targetFile, br.dispWidth), VIDOFF))
 		return nil, fmt.Errorf("%s: is a directory", targetFile)
-	}
-
-	fp, err := os.Open(targetFile)
-	if err != nil {
-		br.userAnyKey(fmt.Sprintf("%s %s: cannot open ... [press any key] %s",
-			MSG_RED, lastNChars(targetFile, br.dispWidth), VIDOFF))
-		return nil, err
 	}
 
 	return fp, nil
