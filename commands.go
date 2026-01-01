@@ -279,6 +279,7 @@ func commands(br *browseObj) {
 				br.shiftWidth -= TABWIDTH
 				br.pageCurrent()
 			}
+			br.restoreLast()
 
 		case CMD_SHIFT_RIGHT, CMD_SHIFT_RIGHT_1:
 			// horizontal scroll right
@@ -293,6 +294,7 @@ func commands(br *browseObj) {
 				br.shiftWidth = 0
 				br.pageCurrent()
 			}
+			br.restoreLast()
 
 		case CMD_SHIFT_LONGEST:
 			// horizontal scroll longest
@@ -659,7 +661,7 @@ func waitForInput(br *browseObj) {
 	const (
 		maxAttempts      = 20
 		stableThreshold  = 10
-		waitInterval     = 100 * time.Millisecond
+		waitInterval     = 200 * time.Millisecond
 		modTimeThreshold = 4 * time.Second
 	)
 
