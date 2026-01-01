@@ -16,6 +16,8 @@ import (
 	"syscall"
 )
 
+var sigChan chan os.Signal
+
 func (br *browseObj) resizeWindow() {
 	// process window size changes
 
@@ -35,8 +37,7 @@ func (br *browseObj) saneExit() {
 
 	ttyRestore()
 	resetScrRegion()
-	fmt.Print(LINEWRAPON)
-	fmt.Print(VIDOFF)
+	fmt.Print(LINEWRAPON + VIDOFF)
 	moveCursor(br.dispHeight, 1, true)
 
 	if br.fromStdin {
@@ -51,7 +52,12 @@ func (br *browseObj) saneExit() {
 }
 
 func (br *browseObj) catchSignals() {
-	sigChan := make(chan os.Signal, 1)
+	if sigChan != nil {
+		signal.Stop(sigChan)
+		close(sigChan)
+	}
+
+	sigChan = make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGWINCH)
 	signal.Ignore(syscall.SIGALRM, syscall.SIGCHLD, syscall.SIGURG)
 
