@@ -68,6 +68,10 @@ func readFile(br *browseObj, ch chan bool) {
 	savFileName := br.fileName
 	br.mutex.Unlock()
 
+	bufReader := bufio.NewReader(readerFp)
+	type lineMeta struct{ offset, length int64 }
+	var pendingLines []lineMeta
+
 	for {
 		// Get current filename snapshot under lock
 		br.mutex.Lock()
@@ -128,11 +132,8 @@ func readFile(br *browseObj, ch chan bool) {
 			}
 
 			readOffset := bytesRead
-			bufReader := bufio.NewReader(readerFp)
-
-			// We accumulate new lines' offsets/lengths before locking and merging
-			type lineMeta struct{ offset, length int64 }
-			var pendingLines []lineMeta
+			bufReader.Reset(readerFp)
+			pendingLines = pendingLines[:0]
 
 			for {
 				line, err := bufReader.ReadString('\n')
@@ -148,7 +149,11 @@ func readFile(br *browseObj, ch chan bool) {
 					return
 				}
 				lineLen := len(line)
-				cappedLen := int64(lineLen - 1)
+				readLen := int64(lineLen)
+				if lineLen > 0 && line[lineLen-1] == '\n' {
+					readLen--
+				}
+				cappedLen := readLen
 				if cappedLen > READBUFSIZ {
 					cappedLen = READBUFSIZ
 				}
@@ -205,8 +210,9 @@ func (br *browseObj) readStdin(fin, fout *os.File) bool {
 	for {
 		line, err := r.ReadString('\n')
 		if err == io.EOF {
-			if !empty && len(line) > 0 {
+			if len(line) > 0 {
 				w.WriteString(line)
+				empty = false
 			}
 
 			return empty
