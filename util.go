@@ -38,8 +38,9 @@ func expandTabs(data []byte) []byte {
 			buf = append(buf, ' ')
 
 		case '\t':
-			tab := bytes.Repeat([]byte{' '}, TABWIDTH-len(buf)%TABWIDTH)
-			buf = append(buf, tab...)
+			for i := TABWIDTH - len(buf)%TABWIDTH; i > 0; i-- {
+				buf = append(buf, ' ')
+			}
 
 		default:
 			buf = append(buf, b)
@@ -50,17 +51,19 @@ func expandTabs(data []byte) []byte {
 }
 
 func moveCursor(row, col int, clrflag bool) {
-	fmt.Printf(CURPOS, row, col)
-
 	if clrflag {
-		fmt.Print(CLEARLINE)
+		fmt.Printf(CURPOS+CLEARLINE, row, col)
+		return
 	}
+
+	fmt.Printf(CURPOS, row, col)
 }
 
 func printSEOF(what string) {
 	if what == "EOF" {
 		// save for modeScroll
-		fmt.Printf("\r%s%s", CLEARSCREEN, CURSAVE)
+		fmt.Printf("\r%s%s\r %s%s%s\r", CLEARSCREEN, CURSAVE, VIDBLINK, what, VIDOFF)
+		return
 	}
 
 	fmt.Printf("\r %s%s%s\r", VIDBLINK, what, VIDOFF)
@@ -86,12 +89,8 @@ func minimum(a, b int) int {
 	return b
 }
 
-func setScrRegion(top, bot int) {
-	fmt.Printf(SCROLLREGION, top, bot)
-}
-
 func resetScrRegion() {
-	fmt.Print(RESETREGION)
+	fmt.Print(CURSAVE + RESETREGION + CURRESTORE)
 }
 
 func errorExit(err error) {

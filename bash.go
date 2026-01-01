@@ -68,9 +68,11 @@ func (br *browseObj) bashCommand() {
 		// Save command to history
 		updateHistory(cmdbuf, commHistory)
 
-		fmt.Print(LINEWRAPON, CURSAVE)
+		// Setup
+		fmt.Print(LINEWRAPON)
+
+		// Run command in a PTY
 		resetScrRegion()
-		fmt.Print(CURRESTORE)
 		br.runInPty(cmdbuf)
 
 		// Repeat only if lastKey is bang
@@ -80,7 +82,10 @@ func (br *browseObj) bashCommand() {
 	}
 
 	br.resizeWindow()
-	fmt.Print(LINEWRAPOFF)
+
+	// gratuitous save cursor
+	moveCursor(2, 1, false)
+	fmt.Print(CURSAVE)
 }
 
 // vim: set ts=4 sw=4 noet:
