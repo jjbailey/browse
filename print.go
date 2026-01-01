@@ -11,13 +11,18 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 )
 
 func (br *browseObj) printLine(lineno int) {
 	// Check for EOF first for earliest exit opportunity
-	isEOF := windowAtEOF(lineno, br.mapSiz)
+	br.mutex.Lock()
+	mapSize := br.mapSiz
+	br.mutex.Unlock()
+
+	isEOF := windowAtEOF(lineno, mapSize)
 	br.hitEOF = isEOF
 	br.shownEOF = isEOF
 
@@ -29,8 +34,8 @@ func (br *browseObj) printLine(lineno int) {
 	}
 
 	// Do not proceed if we're beyond known lines
-	if lineno > br.mapSiz {
-		fmt.Print(CLEARLINE)
+	if lineno > mapSize {
+		os.Stdout.WriteString(CLEARLINE)
 		return
 	}
 
@@ -45,12 +50,11 @@ func (br *browseObj) printLine(lineno int) {
 	// Use a Builder for line output, reducing allocations and Print calls
 	var sb strings.Builder
 	sb.Grow(len(output) + 32)
-	sb.WriteString(LINEWRAPOFF)
 	sb.WriteByte('\n')
 	sb.WriteString(output)
 	sb.WriteString(VIDOFF)
 	sb.WriteString(CLEARLINE)
-	fmt.Print(sb.String())
+	os.Stdout.WriteString(sb.String())
 
 	if br.hitEOF {
 		printSEOF("EOF")
@@ -113,16 +117,19 @@ func (br *browseObj) printCurrentList() {
 }
 
 func adjustLineNumber(lineno, dispRows, mapSiz int) int {
-	maxTopLine := mapSiz - dispRows + 1
-	if maxTopLine < 0 {
-		maxTopLine = 0
-	}
-	if lineno > maxTopLine {
-		return maxTopLine
-	}
 	if lineno < 0 {
 		return 0
 	}
+
+	if mapSiz < dispRows {
+		return 0
+	}
+
+	maxTopLine := mapSiz - dispRows + 1
+	if lineno > maxTopLine {
+		return maxTopLine
+	}
+
 	return lineno
 }
 
@@ -132,7 +139,6 @@ func (br *browseObj) timedMessage(msg, color string) {
 	moveCursor(br.dispHeight, 1, true)
 	var sb strings.Builder
 	sb.Grow(len(msg) + len(color) + len(VIDOFF) + 8)
-	sb.WriteString(LINEWRAPOFF)
 	sb.WriteString(color)
 	sb.WriteByte(' ')
 	sb.WriteString(msg)
@@ -150,7 +156,6 @@ func (br *browseObj) printMessage(msg string, color string) {
 	moveCursor(br.dispHeight, 1, true)
 	var sb strings.Builder
 	sb.Grow(len(msg) + len(color) + len(VIDOFF) + 8)
-	sb.WriteString(LINEWRAPOFF)
 	sb.WriteString(color)
 	sb.WriteByte(' ')
 	sb.WriteString(msg)
@@ -169,7 +174,6 @@ func (br *browseObj) debugPrintf(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	var sb strings.Builder
 	sb.Grow(len(msg) + len(_VID_YELLOW_FG) + len(VIDOFF) + 8)
-	sb.WriteString(LINEWRAPOFF)
 	sb.WriteString(_VID_YELLOW_FG)
 	sb.WriteByte(' ')
 	sb.WriteString(msg)
