@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -134,10 +135,12 @@ func commands(br *browseObj) {
 	// handle panic
 	defer handlePanic(br)
 
+	b := make([]byte, 4)
+
 	for {
 		// scan for input -- compare 4 characters
 
-		b := make([]byte, 4)
+		b[0], b[1], b[2], b[3] = 0, 0, 0, 0
 		n, err := br.tty.Read(b)
 
 		// continuous modes
@@ -326,10 +329,8 @@ func commands(br *browseObj) {
 			// jump to line
 			lbuf, cancelled := br.userInput("Jump: ")
 			if !cancelled && len(lbuf) > 0 {
-				var n int
-
-				// Validate input is a valid integer
-				if _, err := fmt.Sscanf(lbuf, "%d", &n); err != nil {
+				n, err := strconv.Atoi(strings.TrimSpace(lbuf))
+				if err != nil {
 					br.printMessage("Invalid line number", MSG_ORANGE)
 				} else if n < 0 {
 					br.printMessage("Line number must be positive", MSG_ORANGE)
@@ -412,14 +413,18 @@ func commands(br *browseObj) {
 		case CMD_PERCENT, CMD_PERCENT_1:
 			// page position
 			// -1 for SOF
+			br.mutex.Lock()
+			mapSize := br.mapSiz
+			br.mutex.Unlock()
+
 			var t float32
-			if br.mapSiz <= 1 {
+			if mapSize <= 1 {
 				t = 0.0
 			} else {
-				t = float32(br.firstRow) / float32(br.mapSiz-1) * 100.0
+				t = float32(br.firstRow) / float32(mapSize-1) * 100.0
 			}
 			br.printMessage(fmt.Sprintf("\"%s\" %d lines --%1.1f%%--",
-				filepath.Base(br.fileName), br.mapSiz-1, t), MSG_GREEN)
+				filepath.Base(br.fileName), mapSize-1, t), MSG_GREEN)
 
 		case CMD_NEWDIR:
 			dirCommand(br)
@@ -661,16 +666,23 @@ func waitForInput(br *browseObj) {
 	const (
 		maxAttempts      = 20
 		stableThreshold  = 10
-		waitInterval     = 200 * time.Millisecond
+		waitInterval     = 150 * time.Millisecond
 		modTimeThreshold = 4 * time.Second
 	)
 
 	targetSize := br.firstRow + br.dispHeight
+
+	br.mutex.Lock()
 	lastMapSize := br.mapSiz
+	br.mutex.Unlock()
+
 	stableCount := 0
 
 	for attempt := 0; attempt < maxAttempts; attempt++ {
+		br.mutex.Lock()
 		curMapSiz := br.mapSiz
+		br.mutex.Unlock()
+
 		if curMapSiz >= targetSize {
 			break
 		}
@@ -695,10 +707,14 @@ func waitForInput(br *browseObj) {
 		time.Sleep(waitInterval)
 	}
 
-	if br.mapSiz < targetSize {
+	br.mutex.Lock()
+	curMapSiz := br.mapSiz
+	br.mutex.Unlock()
+
+	if curMapSiz < targetSize {
 		// did not get a full read -- reset
 		// +2 for header, EOF
-		br.firstRow = maximum(0, br.mapSiz-br.dispHeight+2)
+		br.firstRow = maximum(0, curMapSiz-br.dispHeight+2)
 	}
 }
 
@@ -710,7 +726,11 @@ func shiftLongest(br *browseObj) int {
 	}
 
 	longest := 0
-	lastRow := minimum(br.firstRow+br.dispRows, br.mapSiz)
+
+	br.mutex.Lock()
+	mapSize := br.mapSiz
+	br.mutex.Unlock()
+	lastRow := minimum(br.firstRow+br.dispRows, mapSize)
 
 	for i := br.firstRow; i < lastRow; i++ {
 		line := br.readFromMap(i)
