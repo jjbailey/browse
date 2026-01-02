@@ -144,7 +144,7 @@ func (br *browseObj) timedMessage(msg, color string) {
 	sb.WriteString(msg)
 	sb.WriteByte(' ')
 	sb.WriteString(VIDOFF)
-	fmt.Print(sb.String())
+	os.Stdout.WriteString(sb.String())
 	time.Sleep(1500 * time.Millisecond)
 	// scrollDown needs this
 	br.shownMsg = true
@@ -161,7 +161,7 @@ func (br *browseObj) printMessage(msg string, color string) {
 	sb.WriteString(msg)
 	sb.WriteByte(' ')
 	sb.WriteString(VIDOFF)
-	fmt.Print(sb.String())
+	os.Stdout.WriteString(sb.String())
 	moveCursor(2, 1, false)
 	// scrollDown needs this
 	br.shownMsg = true
@@ -179,7 +179,7 @@ func (br *browseObj) debugPrintf(format string, args ...any) {
 	sb.WriteString(msg)
 	sb.WriteByte(' ')
 	sb.WriteString(VIDOFF)
-	fmt.Print(sb.String())
+	os.Stdout.WriteString(sb.String())
 	time.Sleep(3 * time.Second)
 	// scrollDown needs this
 	br.shownMsg = true

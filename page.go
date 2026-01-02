@@ -11,6 +11,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -91,7 +92,7 @@ func (br *browseObj) pageHeader() {
 	sb.WriteString(LINEWRAPOFF)
 	sb.WriteString(fmt.Sprintf(SCROLLREGION, 2, br.dispHeight))
 	sb.WriteString(header)
-	fmt.Print(sb.String())
+	os.Stdout.WriteString(sb.String())
 }
 
 func (br *browseObj) pageLast() {
