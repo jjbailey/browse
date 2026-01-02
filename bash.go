@@ -81,11 +81,9 @@ func (br *browseObj) bashCommand() {
 		}
 	}
 
-	br.resizeWindow()
-
 	// gratuitous save cursor
-	moveCursor(2, 1, false)
-	fmt.Print(CURSAVE)
+	fmt.Print("\r" + CURSAVE)
+	br.resizeWindow()
 }
 
 // vim: set ts=4 sw=4 noet:
