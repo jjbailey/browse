@@ -28,8 +28,6 @@ func (br *browseObj) resizeWindow() {
 	if br.inMotion() {
 		fmt.Print(CURRESTORE)
 	}
-
-	br.lastMatch = SEARCH_RESET
 }
 
 func (br *browseObj) saneExit() {
