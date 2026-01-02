@@ -65,11 +65,6 @@ func saveHistory(history []string, historyFile string) {
 		return
 	}
 
-	// Remove duplicate consecutive entries
-	if len(history) >= 2 && history[len(history)-1] == history[len(history)-2] {
-		history = history[:len(history)-1]
-	}
-
 	// Ensure history doesn't exceed max size
 	if len(history) > maxHistorySize {
 		history = history[len(history)-maxHistorySize:]
@@ -103,17 +98,34 @@ func updateDirHistory(savDir, curDir string) {
 }
 
 func updateHistory(newEntry, historyFile string) {
-	// saveHistory checks for dups
-
 	if newEntry == "" {
 		return
 	}
 
-	if strings.ContainsAny(newEntry, " ") && !strings.ContainsAny(newEntry, "'") {
-		newEntry = "'" + newEntry + "'"
+	// Don't quote bash command line
+	if historyFile == commHistory {
+		if strings.HasPrefix(newEntry, "'") && strings.HasSuffix(newEntry, "'") {
+			newEntry = newEntry[1 : len(newEntry)-1]
+		}
+	} else {
+		if strings.ContainsAny(newEntry, " ") && !strings.ContainsAny(newEntry, "'") {
+			newEntry = "'" + newEntry + "'"
+		}
 	}
 
-	history := append(loadHistory(historyFile), newEntry)
+	newEntry = strings.TrimSpace(newEntry)
+	if newEntry == "" {
+		return
+	}
+
+	history := loadHistory(historyFile)
+
+	// Remove duplicate consecutive entries
+	if len(history) > 0 && history[len(history)-1] == newEntry {
+		return
+	}
+
+	history = append(history, newEntry)
 	saveHistory(history, historyFile)
 }
 
