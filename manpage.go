@@ -37,15 +37,16 @@ func (br *browseObj) manPage() {
 		return
 	}
 
-	cmdStr := manPath + " browse | " + brPath + " -t browse.1"
+	cmd := manPath + " browse | " + brPath + " -t browse.1"
+
+	// Display command preview
+	moveCursor(br.dispHeight, 1, true)
+	fmt.Printf("---\n%s$ %s\n", LINEWRAPON, cmd)
 
 	// Run command in a PTY
-	fmt.Print(LINEWRAPON, CURSAVE)
 	resetScrRegion()
-	fmt.Print(CURRESTORE)
-	br.runInPty(cmdStr)
+	br.runInPty(cmd)
 	br.resizeWindow()
-	fmt.Print(LINEWRAPOFF)
 }
 
 // vim: set ts=4 sw=4 noet:

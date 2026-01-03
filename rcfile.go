@@ -31,7 +31,11 @@ func (br *browseObj) writeRcFile() bool {
 	data.WriteString(strconv.Itoa(br.firstRow) + "\n")
 
 	// pattern
-	data.WriteString(br.pattern + "\n")
+	if br.ignoreCase {
+		data.WriteString("(?i)" + br.pattern + "\n")
+	} else {
+		data.WriteString(br.pattern + "\n")
+	}
 
 	// marks
 	for mark := 1; mark <= 9; mark++ {

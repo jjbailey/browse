@@ -325,7 +325,8 @@ func anyCompleter(dir, prefix string, useFullPath bool, onlyType int) []prompt.S
 func matchFiles(files []os.DirEntry, dir, prefix string,
 	useFullPath bool, onlyType int) []prompt.Suggest {
 
-	suggestions := make([]prompt.Suggest, 0, dispSuggestions)
+	suggestions := make([]prompt.Suggest, 0, minimum(len(files), maxSuggestions))
+
 	for _, file := range files {
 		if len(suggestions) >= maxSuggestions {
 			break
@@ -347,12 +348,8 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 			}
 
 			if isSymlink {
-				// Stat the resolved link
-				resolved, err := filepath.EvalSymlinks(fullPath)
-				if err != nil {
-					continue
-				}
-				fi, err := os.Stat(resolved)
+				// Stat the link target
+				fi, err := os.Stat(fullPath)
 				if err != nil || !fi.IsDir() {
 					continue
 				}
@@ -381,8 +378,12 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 			displayName = name
 		}
 
-		if strings.ContainsAny(displayName, " ") {
-			displayName = "'" + displayName + "'"
+		if strings.Contains(displayName, " ") {
+			if strings.Contains(displayName, "'") {
+				displayName = "\"" + displayName + "\""
+			} else {
+				displayName = "'" + displayName + "'"
+			}
 		}
 
 		var desc string

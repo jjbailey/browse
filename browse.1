@@ -407,6 +407,49 @@ Search pattern
 Marks
 .IP "5." 3
 Page title
+.SS ⚙️ Working with Files and Directories
+.IP \[bu] 2
+\f[V]B\f[R] - Open a new file.
+You\[cq]ll be asked for a file name or a list of files to open.
+You can use wildcards (like \f[I].go or access_log.\f[R]) to match
+multiple files at once.
+If you start your file name with a tilde (\[ti]), it points to your home
+directory.
+Typing \f[V]%\f[R] will use the current file name, and \f[V]-\f[R] will
+bring back the last file you viewed.
+You can enter multiple file names at once; just separate them with
+spaces.
+If a file name has spaces, put it in quotes.
+.IP \[bu] 2
+\f[V]a\f[R] - Show the list of files you\[cq]re working with.
+When you press \f[V]a\f[R], you\[cq]ll see the file you\[cq]re currently
+viewing, plus any other files still in the list.
+For example, if you started with several files (like \[lq]browse file1
+file2 file3\[rq]) and you\[cq]re browsing file2, pressing \f[V]a\f[R]
+will show file2 and file3.
+This is particularly useful when the program is started with multiple
+filenames or a wildcard (e.g., \[lq]browse *.go\[rq]), as it lets the
+user see which file they are currently viewing and which files remain in
+the queue.
+.IP \[bu] 2
+\f[V]C\f[R] - Change the current working directory.
+This command prompts you to select a directory to switch to.
+You can use \f[V]\[ti]\f[R] for your home directory, or \f[V]-\f[R] and
+\f[V]\[ti]-\f[R] to jump back to the directory you were just in.
+If your directory name has spaces, put it in quotes.
+.IP \[bu] 2
+\f[V]q\f[R] - Close the file you\[cq]re browsing.
+Before closing, browse remembers things like your last search, marks,
+and where you were in the file.
+\f[V]Q\f[R] also closes the file you\[cq]re browsing, but doesn\[cq]t
+save your session.
+.IP \[bu] 2
+\f[V]x\f[R] - Stop processing the current list of files and go back to
+where you were before.
+If you still have files from an earlier session, browsing will resume
+from that session.
+If there aren\[cq]t any left, the program will close.
+\f[V]X\f[R] works the same way but doesn\[cq]t save your session.
 .SS 🕑 Histories
 .PP
 \f[B]browse\f[R] maintains persistent histories to streamline your

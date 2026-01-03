@@ -19,7 +19,11 @@ func (br *browseObj) scrollDown(count int) {
 
 	br.restoreLast()
 
-	if br.lastRow > br.mapSiz || br.hitEOF {
+	br.mutex.Lock()
+	mapSize := br.mapSiz
+	br.mutex.Unlock()
+
+	if br.lastRow > mapSize || br.hitEOF {
 		// nothing more to show
 		return
 	}
@@ -27,12 +31,15 @@ func (br *browseObj) scrollDown(count int) {
 	for i := 0; i < count && !br.hitEOF; i++ {
 		// printLine finds EOF, sets hitEOF
 		// add line -- +1 for header
-		// potential race -- don't touch
-		moveCursor(br.lastRow+1, 1, false)
+		row := br.lastRow + 1
+		if row > br.dispHeight {
+			row = br.dispHeight
+		}
+		moveCursor(row, 1, false)
 
 		if br.shownEOF {
 			// print previous line before printing the current line
-			fmt.Print(CURRESTORE, CURUP)
+			fmt.Print(CURRESTORE + CURUP)
 			br.printLine(br.lastRow - 1)
 		}
 
@@ -46,10 +53,8 @@ func (br *browseObj) scrollDown(count int) {
 	}
 
 	if br.inMotion() {
-		// in one of the follow modes
 		fmt.Print(CURRESTORE)
 	} else {
-		// idle
 		moveCursor(2, 1, false)
 	}
 }
@@ -71,8 +76,7 @@ func (br *browseObj) scrollUp(count int) {
 		br.lastRow--
 
 		// add line
-		moveCursor(2, 1, false)
-		fmt.Print(SCROLLREV)
+		fmt.Printf(CURPOS+SCROLLREV, 2, 1)
 
 		// printLine starts with \n
 		moveCursor(1, 1, false)
@@ -145,8 +149,7 @@ func (br *browseObj) restoreLast() {
 
 	if br.lastRow < br.dispRows {
 		// partial display
-		moveCursor(br.dispRows, 1, true)
-		fmt.Print(CLEARSCREEN)
+		fmt.Printf(CURPOS+CLEARSCREEN, br.dispRows, 1)
 	}
 
 	if br.lastRow >= (br.dispHeight - promptLines) {

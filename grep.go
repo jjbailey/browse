@@ -67,12 +67,9 @@ func (br *browseObj) runGrep() {
 	fmt.Printf("---\n%s$ %s\n", LINEWRAPON, cmd)
 
 	// Run command in a PTY
-	fmt.Print(CURSAVE)
 	resetScrRegion()
-	fmt.Print(CURRESTORE)
 	br.runInPty(cmd)
 	br.resizeWindow()
-	fmt.Print(LINEWRAPOFF)
 }
 
 // vim: set ts=4 sw=4 noet:
