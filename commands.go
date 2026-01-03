@@ -512,7 +512,11 @@ func dirCommand(br *browseObj) bool {
 			br.pageCurrent()
 			return false
 		}
+
 		newDir = ndir
+		if strings.HasPrefix(newDir, "'") && strings.HasSuffix(newDir, "'") {
+			newDir = newDir[1 : len(newDir)-1]
+		}
 	}
 
 	// Save original working directory
@@ -564,7 +568,6 @@ func fileCommand(br *browseObj) bool {
 	newFile = expandHome(newFile)
 	if newFile == "-" {
 		history := loadHistory(fileHistory)
-
 		if len(history) < 2 {
 			br.userAnyKey(fmt.Sprintf("%s No previous file ... [press any key] %s",
 				MSG_RED, VIDOFF))
@@ -573,6 +576,9 @@ func fileCommand(br *browseObj) bool {
 		}
 
 		newFile = history[len(history)-2]
+		if strings.HasPrefix(newFile, "'") && strings.HasSuffix(newFile, "'") {
+			newFile = newFile[1 : len(newFile)-1]
+		}
 	}
 
 	// remove quotes from filenames with spaces
