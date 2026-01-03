@@ -50,7 +50,8 @@ func main() {
 
 	preInitialization()
 
-	if fromStdin = !term.IsTerminal(int(os.Stdin.Fd())); !fromStdin {
+	fromStdin = !term.IsTerminal(int(os.Stdin.Fd()))
+	if !fromStdin {
 		if argc == 0 {
 			if !br.readRcFile() {
 				usageMessage(os.Args[0])
@@ -74,13 +75,16 @@ func main() {
 
 	if len(*titleStr) > 0 {
 		br.initTitle = *titleStr
-	} else {
-		br.initTitle = ""
 	}
 
 	// init tty and signals
 
-	tty, _ = os.Open("/dev/tty")
+	var err error
+	tty, err = os.Open("/dev/tty")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "browse: %v\n", err)
+		os.Exit(1)
+	}
 	br.screenInit(tty)
 	br.catchSignals()
 
