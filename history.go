@@ -53,9 +53,11 @@ func saveHistory(history []string, historyFile string) {
 	// Clean history in-place to avoid new slice allocation
 	n := 0
 	for _, entry := range history {
-		trimmed := strings.TrimSpace(entry)
-		if trimmed != "" {
-			history[n] = trimmed
+		if historyFile != searchHistory {
+			entry = strings.TrimSpace(entry)
+		}
+		if entry != "" {
+			history[n] = entry
 			n++
 		}
 	}
@@ -98,24 +100,20 @@ func updateDirHistory(savDir, curDir string) {
 }
 
 func updateHistory(newEntry, historyFile string) {
+	if historyFile != searchHistory {
+		newEntry = strings.TrimSpace(newEntry)
+	}
+
 	if newEntry == "" {
 		return
 	}
 
-	// Don't quote bash command line
-	if historyFile == commHistory {
-		if strings.HasPrefix(newEntry, "'") && strings.HasSuffix(newEntry, "'") {
-			newEntry = newEntry[1 : len(newEntry)-1]
-		}
+	if historyFile == commHistory || historyFile == searchHistory {
+		newEntry = unQuote(newEntry)
 	} else {
 		if strings.ContainsAny(newEntry, " ") && !strings.ContainsAny(newEntry, "'") {
 			newEntry = "'" + newEntry + "'"
 		}
-	}
-
-	newEntry = strings.TrimSpace(newEntry)
-	if newEntry == "" {
-		return
 	}
 
 	history := loadHistory(historyFile)

@@ -198,4 +198,14 @@ func prevDirectory() string {
 	return history[len(history)-2]
 }
 
+func unQuote(s string) string {
+	// remove quotes when the entire line is quoted
+
+	if strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") {
+		s = s[1 : len(s)-1]
+	}
+
+	return s
+}
+
 // vim: set ts=4 sw=4 noet:
