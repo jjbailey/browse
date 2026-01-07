@@ -145,13 +145,13 @@ func completer(d prompt.Document) []prompt.Suggest {
 		return dirCompleter(word)
 
 	case searchFiles:
-		if isAbsOrRelPath(word) {
+		if hasPathSeparator(word) {
 			return fileCompleter(word)
 		}
 		return anyCompleter(".", originalWord, false, onlyFiles)
 
 	case searchPath:
-		if isAbsOrRelPath(word) {
+		if hasPathSeparator(word) {
 			return fileCompleter(word)
 		}
 
@@ -193,16 +193,14 @@ func completer(d prompt.Document) []prompt.Suggest {
 
 		// By default, normal path completion
 		return pathCompleter(word)
-	}
 
-	return anyCompleter(".", originalWord, false, onlyFiles)
+	default:
+		return anyCompleter(".", originalWord, false, onlyFiles)
+	}
 }
 
-func isAbsOrRelPath(word string) bool {
-	// Only care about the very first rune for . and ..
-
-	return strings.HasPrefix(word, "/") || strings.Contains(word, "/") ||
-		strings.HasPrefix(word, "./") || strings.HasPrefix(word, "../")
+func hasPathSeparator(word string) bool {
+	return strings.Contains(word, "/")
 }
 
 func searchCompleter() []prompt.Suggest {
@@ -263,9 +261,7 @@ func dirCompleter(word string) []prompt.Suggest {
 
 	var suggestions []prompt.Suggest
 
-	if strings.HasPrefix(word, "/") || strings.HasPrefix(word, "./") ||
-		strings.HasPrefix(word, "../") || strings.Contains(word, "/") {
-
+	if hasPathSeparator(word) {
 		dir := filepath.Dir(word)
 		files, err := os.ReadDir(dir)
 		if err != nil {
