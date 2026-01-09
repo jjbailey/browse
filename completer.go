@@ -148,7 +148,7 @@ func completer(d prompt.Document) []prompt.Suggest {
 		if hasPathSeparator(word) {
 			return fileCompleter(word)
 		}
-		return anyCompleter(".", originalWord, false, onlyFiles)
+		return anyCompleter(".", originalWord, onlyFiles)
 
 	case searchPath:
 		if hasPathSeparator(word) {
@@ -188,14 +188,14 @@ func completer(d prompt.Document) []prompt.Suggest {
 
 		// If second or later word supplied, drop to anyCompleter
 		if numParts > 1 || (numParts == 1 && word == "") {
-			return anyCompleter(".", originalWord, false, onlyFiles)
+			return anyCompleter(".", originalWord, onlyFiles)
 		}
 
 		// By default, normal path completion
 		return pathCompleter(word)
 
 	default:
-		return anyCompleter(".", originalWord, false, onlyFiles)
+		return anyCompleter(".", originalWord, onlyFiles)
 	}
 }
 
@@ -308,14 +308,14 @@ func dirCompleter(word string) []prompt.Suggest {
 	return suggestions
 }
 
-func anyCompleter(dir, prefix string, useFullPath bool, onlyType int) []prompt.Suggest {
+func anyCompleter(dir, prefix string, onlyType int) []prompt.Suggest {
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		return nil
 	}
 
 	// Match all directory entries
-	return matchFiles(files, dir, prefix, useFullPath, onlyType)
+	return matchFiles(files, dir, prefix, false, onlyType)
 }
 
 func matchFiles(files []os.DirEntry, dir, prefix string,
