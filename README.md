@@ -136,9 +136,9 @@ Saves current session state, including:
 
 ## ⚙️ Working with Files and Directories
 
-- `B` - Open a new file. You'll be asked for a file name or a list of files to open. You can use wildcards (like `*.go` or `access_log.*`) to match multiple files at once. If you start your file name with a tilde (~), it points to your home directory. Typing `%` will use the current file name, and `-` will bring back the last file you viewed. You can enter multiple file names at once; just separate them with spaces. If a file name has spaces, put it in quotes.
+- `B` - Open a new file. You'll be asked for a file name or a list of files to open. You can use wildcards (like `*.go` or `access_log.*`) to match multiple files at once. If you start your file name with a tilde (~), it points to your home directory. Typing `%` will use the current file name, and `-` will bring back the last file you viewed. You can enter multiple file names at once; separate them with spaces. If a file name has spaces, put it in quotes.
 
-- `a` - Show the list of files you're working with. When you press `a`, you'll see the file you're currently viewing, plus any other files still in the list. For example, if you started with several files (like `browse file1 file2 file3`) and you're browsing file2, pressing `a` will show file2 and file3. This is particularly useful when the program is started with multiple filenames or a wildcard (e.g., `browse *.go`), as it lets the user see which file they are currently viewing and which files remain in the queue.
+- `a` - Show the list of files you're working with. When you press `a`, you'll see the file you're currently viewing, plus any other files still in the list. For example, if you started with several files (like `browse file1 file2 file3`) and you're browsing file2, pressing `a` will show file2 and file3. This feature is handy when the program is started with multiple filenames or a wildcard (e.g., `browse *.go`), as it lets the user see which file they are currently viewing and which files remain in the queue.
 
 - `C` - Change the current working directory. This command prompts you to select a directory to switch to. You can use `~` for your home directory, or `-` and `~-` to jump back to the directory you were just in. If your directory name has spaces, put it in quotes.
 
