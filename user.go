@@ -97,11 +97,15 @@ func (br *browseObj) userInput(promptStr string) (string, bool) {
 		for {
 			select {
 			case sig := <-sigChan:
-				if sig == syscall.SIGWINCH {
+				switch sig {
+
+				case syscall.SIGWINCH:
 					winchCaught = true
-				} else if sig == syscall.SIGINT {
+
+				case syscall.SIGINT:
 					cancelled = true
 				}
+
 			default:
 				break DrainSignals
 			}
