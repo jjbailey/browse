@@ -41,6 +41,7 @@ func (br *browseObj) scrollDown(count int) {
 			// print previous line before printing the current line
 			fmt.Print(CURRESTORE + CURUP)
 			br.printLine(br.lastRow - 1)
+			fmt.Print(CURSAVE)
 		}
 
 		br.printLine(br.lastRow)

@@ -145,13 +145,13 @@ func completer(d prompt.Document) []prompt.Suggest {
 		return dirCompleter(word)
 
 	case searchFiles:
-		if isAbsOrRelPath(word) {
+		if hasPathSeparator(word) {
 			return fileCompleter(word)
 		}
-		return anyCompleter(".", originalWord, false, onlyFiles)
+		return anyCompleter(".", originalWord, onlyFiles)
 
 	case searchPath:
-		if isAbsOrRelPath(word) {
+		if hasPathSeparator(word) {
 			return fileCompleter(word)
 		}
 
@@ -188,21 +188,19 @@ func completer(d prompt.Document) []prompt.Suggest {
 
 		// If second or later word supplied, drop to anyCompleter
 		if numParts > 1 || (numParts == 1 && word == "") {
-			return anyCompleter(".", originalWord, false, onlyFiles)
+			return anyCompleter(".", originalWord, onlyFiles)
 		}
 
 		// By default, normal path completion
 		return pathCompleter(word)
-	}
 
-	return anyCompleter(".", originalWord, false, onlyFiles)
+	default:
+		return anyCompleter(".", originalWord, onlyFiles)
+	}
 }
 
-func isAbsOrRelPath(word string) bool {
-	// Only care about the very first rune for . and ..
-
-	return strings.HasPrefix(word, "/") || strings.Contains(word, "/") ||
-		strings.HasPrefix(word, "./") || strings.HasPrefix(word, "../")
+func hasPathSeparator(word string) bool {
+	return strings.Contains(word, "/")
 }
 
 func searchCompleter() []prompt.Suggest {
@@ -263,9 +261,7 @@ func dirCompleter(word string) []prompt.Suggest {
 
 	var suggestions []prompt.Suggest
 
-	if strings.HasPrefix(word, "/") || strings.HasPrefix(word, "./") ||
-		strings.HasPrefix(word, "../") || strings.Contains(word, "/") {
-
+	if hasPathSeparator(word) {
 		dir := filepath.Dir(word)
 		files, err := os.ReadDir(dir)
 		if err != nil {
@@ -312,14 +308,14 @@ func dirCompleter(word string) []prompt.Suggest {
 	return suggestions
 }
 
-func anyCompleter(dir, prefix string, useFullPath bool, onlyType int) []prompt.Suggest {
+func anyCompleter(dir, prefix string, onlyType int) []prompt.Suggest {
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		return nil
 	}
 
 	// Match all directory entries
-	return matchFiles(files, dir, prefix, useFullPath, onlyType)
+	return matchFiles(files, dir, prefix, false, onlyType)
 }
 
 func matchFiles(files []os.DirEntry, dir, prefix string,

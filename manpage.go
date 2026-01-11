@@ -1,7 +1,7 @@
 // manpage.go
 // browse the man page
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -15,6 +15,7 @@ import (
 	"os/exec"
 )
 
+// manPage displays the man page for 'browse' within the browse interface.
 func (br *browseObj) manPage() {
 	manPath, err := exec.LookPath("man")
 	if err != nil || manPath == "" {
@@ -24,7 +25,6 @@ func (br *browseObj) manPage() {
 
 	// Check if man page for 'browse' exists
 	cmdOut, err := exec.Command(manPath, "-w", "browse").CombinedOutput()
-
 	if err != nil && !bytes.Contains(cmdOut, []byte{'/'}) {
 		msg := string(bytes.TrimSpace(cmdOut))
 		br.printMessage(msg, MSG_ORANGE)

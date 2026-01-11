@@ -1,7 +1,12 @@
 // main.go
-// start here
 //
-// Copyright (c) 2024-2025 jjb
+// browse is a terminal-based file and stream viewer with support for
+// pattern searching, line numbering, and follow mode.
+//
+// It can read input from files or standard input, making it suitable
+// for use as a pager or as part of a pipeline.
+//
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found

@@ -1,7 +1,7 @@
 // user.go
 // user input functions
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -19,9 +19,8 @@ import (
 	"time"
 )
 
+// wait for any key press
 func (br *browseObj) userAnyKey(promptStr string) {
-	// wait for a key press
-
 	const timeout = 500 * time.Millisecond
 
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
@@ -54,6 +53,7 @@ func (br *browseObj) userAnyKey(promptStr string) {
 	}
 }
 
+// get user input line with basic editing
 func (br *browseObj) userInput(promptStr string) (string, bool) {
 	const (
 		NEWLINE   = '\n'
@@ -78,7 +78,7 @@ func (br *browseObj) userInput(promptStr string) (string, bool) {
 	// promptStr
 
 	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGWINCH)
+	signal.Notify(sigChan, syscall.SIGWINCH, syscall.SIGINT)
 	defer func() {
 		signal.Stop(sigChan)
 		close(sigChan)
@@ -97,39 +97,56 @@ func (br *browseObj) userInput(promptStr string) (string, bool) {
 		for {
 			select {
 			case sig := <-sigChan:
-				if sig == syscall.SIGWINCH {
+				switch sig {
+
+				case syscall.SIGWINCH:
 					winchCaught = true
+
+				case syscall.SIGINT:
+					cancelled = true
 				}
+
 			default:
 				break DrainSignals
 			}
 		}
 
-		_, err := br.tty.Read(b)
-		fmt.Print(CURSAVE)
+		if cancelled {
+			break
+		}
+
+		n, err := br.tty.Read(b)
 
 		if winchCaught {
 			// restore and reset window size
 			br.resizeWindow()
 			moveCursor(br.dispHeight, 1, true)
+			fmt.Print(promptStr, linebuf)
 			winchCaught = false
 		}
 
-		if err != nil {
+		if err != nil && err != io.EOF {
 			errorExit(err)
 			return "", false
+		}
+
+		if n == 0 {
+			continue
 		}
 
 		inputChar := b[0]
 
 		switch inputChar {
 
-		case NEWLINE, CARRETURN, ESCAPE:
+		case NEWLINE, CARRETURN:
 			if len(linebuf) > 0 {
 				done = true
 			} else {
 				cancelled = true
 			}
+
+		case ESCAPE:
+			cancelled = true
 
 		case BACKSPACE, DELETE:
 			if len(linebuf) > 0 {

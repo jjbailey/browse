@@ -506,17 +506,14 @@ func dirCommand(br *browseObj) bool {
 
 	// Handle "cd -"
 	if newDir == "-" || newDir == "~-" {
-		ndir := prevDirectory()
-		if ndir == "" {
+		pdir := prevDirectory()
+		if pdir == "" {
 			br.timedMessage("No previous directory", MSG_ORANGE)
 			br.pageCurrent()
 			return false
 		}
 
-		newDir = ndir
-		if strings.HasPrefix(newDir, "'") && strings.HasSuffix(newDir, "'") {
-			newDir = newDir[1 : len(newDir)-1]
-		}
+		newDir = unQuote(pdir)
 	}
 
 	// Save original working directory
@@ -565,22 +562,6 @@ func fileCommand(br *browseObj) bool {
 		return false
 	}
 
-	newFile = expandHome(newFile)
-	if newFile == "-" {
-		history := loadHistory(fileHistory)
-		if len(history) < 2 {
-			br.userAnyKey(fmt.Sprintf("%s No previous file ... [press any key] %s",
-				MSG_RED, VIDOFF))
-			br.pageCurrent()
-			return false
-		}
-
-		newFile = history[len(history)-2]
-		if strings.HasPrefix(newFile, "'") && strings.HasSuffix(newFile, "'") {
-			newFile = newFile[1 : len(newFile)-1]
-		}
-	}
-
 	// remove quotes from filenames with spaces
 	tokens := fieldsQuoted(subCommandChars(newFile, "%", br.fileName))
 	if len(tokens) == 0 {
@@ -592,6 +573,21 @@ func fileCommand(br *browseObj) bool {
 	allFiles := make([]string, 0, len(tokens))
 
 	for _, tok := range tokens {
+		tok = expandHome(tok)
+
+		if tok == "-" {
+			history := loadHistory(fileHistory)
+
+			if len(history) < 2 {
+				br.userAnyKey(fmt.Sprintf("%s No previous file ... [press any key] %s",
+					MSG_RED, VIDOFF))
+				br.pageCurrent()
+				return false
+			}
+
+			tok = unQuote(history[len(history)-2])
+		}
+
 		// Expand globs for each token
 		if strings.ContainsAny(tok, "*?[") {
 			files, err := filepath.Glob(tok)

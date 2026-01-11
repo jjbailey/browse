@@ -29,10 +29,7 @@ func processPipeInput(br *browseObj) {
 	defer fpStdin.Close()
 
 	go func() {
-		empty := br.readStdin(os.Stdin, fpStdin)
-		if empty {
-			br.saneExit()
-		}
+		br.readStdin(os.Stdin, fpStdin)
 	}()
 
 	// Fast path for stdin: open temp file ourselves and pass to browseFile

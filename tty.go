@@ -1,7 +1,7 @@
 // tty.go
 // tty line discipline functions
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -77,8 +77,8 @@ func ttyPrompter() {
 	termios.Lflag &^= uint32(lflag)
 
 	// Set VMIN and VTIME
-	termios.Cc[unix.VMIN] = 1
-	termios.Cc[unix.VTIME] = 0
+	termios.Cc[unix.VMIN] = 0
+	termios.Cc[unix.VTIME] = 1
 
 	// Apply the settings
 	unix.IoctlSetTermios(int(os.Stdout.Fd()), unix.TCSETSF, termios)
