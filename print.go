@@ -1,7 +1,7 @@
 // print.go
 // printing and some support functions
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -10,14 +10,13 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"time"
 )
 
+// printLine renders a single line by number, handling SOF/EOF markers.
 func (br *browseObj) printLine(lineno int) {
-	// Check for EOF first for earliest exit opportunity
 	br.mutex.Lock()
 	mapSize := br.mapSiz
 	br.mutex.Unlock()
@@ -64,10 +63,8 @@ func (br *browseObj) printLine(lineno int) {
 	br.shownEOF = br.hitEOF
 }
 
+// printPage renders a page starting at the provided top line.
 func (br *browseObj) printPage(lineno int) {
-	// print/refresh a page -- full screen if possible
-	// lineno is the top line
-
 	lineno = adjustLineNumber(lineno, br.dispRows, br.mapSiz)
 	sop := lineno
 	// +1 for EOF
@@ -89,9 +86,8 @@ func (br *browseObj) printPage(lineno int) {
 	moveCursor(2, 1, false)
 }
 
+// printCurrentList shows the current browsing file list.
 func (br *browseObj) printCurrentList() {
-	// Print the arg list
-
 	var sb strings.Builder
 
 	// Leave room for ellipsis (3 chars)
@@ -116,6 +112,7 @@ func (br *browseObj) printCurrentList() {
 	br.printMessage(sb.String(), MSG_GREEN)
 }
 
+// adjustLineNumber clamps a requested top line into a valid range.
 func adjustLineNumber(lineno, dispRows, mapSiz int) int {
 	if lineno < 0 {
 		return 0
@@ -133,9 +130,8 @@ func adjustLineNumber(lineno, dispRows, mapSiz int) int {
 	return lineno
 }
 
+// timedMessage displays a temporary message on the status line.
 func (br *browseObj) timedMessage(msg, color string) {
-	// display a short-lived message on the bottom line of the display
-
 	moveCursor(br.dispHeight, 1, true)
 	var sb strings.Builder
 	sb.Grow(len(msg) + len(color) + len(VIDOFF) + 8)
@@ -150,9 +146,8 @@ func (br *browseObj) timedMessage(msg, color string) {
 	br.shownMsg = true
 }
 
+// printMessage displays a message on the status line.
 func (br *browseObj) printMessage(msg string, color string) {
-	// print a message on the bottom line of the display
-
 	moveCursor(br.dispHeight, 1, true)
 	var sb strings.Builder
 	sb.Grow(len(msg) + len(color) + len(VIDOFF) + 8)
@@ -163,24 +158,6 @@ func (br *browseObj) printMessage(msg string, color string) {
 	sb.WriteString(VIDOFF)
 	os.Stdout.WriteString(sb.String())
 	moveCursor(2, 1, false)
-	// scrollDown needs this
-	br.shownMsg = true
-}
-
-func (br *browseObj) debugPrintf(format string, args ...any) {
-	// for debugging
-
-	moveCursor(br.dispHeight, 1, true)
-	msg := fmt.Sprintf(format, args...)
-	var sb strings.Builder
-	sb.Grow(len(msg) + len(_VID_YELLOW_FG) + len(VIDOFF) + 8)
-	sb.WriteString(_VID_YELLOW_FG)
-	sb.WriteByte(' ')
-	sb.WriteString(msg)
-	sb.WriteByte(' ')
-	sb.WriteString(VIDOFF)
-	os.Stdout.WriteString(sb.String())
-	time.Sleep(3 * time.Second)
 	// scrollDown needs this
 	br.shownMsg = true
 }

@@ -1,7 +1,7 @@
 // rcfile.go
 // write and read the browserc session file
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found

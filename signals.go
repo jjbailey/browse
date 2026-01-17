@@ -1,7 +1,7 @@
 // signals.go
 // signal handling functions
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -16,11 +16,11 @@ import (
 	"syscall"
 )
 
+// sigChan receives OS signals for the application.
 var sigChan chan os.Signal
 
+// resizeWindow handles terminal resize events.
 func (br *browseObj) resizeWindow() {
-	// process window size changes
-
 	br.screenInit(br.tty)
 	br.pageHeader()
 	br.pageCurrent()
@@ -30,9 +30,8 @@ func (br *browseObj) resizeWindow() {
 	}
 }
 
+// saneExit restores terminal state and exits cleanly.
 func (br *browseObj) saneExit() {
-	// clean up
-
 	ttyRestore()
 	resetScrRegion()
 	fmt.Print(LINEWRAPON + VIDOFF)
@@ -49,6 +48,7 @@ func (br *browseObj) saneExit() {
 	os.Exit(0)
 }
 
+// catchSignals installs signal handlers for the browse session.
 func (br *browseObj) catchSignals() {
 	if sigChan != nil {
 		signal.Stop(sigChan)

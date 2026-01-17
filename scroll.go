@@ -1,7 +1,7 @@
 // scroll.go
 // scrolling functions
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -13,10 +13,8 @@ import (
 	"fmt"
 )
 
+// scrollDown advances the display by a number of lines toward EOF.
 func (br *browseObj) scrollDown(count int) {
-	// scroll down, toward EOF, stop at EOF
-	// there's more hand-waving here than meets the eye
-
 	br.restoreLast()
 
 	br.mutex.Lock()
@@ -60,9 +58,8 @@ func (br *browseObj) scrollDown(count int) {
 	}
 }
 
+// scrollUp moves the display up by a number of lines toward SOF.
 func (br *browseObj) scrollUp(count int) {
-	// scroll up, toward SOF, stop at SOF
-
 	br.restoreLast()
 
 	if br.firstRow <= 0 {
@@ -89,9 +86,8 @@ func (br *browseObj) scrollUp(count int) {
 	}
 }
 
+// tryScroll attempts a small scroll when the target is nearby.
 func (br *browseObj) tryScroll(sop int) bool {
-	// attempt to scroll based on current position and target position
-
 	if sop > br.firstRow {
 		if diff := sop - br.firstRow; diff <= br.dispRows>>2 {
 			br.scrollDown(diff)
@@ -107,10 +103,10 @@ func (br *browseObj) tryScroll(sop int) bool {
 	return false
 }
 
+// toggleMode updates the scrolling mode based on user actions.
+// arrows and function keys toggle modes, with some
+// exceptions required for modes to work as users expect.
 func (br *browseObj) toggleMode(mode int) {
-	// arrows and function keys toggle modes, with some
-	// exceptions required for modes to work as users expect
-
 	needsScrollCancel := false
 
 	switch mode {
@@ -129,19 +125,20 @@ func (br *browseObj) toggleMode(mode int) {
 	}
 }
 
+// inMotion reports whether a scrolling mode is active.
 func (br *browseObj) inMotion() bool {
 	return br.modeScroll != MODE_SCROLL_NONE
 }
 
+// inFollow reports whether follow/tail mode is active.
 func (br *browseObj) inFollow() bool {
 	return (br.modeScroll == MODE_SCROLL_DN ||
 		br.modeScroll == MODE_SCROLL_TAIL ||
 		br.modeScroll == MODE_SCROLL_FOLLOW)
 }
 
+// restoreLast redraws the last lines after a prompt/message.
 func (br *browseObj) restoreLast() {
-	// the search prompt uses the last n lines
-
 	const promptLines = 2
 
 	if !br.shownMsg {

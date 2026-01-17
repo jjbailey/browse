@@ -1,7 +1,7 @@
 // readfile.go
 // The go routine for reading files
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -19,9 +19,8 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+// readInit resets reader state for a new or truncated file.
 func readInit(br *browseObj, bytesRead *int64) {
-	// reader initializations for new and truncated files
-
 	br.mapSiz = 1
 	br.seekMap = map[int]int64{0: 0}
 	br.sizeMap = map[int]int64{0: 0}
@@ -32,9 +31,8 @@ func readInit(br *browseObj, bytesRead *int64) {
 	*bytesRead = 0
 }
 
+// readFile continuously reads a file and updates line maps.
 func readFile(br *browseObj, ch chan bool) {
-	// initial read file, and continuously read for updates
-
 	var bytesRead int64
 	var err error
 
@@ -185,9 +183,8 @@ func readFile(br *browseObj, ch chan bool) {
 	}
 }
 
+// getFileInodeSize returns the size and inode for a filename.
 func getFileInodeSize(filename string) (int64, uint64, error) {
-	// Returns size, inode, error for given filename
-
 	var stat unix.Stat_t
 
 	err := unix.Stat(filename, &stat)
@@ -198,9 +195,8 @@ func getFileInodeSize(filename string) (int64, uint64, error) {
 	return stat.Size, stat.Ino, nil
 }
 
+// readStdin copies stdin into a temp file and returns true if empty.
 func (br *browseObj) readStdin(fin, fout *os.File) bool {
-	// read from stdin, write to temp file
-
 	r := bufio.NewReader(fin)
 	w := bufio.NewWriter(fout)
 	defer w.Flush()
@@ -234,9 +230,8 @@ func (br *browseObj) readStdin(fin, fout *os.File) bool {
 	}
 }
 
+// readFromMap reads a line by index using the seek and size maps.
 func (br *browseObj) readFromMap(lineno int) []byte {
-	// Use the maps to read a line from the file
-
 	br.mutex.Lock()
 	if lineno >= br.mapSiz {
 		br.mutex.Unlock()

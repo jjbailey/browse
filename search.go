@@ -1,7 +1,7 @@
 // search.go
 // search the file for a given regex
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -15,6 +15,7 @@ import (
 	"strings"
 )
 
+// Search formatting and limits.
 const (
 	// %6d + one space
 	LINENUMBERS = "%6d %s"
@@ -24,10 +25,10 @@ const (
 	MAX_PATTERN_LENGTH = 1000
 )
 
+// searchFile scans for a regex pattern and updates the view accordingly.
+// forward: true = forward, false = reverse
+// next: true = continue search, false = new search
 func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
-	// forward: true = forward, false = reverse
-	// next: true = continue search, false = new search
-
 	var err error
 	var patternLen int
 
@@ -109,9 +110,8 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 	}
 }
 
+// displayWrapMessage informs the user when the search wraps.
 func (br *browseObj) displayWrapMessage(forward bool) {
-	// displayWrapMessage prints a message when the search wraps around the file
-
 	if forward {
 		br.timedMessage("Resuming search from SOF", MSG_GREEN)
 	} else {
@@ -119,9 +119,8 @@ func (br *browseObj) displayWrapMessage(forward bool) {
 	}
 }
 
+// pageIsMatch returns the first and last match lines on a page.
 func (br *browseObj) pageIsMatch(startOfPage, endOfPage int) (int, int) {
-	// return the first and last regex match on the page
-
 	var (
 		firstMatchLine int = -1
 		lastMatchLine  int = -1
@@ -143,9 +142,8 @@ func (br *browseObj) pageIsMatch(startOfPage, endOfPage int) (int, int) {
 	return firstMatchLine, lastMatchLine
 }
 
+// lineIsMatch reports the number of matches on a line and returns its content.
 func (br *browseObj) lineIsMatch(lineno int) (int, string) {
-	// check if this line has a regex match
-
 	if lineno < 0 || lineno >= br.mapSiz {
 		return 0, ""
 	}
@@ -159,6 +157,7 @@ func (br *browseObj) lineIsMatch(lineno int) (int, string) {
 	return len(matchIndices), lineContent
 }
 
+// setNextPage calculates the next page boundaries for searching.
 func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool) {
 	dispRows := br.dispRows
 	totalRows := br.mapSiz
@@ -196,6 +195,7 @@ func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool)
 	return newStart, newEnd, wrapped
 }
 
+// replaceMatch highlights matches in a line and formats it for display.
 func (br *browseObj) replaceMatch(lineno int, input string) string {
 	sol := br.shiftWidth
 	if sol < 0 {
@@ -237,6 +237,7 @@ func (br *browseObj) replaceMatch(lineno int, input string) string {
 	return br.formatLine(lineno, replaced)
 }
 
+// formatLine formats a line with optional line numbers.
 func (br *browseObj) formatLine(lineno int, content string) string {
 	if br.modeNumbers {
 		return fmt.Sprintf(LINENUMBERS, lineno, content)
@@ -245,6 +246,7 @@ func (br *browseObj) formatLine(lineno int, content string) string {
 	return content
 }
 
+// doSearch prompts for a pattern and performs a search in the given direction.
 func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 	moveCursor(br.dispRows, 1, true)
 
@@ -287,9 +289,8 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 	return newDir
 }
 
+// reCompile compiles the regex and updates search state.
 func (br *browseObj) reCompile(pattern string) (int, error) {
-	// Compile regex
-
 	if pattern == "" {
 		if br.pattern == "" {
 			return 0, nil
@@ -333,9 +334,8 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 	return len(pattern), nil
 }
 
+// undisplayedMatches reports whether matches exist outside the visible slice.
 func (br *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
-	// Safety check: ensure regex is compiled
-
 	if br.re == nil {
 		return false, false
 	}

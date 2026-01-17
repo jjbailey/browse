@@ -1,7 +1,7 @@
 // extern.go
 // various constants, the structure of a browser object
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -17,12 +17,14 @@ import (
 
 // ─── Build Information ──────────────────────────────────────────────
 
+// BR_VERSION is the current application version.
 const (
-	BR_VERSION = "0.80"
+	BR_VERSION = "0.81"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
 
+// Core limits and defaults.
 const (
 	MAXMARKS     = 10
 	READBUFSIZ   = 1024
@@ -32,6 +34,7 @@ const (
 
 // ─── Terminal Control Sequences ─────────────────────────────────────
 
+// Terminal escape sequences.
 const (
 	CURPOS       = "\033[%d;%dH"
 	CURUP        = "\033[A"
@@ -49,6 +52,7 @@ const (
 
 // ─── Graphic Line Drawing ───────────────────────────────────────────
 
+// Line drawing sequences for terminal UI.
 const (
 	ENTERGRAPHICS = "\033(0"
 	EXITGRAPHICS  = "\033(B"
@@ -65,6 +69,7 @@ const (
 
 // ─── Color Modes ────────────────────────────────────────────────────
 
+// Color/attribute escape sequences.
 const (
 	_VID_BLINK = "\033[5m"
 	_VID_BOLD  = "\033[1m"
@@ -86,6 +91,7 @@ const (
 
 // ─── Meaningful Attribute Groupings ─────────────────────────────────
 
+// Attribute groupings used for UI display and messages.
 const (
 	VIDOFF     = _VID_OFF
 	VIDBLINK   = _VID_BLINK
@@ -100,6 +106,7 @@ const (
 
 // ─── Scrolling Modes ────────────────────────────────────────────────
 
+// Scroll mode constants.
 const (
 	MODE_SCROLL_NONE   = 0
 	MODE_SCROLL_UP     = 1
@@ -110,6 +117,7 @@ const (
 
 // ─── Default and Browse History Files ───────────────────────────────
 
+// History and configuration file names.
 const (
 	RCDIRNAME      = ".browse"
 	RCFILENAME     = "browserc"
@@ -122,6 +130,7 @@ const (
 
 // ─── browseObj Definition ───────────────────────────────────────────
 
+// browseObj contains state for the current browsing session.
 type browseObj struct {
 	// Terminal configuration
 	tty        *os.File

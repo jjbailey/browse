@@ -1,7 +1,7 @@
 // setupbrdir.go
 // create .browse directory
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -15,6 +15,7 @@ import (
 	"strings"
 )
 
+// setupBrDir ensures the browse config directory exists and migrates old files.
 func setupBrDir() error {
 	home, err := os.UserHomeDir()
 	if err != nil {

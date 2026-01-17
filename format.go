@@ -1,7 +1,7 @@
 // format.go
 // pipe the current file to fmt
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
