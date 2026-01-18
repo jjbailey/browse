@@ -65,7 +65,7 @@ func moveCursor(row, col int, clrflag bool) {
 func printSEOF(what string) {
 	if what == "EOF" {
 		// save for modeScroll
-		fmt.Printf("\r%s%s\r %s%s%s\r", CLEARSCREEN, CURSAVE, VIDBLINK, what, VIDOFF)
+		fmt.Printf("\r%s%s %s%s%s\r", CLEARSCREEN, CURSAVE, VIDBLINK, what, VIDOFF)
 		return
 	}
 

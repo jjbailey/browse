@@ -82,7 +82,7 @@ func (br *browseObj) bashCommand() {
 	}
 
 	// gratuitous save cursor
-	fmt.Print("\r" + CURSAVE)
+	fmt.Print(CURSAVE)
 	br.resizeWindow()
 }
 

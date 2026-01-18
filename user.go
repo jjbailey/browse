@@ -85,7 +85,7 @@ func (br *browseObj) userInput(promptStr string) (string, bool) {
 	}()
 
 	ttyPrompter()
-	fmt.Print("\r" + CURSAVE)
+	fmt.Print(CURSAVE)
 	moveCursor(br.dispHeight, 1, true)
 	fmt.Print(promptStr)
 	br.shownMsg = true
