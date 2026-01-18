@@ -38,7 +38,7 @@ const (
 const (
 	CURPOS       = "\033[%d;%dH"
 	CURUP        = "\033[A"
-	CURSAVE      = "\033\067"
+	CURSAVE      = "\r\033\067"
 	CURRESTORE   = "\033\070"
 	CLEARSCREEN  = "\033[0J"
 	CLEARLINE    = "\033[0K"
@@ -148,8 +148,8 @@ type browseObj struct {
 	absFileName string
 	fromStdin   bool
 	mapSiz      int
-	seekMap     map[int]int64
-	sizeMap     map[int]int64
+	seekMap     []int64
+	sizeMap     []int64
 	shiftWidth  int
 	lastKey     byte
 

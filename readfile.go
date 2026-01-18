@@ -22,8 +22,8 @@ import (
 // readInit resets reader state for a new or truncated file.
 func readInit(br *browseObj, bytesRead *int64) {
 	br.mapSiz = 1
-	br.seekMap = map[int]int64{0: 0}
-	br.sizeMap = map[int]int64{0: 0}
+	br.seekMap = []int64{0}
+	br.sizeMap = []int64{0}
 	br.newFileSiz = 0
 	br.savFileSiz = 0
 	br.newInode = 0
@@ -162,8 +162,8 @@ func readFile(br *browseObj, ch chan bool) {
 			if len(pendingLines) > 0 {
 				br.mutex.Lock()
 				for _, info := range pendingLines {
-					br.seekMap[br.mapSiz] = info.offset
-					br.sizeMap[br.mapSiz] = info.length
+					br.seekMap = append(br.seekMap, info.offset)
+					br.sizeMap = append(br.sizeMap, info.length)
 					br.mapSiz++
 				}
 				br.hitEOF = false
@@ -254,7 +254,7 @@ func (br *browseObj) readFromMap(lineno int) []byte {
 
 	data := make([]byte, int(size))
 	_, err := br.fp.ReadAt(data, seek)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return nil
 	}
 
