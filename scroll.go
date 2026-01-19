@@ -69,7 +69,7 @@ func (br *browseObj) scrollUp(count int) {
 
 	rowsToScroll := minimum(count, br.firstRow)
 
-	for range rowsToScroll {
+	for i := 0; i < rowsToScroll; i++ {
 		br.firstRow--
 		br.lastRow--
 

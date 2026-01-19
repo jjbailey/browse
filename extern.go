@@ -80,8 +80,6 @@ const (
 	_VID_WHITE_FG  = "\033[38;5;15m"
 	_VID_GREEN_FG  = "\033[38;5;46m"
 	_VID_ORANGE_FG = "\033[38;5;208m"
-	_VID_YELLOW_FG = "\033[38;5;226m"
-
 	_VID_BLACK_BG  = "\033[48;5;16m"
 	_VID_GREEN_BG  = "\033[48;5;46m"
 	_VID_BLUE_BG   = "\033[48;5;21m"
