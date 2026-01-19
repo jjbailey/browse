@@ -169,7 +169,8 @@ Saves current session state, including:
 - May be US-centric
 - Can be confused by non-printable characters
 - Tabs are converted to spaces
-- Terminal title changes due to go-prompt dependency
+- go-prompt handling changes the terminal title
+- Line lengths internally capped at 4K
 
 ## 📄 License
 
