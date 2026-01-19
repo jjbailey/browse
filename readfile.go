@@ -68,7 +68,7 @@ func readFile(br *browseObj, ch chan bool) {
 
 	bufReader := bufio.NewReader(readerFp)
 	type lineMeta struct{ offset, length int64 }
-	var pendingLines []lineMeta
+	pendingLines := make([]lineMeta, 0, 1024)
 
 	for {
 		// Get current filename snapshot under lock
