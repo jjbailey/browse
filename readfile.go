@@ -12,7 +12,6 @@ package main
 import (
 	"bufio"
 	"io"
-	"math"
 	"os"
 	"time"
 
@@ -247,18 +246,13 @@ func (br *browseObj) readFromMap(lineno int) []byte {
 		return nil
 	}
 
-	// Check for safe cast to int
-	if size > int64(math.MaxInt) {
-		return nil
-	}
-
 	data := make([]byte, int(size))
-	_, err := br.fp.ReadAt(data, seek)
+	n, err := br.fp.ReadAt(data, seek)
 	if err != nil && err != io.EOF {
 		return nil
 	}
 
-	return expandTabs(data)
+	return expandTabs(data[:n])
 }
 
 // vim: set ts=4 sw=4 noet:
