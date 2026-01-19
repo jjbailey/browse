@@ -18,7 +18,6 @@ import (
 // Search formatting and limits.
 const (
 	// %6d + one space
-	LINENUMBERS = "%6d %s"
 	NUMCOLWIDTH = 7
 
 	// Maximum regex pattern length to prevent ReDoS attacks
@@ -240,7 +239,8 @@ func (br *browseObj) replaceMatch(lineno int, input string) string {
 // formatLine formats a line with optional line numbers.
 func (br *browseObj) formatLine(lineno int, content string) string {
 	if br.modeNumbers {
-		return fmt.Sprintf(LINENUMBERS, lineno, content)
+		// dim attribute is optional in the ANSI spec
+		return fmt.Sprintf("%s%6d%s %s", _VID_DIM, lineno, _VID_OFF, content)
 	}
 
 	return content

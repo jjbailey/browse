@@ -73,13 +73,15 @@ const (
 const (
 	_VID_BLINK = "\033[5m"
 	_VID_BOLD  = "\033[1m"
-	_VID_REV   = "\033[7m"
+	_VID_DIM   = "\033[2m"
 	_VID_OFF   = "\033[0m"
+	_VID_REV   = "\033[7m"
 
 	_VID_BLACK_FG  = "\033[38;5;16m"
 	_VID_WHITE_FG  = "\033[38;5;15m"
 	_VID_GREEN_FG  = "\033[38;5;46m"
 	_VID_ORANGE_FG = "\033[38;5;208m"
+
 	_VID_BLACK_BG  = "\033[48;5;16m"
 	_VID_GREEN_BG  = "\033[48;5;46m"
 	_VID_BLUE_BG   = "\033[48;5;21m"
