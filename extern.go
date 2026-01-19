@@ -27,7 +27,7 @@ const (
 // Core limits and defaults.
 const (
 	MAXMARKS     = 10
-	READBUFSIZ   = 1024
+	READBUFSIZ   = 4096
 	SEARCH_RESET = 0
 	TABWIDTH     = 4
 )
