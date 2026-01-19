@@ -12,8 +12,15 @@ package main
 import (
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
+
+var lineBufPool = sync.Pool{
+	New: func() any {
+		return new(strings.Builder)
+	},
+}
 
 // printLine renders a single line by number, handling SOF/EOF markers.
 func (br *browseObj) printLine(lineno int) {
@@ -46,14 +53,16 @@ func (br *browseObj) printLine(lineno int) {
 
 	output := br.replaceMatch(lineno, input)
 
-	// Use a Builder for line output, reducing allocations and Print calls
-	var sb strings.Builder
-	sb.Grow(len(output) + 32)
-	sb.WriteByte('\n')
-	sb.WriteString(output)
-	sb.WriteString(VIDOFF)
-	sb.WriteString(CLEARLINE)
-	os.Stdout.WriteString(sb.String())
+	// Use a pooled Builder for line output, reducing allocations and Print calls
+	lineBuf := lineBufPool.Get().(*strings.Builder)
+	lineBuf.Reset()
+	lineBuf.Grow(len(output) + 32)
+	lineBuf.WriteByte('\n')
+	lineBuf.WriteString(output)
+	lineBuf.WriteString(VIDOFF)
+	lineBuf.WriteString(CLEARLINE)
+	os.Stdout.WriteString(lineBuf.String())
+	lineBufPool.Put(lineBuf)
 
 	if br.hitEOF {
 		printSEOF("EOF")
