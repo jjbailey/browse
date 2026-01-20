@@ -142,17 +142,17 @@ func (br *browseObj) pageIsMatch(startOfPage, endOfPage int) (int, int) {
 }
 
 // lineIsMatch reports the number of matches on a line and returns its content.
-func (br *browseObj) lineIsMatch(lineno int) (int, string) {
+func (br *browseObj) lineIsMatch(lineno int) (int, []byte) {
 	if lineno < 0 || lineno >= br.mapSiz {
-		return 0, ""
+		return 0, nil
 	}
 
+	lineContent := br.readFromMap(lineno)
 	if br.re == nil {
-		return 0, string(br.readFromMap(lineno))
+		return 0, lineContent
 	}
 
-	lineContent := string(br.readFromMap(lineno))
-	matchIndices := br.re.FindAllStringIndex(lineContent, -1)
+	matchIndices := br.re.FindAllIndex(lineContent, -1)
 	return len(matchIndices), lineContent
 }
 
@@ -195,28 +195,28 @@ func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool)
 }
 
 // replaceMatch highlights matches in a line and formats it for display.
-func (br *browseObj) replaceMatch(lineno int, input string) string {
+func (br *browseObj) replaceMatch(lineno int, input []byte) string {
 	sol := br.shiftWidth
 	if sol < 0 {
 		sol = 0
 	}
 
 	// Slice safely
-	var content string
+	var content []byte
 
 	if sol < len(input) {
 		content = input[sol:]
 	} else {
-		content = ""
+		content = nil
 	}
 
 	if br.re == nil {
-		return br.formatLine(lineno, content)
+		return br.formatLine(lineno, string(content))
 	}
 
 	leftMatch, rightMatch := br.undisplayedMatches(input, sol)
 
-	if content == "" {
+	if len(content) == 0 {
 		if leftMatch {
 			boldLeftArrow := _VID_BOLD + _VID_GREEN_FG + "\u2190" + VIDOFF
 			return br.formatLine(lineno, boldLeftArrow)
@@ -225,15 +225,16 @@ func (br *browseObj) replaceMatch(lineno int, input string) string {
 		return br.formatLine(lineno, "")
 	}
 
-	var replaced string
+	var replaced []byte
 
 	if leftMatch || rightMatch {
-		replaced = _VID_GREEN_FG + br.re.ReplaceAllString(content, br.replace+_VID_GREEN_FG)
+		replaced = br.re.ReplaceAll(content, []byte(br.replace+_VID_GREEN_FG))
+		replaced = append([]byte(_VID_GREEN_FG), replaced...)
 	} else {
-		replaced = br.re.ReplaceAllString(content, br.replace)
+		replaced = br.re.ReplaceAll(content, []byte(br.replace))
 	}
 
-	return br.formatLine(lineno, replaced)
+	return br.formatLine(lineno, string(replaced))
 }
 
 // formatLine formats a line with optional line numbers.
@@ -335,7 +336,7 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 }
 
 // undisplayedMatches reports whether matches exist outside the visible slice.
-func (br *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
+func (br *browseObj) undisplayedMatches(input []byte, sol int) (bool, bool) {
 	if br.re == nil {
 		return false, false
 	}
@@ -345,8 +346,8 @@ func (br *browseObj) undisplayedMatches(input string, sol int) (bool, bool) {
 		sol = 0
 	}
 
-	// Use FindAllStringIndex (not Submatch) for efficiency
-	matches := br.re.FindAllStringIndex(input, -1)
+	// Use FindAllIndex for efficiency
+	matches := br.re.FindAllIndex(input, -1)
 	if len(matches) == 0 {
 		return false, false
 	}
