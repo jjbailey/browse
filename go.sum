@@ -4,8 +4,8 @@ github.com/clipperhouse/uax29/v2 v2.3.1 h1:RjM8gnVbFbgI67SBekIC7ihFpyXwRPYWXn9BZ
 github.com/clipperhouse/uax29/v2 v2.3.1/go.mod h1:Wn1g7MK6OoeDT0vL+Q0SQLDz/KpfsVRgg6W7ihQeh4g=
 github.com/creack/pty v1.1.24 h1:bJrF4RRfyJnbTJqzRLHzcGaZK1NeM5kTC9jGgovnR1s=
 github.com/creack/pty v1.1.24/go.mod h1:08sCNb52WyoAwi2QDyzUCTgcvVFhUzewun7wtTfvcwE=
-github.com/jjbailey/go-prompt v0.2.1 h1:MsOZiS0/XRRifrDvYl6OIyoUKeHJ3FMHirwrZnPr+4E=
-github.com/jjbailey/go-prompt v0.2.1/go.mod h1:rd3NTyZ2zRc6l8Wd2EToqTJkmI4PSIz/pCNp/8XRLWs=
+github.com/jjbailey/go-prompt v0.2.2 h1:DOCfHtZLIYxnJV0CB7YvWomTF1qd9bFppMkXhYSShTc=
+github.com/jjbailey/go-prompt v0.2.2/go.mod h1:oAdv8rv5qLBlMKQBtIw/W5zIbjx/bunJNkZ5qVWi/Z8=
 github.com/mattn/go-colorable v0.1.14 h1:9A9LHSqF/7dyVVX6g0U9cwm9pG3kP9gSzcuIPHPsaIE=
 github.com/mattn/go-colorable v0.1.14/go.mod h1:6LmQG8QLFO4G5z1gPvYEzlUgJ2wF+stgPZH1UqBm1s8=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
