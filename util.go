@@ -18,7 +18,14 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"sync"
 )
+
+var tabBufPool = sync.Pool{
+	New: func() any {
+		return &bytes.Buffer{}
+	},
+}
 
 // expandTabs replaces tabs and carriage returns with spaces.
 func expandTabs(data []byte) []byte {
@@ -26,29 +33,33 @@ func expandTabs(data []byte) []byte {
 		return data
 	}
 
-	tabCount := bytes.Count(data, []byte{'\t'})
-	capacity := len(data) + tabCount*(TABWIDTH-1)
+	buf := tabBufPool.Get().(*bytes.Buffer)
+	buf.Reset()
 
-	buf := make([]byte, 0, capacity)
+	tabCount := bytes.Count(data, []byte{'\t'})
+	buf.Grow(len(data) + tabCount*(TABWIDTH-1))
 
 	for _, b := range data {
 		switch b {
 
 		case '\r':
-			// silently map CR to space
-			buf = append(buf, ' ')
+			buf.WriteByte(' ')
 
 		case '\t':
-			for i := TABWIDTH - len(buf)%TABWIDTH; i > 0; i-- {
-				buf = append(buf, ' ')
+			spaces := TABWIDTH - (buf.Len() % TABWIDTH)
+			for i := 0; i < spaces; i++ {
+				buf.WriteByte(' ')
 			}
 
 		default:
-			buf = append(buf, b)
+			buf.WriteByte(b)
 		}
 	}
 
-	return buf
+	result := make([]byte, buf.Len())
+	copy(result, buf.Bytes())
+	tabBufPool.Put(buf)
+	return result
 }
 
 // moveCursor positions the cursor and optionally clears the line.
