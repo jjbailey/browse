@@ -27,9 +27,9 @@ var tabBufPool = sync.Pool{
 	},
 }
 
-// expandTabs replaces tabs and carriage returns with spaces.
+// expandTabs replaces tabs, carriage returns, and form feeds with spaces.
 func expandTabs(data []byte) []byte {
-	if !bytes.ContainsAny(data, "\t\r") {
+	if !bytes.ContainsAny(data, "\t\r\f") {
 		return data
 	}
 
@@ -42,7 +42,7 @@ func expandTabs(data []byte) []byte {
 	for _, b := range data {
 		switch b {
 
-		case '\r':
+		case '\r', '\f':
 			buf.WriteByte(' ')
 
 		case '\t':
