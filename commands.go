@@ -2,7 +2,7 @@
 // The command processor
 // All user activity starts here
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -22,6 +22,7 @@ import (
 
 // ─── Command Groups ─────────────────────────────────────────────────
 
+// Command key bindings.
 const (
 	// Navigation commands
 	CMD_PAGE_DN        = 'f'
@@ -85,6 +86,7 @@ const (
 
 // ─── Virtual Key Mappings ───────────────────────────────────────────
 
+// Virtual key escape sequences.
 const (
 	VK_UP    = "\033[A\000"
 	VK_DOWN  = "\033[B\000"
@@ -101,6 +103,7 @@ const (
 
 // ─── Search and Scroll Constants ────────────────────────────────────
 
+// Search and scroll behavior constants.
 const (
 	SEARCH_FWD  = true
 	SEARCH_REV  = false
@@ -108,8 +111,8 @@ const (
 	SCROLL_CONT = 2
 )
 
+// commands is the main input loop for browsing and command handling.
 func commands(br *browseObj) {
-	// seed the saved search pattern
 	br.reCompile(br.pattern)
 
 	// wait for a full page
@@ -483,9 +486,8 @@ func commands(br *browseObj) {
 	}
 }
 
+// dirCommand changes the current working directory based on user input.
 func dirCommand(br *browseObj) bool {
-	// Change working directory with completion
-
 	moveCursor(br.dispRows, 1, true)
 
 	lbuf, cancelled := userDirComp()
@@ -549,9 +551,8 @@ func dirCommand(br *browseObj) bool {
 	return true
 }
 
+// fileCommand opens new files or globs based on user input.
 func fileCommand(br *browseObj) bool {
-	// Browse new file(s)
-
 	moveCursor(br.dispRows, 1, true)
 
 	lbuf, cancelled := userFileComp()
@@ -615,6 +616,7 @@ func fileCommand(br *browseObj) bool {
 	return false
 }
 
+// fieldsQuoted splits a string into fields, preserving quoted substrings.
 func fieldsQuoted(s string) []string {
 	var (
 		fields  []string
@@ -661,10 +663,9 @@ func fieldsQuoted(s string) []string {
 	return fields
 }
 
+// waitForInput waits for enough file data to render a page.
+// strike a balance between waiting for a page and small files.
 func waitForInput(br *browseObj) {
-	// attempt to read an entire page
-	// strike a balance between waiting for a page and small files
-
 	const (
 		maxAttempts      = 20
 		stableThreshold  = 10
@@ -720,9 +721,8 @@ func waitForInput(br *browseObj) {
 	}
 }
 
+// shiftLongest returns the horizontal shift needed to view the longest line.
 func shiftLongest(br *browseObj) int {
-	// shift to the end of the longest line on the page
-
 	if TABWIDTH == 0 {
 		return 0
 	}
@@ -757,9 +757,8 @@ func shiftLongest(br *browseObj) int {
 	return ((longest - br.dispWidth + TABWIDTH) / TABWIDTH) * TABWIDTH
 }
 
+// handlePanic recovers from panics and exits cleanly.
 func handlePanic(br *browseObj) {
-	// graceful exit
-
 	if r := recover(); r != nil {
 		moveCursor(br.dispRows, 1, true)
 		fmt.Printf("%s%s panic: %v %s\n", CLEARSCREEN, MSG_RED, r, VIDOFF)

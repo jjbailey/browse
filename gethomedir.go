@@ -1,7 +1,7 @@
 // gethomedir.go
 // get home directory without using os/user
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -16,6 +16,7 @@ import (
 	"strings"
 )
 
+// getHomeDir looks up a user's home directory from /etc/passwd.
 func getHomeDir(username string) (string, error) {
 	file, err := os.Open("/etc/passwd")
 	if err != nil {
@@ -49,6 +50,7 @@ func getHomeDir(username string) (string, error) {
 	return "", nil
 }
 
+// expandHome expands ~ and ~user prefixes in paths when possible.
 func expandHome(path string) string {
 	if path == "~" {
 		if home, err := os.UserHomeDir(); err == nil {

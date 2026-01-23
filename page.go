@@ -1,7 +1,7 @@
 // page.go
 // Paging and some support functions
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -15,20 +15,23 @@ import (
 	"strings"
 )
 
+// pageUp moves up by one screen of content.
 func (br *browseObj) pageUp() {
 	br.printPage(br.firstRow - br.dispRows)
 }
 
+// pageCurrent redraws the current screen.
 func (br *browseObj) pageCurrent() {
 	br.printPage(br.firstRow)
 }
 
+// pageDown advances by one screen of content.
 func (br *browseObj) pageDown() {
 	br.printPage(br.firstRow + br.dispRows)
 }
 
+// pageHeader renders the header bar with the current title.
 func (br *browseObj) pageHeader() {
-	// Minimum required width for the header (tees, spaces, and some title)
 	const minHeaderWidth = 10
 
 	// Validate display width
@@ -95,10 +98,12 @@ func (br *browseObj) pageHeader() {
 	os.Stdout.WriteString(sb.String())
 }
 
+// pageLast jumps to the end of the file.
 func (br *browseObj) pageLast() {
 	br.printPage(br.mapSiz)
 }
 
+// pageMarked jumps to a previously marked line.
 func (br *browseObj) pageMarked(lineno int) {
 	br.printPage(br.marks[lineno])
 }

@@ -1,7 +1,7 @@
 // bash.go
 // Run a command with bash
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -14,11 +14,11 @@ import (
 	"strings"
 )
 
+// PrevCommand stores the previous command for history substitutions.
 var PrevCommand string
 
+// bashCommand prompts for a bash command, performs substitutions, and runs it in a PTY.
 func (br *browseObj) bashCommand() {
-	// Run a command with bash
-
 	for {
 		moveCursor(br.dispRows, 1, true)
 
@@ -82,7 +82,7 @@ func (br *browseObj) bashCommand() {
 	}
 
 	// gratuitous save cursor
-	fmt.Print("\r" + CURSAVE)
+	fmt.Print(CURSAVE)
 	br.resizeWindow()
 }
 

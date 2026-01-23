@@ -1,7 +1,7 @@
 // util.go
 // various uncategorized functions
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -18,38 +18,51 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"sync"
 )
 
+var tabBufPool = sync.Pool{
+	New: func() any {
+		return &bytes.Buffer{}
+	},
+}
+
+// expandTabs replaces tabs, carriage returns, and form feeds with spaces.
 func expandTabs(data []byte) []byte {
-	if !bytes.ContainsAny(data, "\t\r") {
+	if !bytes.ContainsAny(data, "\t\r\f") {
 		return data
 	}
 
-	tabCount := bytes.Count(data, []byte{'\t'})
-	capacity := len(data) + tabCount*(TABWIDTH-1)
+	buf := tabBufPool.Get().(*bytes.Buffer)
+	buf.Reset()
 
-	buf := make([]byte, 0, capacity)
+	tabCount := bytes.Count(data, []byte{'\t'})
+	buf.Grow(len(data) + tabCount*(TABWIDTH-1))
 
 	for _, b := range data {
 		switch b {
 
-		case '\r':
-			// silently map CR to space
-			buf = append(buf, ' ')
+		case '\r', '\f':
+			buf.WriteByte(' ')
 
 		case '\t':
-			for i := TABWIDTH - len(buf)%TABWIDTH; i > 0; i-- {
-				buf = append(buf, ' ')
+			spaces := TABWIDTH - (buf.Len() % TABWIDTH)
+			for i := 0; i < spaces; i++ {
+				buf.WriteByte(' ')
 			}
 
 		default:
-			buf = append(buf, b)
+			buf.WriteByte(b)
 		}
 	}
 
-	return buf
+	result := make([]byte, buf.Len())
+	copy(result, buf.Bytes())
+	tabBufPool.Put(buf)
+	return result
 }
 
+// moveCursor positions the cursor and optionally clears the line.
 func moveCursor(row, col int, clrflag bool) {
 	if clrflag {
 		fmt.Printf(CURPOS+CLEARLINE, row, col)
@@ -59,20 +72,23 @@ func moveCursor(row, col int, clrflag bool) {
 	fmt.Printf(CURPOS, row, col)
 }
 
+// printSEOF prints SOF/EOF markers on the display.
 func printSEOF(what string) {
 	if what == "EOF" {
 		// save for modeScroll
-		fmt.Printf("\r%s%s\r %s%s%s\r", CLEARSCREEN, CURSAVE, VIDBLINK, what, VIDOFF)
+		fmt.Printf("\r%s%s %s%s%s\r", CLEARSCREEN, CURSAVE, VIDBLINK, what, VIDOFF)
 		return
 	}
 
 	fmt.Printf("\r %s%s%s\r", VIDBLINK, what, VIDOFF)
 }
 
+// windowAtEOF reports whether a line index is at EOF.
 func windowAtEOF(lineno, mapsiz int) bool {
 	return lineno == mapsiz
 }
 
+// maximum returns the larger of two integers.
 func maximum(a, b int) int {
 	if a > b {
 		return a
@@ -81,6 +97,7 @@ func maximum(a, b int) int {
 	return b
 }
 
+// minimum returns the smaller of two integers.
 func minimum(a, b int) int {
 	if a < b {
 		return a
@@ -89,10 +106,12 @@ func minimum(a, b int) int {
 	return b
 }
 
+// resetScrRegion restores the terminal scroll region.
 func resetScrRegion() {
 	fmt.Print(CURSAVE + RESETREGION + CURRESTORE)
 }
 
+// errorExit prints an error and exits after restoring the terminal.
 func errorExit(err error) {
 	if err != nil {
 		fmt.Println(err)
@@ -101,10 +120,12 @@ func errorExit(err error) {
 	}
 }
 
+// isValidMark reports whether a rune is a valid mark digit.
 func isValidMark(r rune) bool {
 	return r >= '1' && r <= '9'
 }
 
+// getMark extracts a mark digit from a string.
 func getMark(buf string) int {
 	if len(buf) == 0 {
 		return 0
@@ -119,6 +140,7 @@ func getMark(buf string) int {
 	return int(buf[idx] - '0')
 }
 
+// isBinaryFile reports whether a file appears to be binary.
 func isBinaryFile(filename string) bool {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -137,10 +159,10 @@ func isBinaryFile(filename string) bool {
 	return slices.Contains(buffer[:bytesRead], 0)
 }
 
+// subCommandChars replaces unescaped occurrences of a character.
+// negative lookbehind not supported in golang RE2 engine
+// pattern := `(?<!\\)%`
 func subCommandChars(input, char, repl string) string {
-	// negative lookbehind not supported in golang RE2 engine
-	// pattern := `(?<!\\)%`
-
 	pattern := `(^|[^\\])` + regexp.QuoteMeta(char)
 
 	re, err := regexp.Compile(pattern)
@@ -151,6 +173,7 @@ func subCommandChars(input, char, repl string) string {
 	return re.ReplaceAllString(input, `${1}`+repl)
 }
 
+// resolveSymlink resolves symlinks and returns a clean path.
 func resolveSymlink(path string) (string, error) {
 	if path == "" {
 		return "", nil
@@ -169,6 +192,7 @@ func resolveSymlink(path string) (string, error) {
 	return filepath.Clean(realPath), nil
 }
 
+// lastNChars returns the tail of a string limited by display width.
 func lastNChars(s string, dispWidth int) string {
 	const padding = 45
 
@@ -183,12 +207,12 @@ func lastNChars(s string, dispWidth int) string {
 	return string(runes[len(runes)-size:])
 }
 
+// shellEscapeSingle safely single-quotes a string for the shell.
 func shellEscapeSingle(s string) string {
-	// Safely single-quote the pattern, title, and filename for shell
-
 	return "'" + strings.ReplaceAll(s, "'", "'\"'\"'") + "'"
 }
 
+// prevDirectory returns the previous directory from history.
 func prevDirectory() string {
 	history := loadHistory(dirHistory)
 	if len(history) < 2 {
@@ -198,9 +222,8 @@ func prevDirectory() string {
 	return history[len(history)-2]
 }
 
+// unQuote removes surrounding single quotes from a string.
 func unQuote(s string) string {
-	// remove quotes when the entire line is quoted
-
 	if strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") {
 		s = s[1 : len(s)-1]
 	}

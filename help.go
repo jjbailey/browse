@@ -2,7 +2,7 @@
 // the help screen
 // ignore SIGWINCH here
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -15,6 +15,7 @@ import (
 	"strings"
 )
 
+// printHelp renders the on-screen help dialog or falls back to the man page.
 func (br *browseObj) printHelp() {
 	const (
 		paddingTop  = 3

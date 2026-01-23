@@ -1,7 +1,7 @@
 // completer.go
 // central completion module
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -18,6 +18,7 @@ import (
 	"github.com/jjbailey/go-prompt"
 )
 
+// Completion search modes.
 const (
 	dispSuggestions = 5
 	maxSuggestions  = 1000
@@ -27,29 +28,35 @@ const (
 	searchDirs      = 4
 )
 
+// Completion filters for file types.
 const (
 	onlyDirs  = 1
 	onlyExec  = 2
 	onlyFiles = 3
 )
 
+// SearchType controls which completion mode is active.
 var SearchType int
 
+// userDirComp prompts for a directory with completion.
 func userDirComp() (string, bool) {
 	SearchType = searchDirs
 	return runCompleter("Dir: ", dirHistory)
 }
 
+// userFileComp prompts for a file with completion.
 func userFileComp() (string, bool) {
 	SearchType = searchFiles
 	return runCompleter("File: ", fileHistory)
 }
 
+// userBashComp prompts for a command with PATH-aware completion.
 func userBashComp() (string, bool) {
 	SearchType = searchPath
 	return runCompleter("$ ", commHistory)
 }
 
+// userSearchComp prompts for a search pattern with completion.
 func userSearchComp(searchDir bool) (string, bool) {
 	promptStr := "/"
 	if !searchDir {
@@ -60,8 +67,8 @@ func userSearchComp(searchDir bool) (string, bool) {
 	return runCompleter(promptStr, searchHistory)
 }
 
+// runCompleter starts the prompt UI and returns user input and cancellation state.
 func runCompleter(promptStr, historyFile string) (string, bool) {
-	// Load history from file
 	history := loadHistory(historyFile)
 
 	// Get hostname title
@@ -107,9 +114,8 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 	return input, false
 }
 
+// getHostnameTitle returns a short hostname for display in the prompt title.
 func getHostnameTitle() string {
-	// Can't prevent prompt.New from meddling with the title, so...
-
 	hostname, err := os.Hostname()
 	if err != nil || hostname == "" {
 		return "unknown"
@@ -122,6 +128,7 @@ func getHostnameTitle() string {
 	return hostname
 }
 
+// completer provides suggestions based on the current SearchType and input.
 func completer(d prompt.Document) []prompt.Suggest {
 	word := strings.ReplaceAll(d.GetWordBeforeCursor(), "//", "/")
 	originalWord := word
@@ -199,15 +206,17 @@ func completer(d prompt.Document) []prompt.Suggest {
 	}
 }
 
+// hasPathSeparator reports whether the word contains a path separator.
 func hasPathSeparator(word string) bool {
 	return strings.Contains(word, "/")
 }
 
+// searchCompleter returns suggestions for search history (currently none).
 func searchCompleter() []prompt.Suggest {
-	// history contents only
 	return nil
 }
 
+// fileCompleter completes file paths for a given word.
 func fileCompleter(word string) []prompt.Suggest {
 	dir := filepath.Dir(word)
 	files, err := os.ReadDir(dir)
@@ -225,9 +234,8 @@ func fileCompleter(word string) []prompt.Suggest {
 	return matchFiles(files, dir, prefix, true, onlyFiles)
 }
 
+// pathCompleter completes executable names from PATH entries.
 func pathCompleter(word string) []prompt.Suggest {
-	// Handle files in PATH
-
 	var suggestions []prompt.Suggest
 
 	// cannot test PATH with go run .
@@ -256,9 +264,8 @@ func pathCompleter(word string) []prompt.Suggest {
 	return suggestions
 }
 
+// dirCompleter completes directories using absolute paths and CDPATH.
 func dirCompleter(word string) []prompt.Suggest {
-	// Handle absolute path completions
-
 	var suggestions []prompt.Suggest
 
 	if hasPathSeparator(word) {
@@ -308,6 +315,7 @@ func dirCompleter(word string) []prompt.Suggest {
 	return suggestions
 }
 
+// anyCompleter completes entries in a directory with optional filtering.
 func anyCompleter(dir, prefix string, onlyType int) []prompt.Suggest {
 	files, err := os.ReadDir(dir)
 	if err != nil {
@@ -318,6 +326,7 @@ func anyCompleter(dir, prefix string, onlyType int) []prompt.Suggest {
 	return matchFiles(files, dir, prefix, false, onlyType)
 }
 
+// matchFiles filters directory entries into prompt suggestions.
 func matchFiles(files []os.DirEntry, dir, prefix string,
 	useFullPath bool, onlyType int) []prompt.Suggest {
 

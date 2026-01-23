@@ -1,13 +1,13 @@
 module internetguy.net/browse
 
-go 1.24.11
+go 1.24.12
 
 // Direct dependencies
 require (
 	github.com/creack/pty v1.1.24
-	github.com/jjbailey/go-prompt v0.2.1
+	github.com/jjbailey/go-prompt v0.2.2
 	github.com/pborman/getopt/v2 v2.1.0
-	golang.org/x/sys v0.39.0
+	golang.org/x/sys v0.40.0
 	golang.org/x/term v0.38.0
 )
 
@@ -21,6 +21,6 @@ require (
 
 require (
 	github.com/clipperhouse/stringish v0.1.1 // indirect
-	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
+	github.com/clipperhouse/uax29/v2 v2.3.1 // indirect
 	github.com/pkg/term v1.2.0-beta.2 // indirect
 )

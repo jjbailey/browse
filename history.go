@@ -1,7 +1,7 @@
 // history.go
 // history management module
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -17,6 +17,7 @@ import (
 	"strings"
 )
 
+// loadHistory reads the history file and returns recent entries.
 func loadHistory(historyFile string) []string {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -45,6 +46,7 @@ func loadHistory(historyFile string) []string {
 	return history
 }
 
+// saveHistory writes history entries to disk with trimming and cleanup.
 func saveHistory(history []string, historyFile string) {
 	if len(history) == 0 {
 		return
@@ -91,6 +93,7 @@ func saveHistory(history []string, historyFile string) {
 	writer.Flush()
 }
 
+// updateDirHistory records directory changes in the directory history.
 func updateDirHistory(savDir, curDir string) {
 	// save the previous directory
 	updateHistory(savDir, dirHistory)
@@ -99,6 +102,7 @@ func updateDirHistory(savDir, curDir string) {
 	updateHistory(curDir, dirHistory)
 }
 
+// updateHistory appends a single entry to the specified history file.
 func updateHistory(newEntry, historyFile string) {
 	if historyFile != searchHistory {
 		newEntry = strings.TrimSpace(newEntry)

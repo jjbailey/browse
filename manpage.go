@@ -15,7 +15,7 @@ import (
 	"os/exec"
 )
 
-// manPage displays the man page for 'browse' within the browse interface.
+// manPage renders the browse man page inside the browse interface.
 func (br *browseObj) manPage() {
 	manPath, err := exec.LookPath("man")
 	if err != nil || manPath == "" {

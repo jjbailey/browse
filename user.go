@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-// wait for any key press
+// userAnyKey waits for any key press with an optional prompt.
 func (br *browseObj) userAnyKey(promptStr string) {
 	const timeout = 500 * time.Millisecond
 
@@ -53,7 +53,7 @@ func (br *browseObj) userAnyKey(promptStr string) {
 	}
 }
 
-// get user input line with basic editing
+// userInput reads a line of input with basic editing support.
 func (br *browseObj) userInput(promptStr string) (string, bool) {
 	const (
 		NEWLINE   = '\n'
@@ -85,7 +85,7 @@ func (br *browseObj) userInput(promptStr string) (string, bool) {
 	}()
 
 	ttyPrompter()
-	fmt.Print("\r" + CURSAVE)
+	fmt.Print(CURSAVE)
 	moveCursor(br.dispHeight, 1, true)
 	fmt.Print(promptStr)
 	br.shownMsg = true

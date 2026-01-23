@@ -1,7 +1,7 @@
 // browse.go
 // file and rcfile handling functions
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -17,8 +17,10 @@ import (
 	"syscall"
 )
 
+// CurrentList tracks the current list of files being browsed.
 var CurrentList []string
 
+// processPipeInput handles input piped on stdin into a temporary file for browsing.
 func processPipeInput(br *browseObj) {
 	fpStdin, err := os.CreateTemp("", "browse")
 	if err != nil {
@@ -45,6 +47,7 @@ func processPipeInput(br *browseObj) {
 	browseFile(br, fp, fpStdin.Name(), "          ", true)
 }
 
+// processFileList iterates through a list of files and opens them for browsing.
 func processFileList(br *browseObj, args []string, toplevel bool) {
 	if len(args) == 0 {
 		abs, err := filepath.Abs(br.fileName)
@@ -109,6 +112,7 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 	}
 }
 
+// browseFile initializes browsing state for a file and begins processing.
 func browseFile(br *browseObj, fp *os.File, fileName, title string, fromStdin bool) {
 	targetFile := strings.TrimSuffix(fileName, "/")
 
@@ -122,6 +126,7 @@ func browseFile(br *browseObj, fp *os.File, fileName, title string, fromStdin bo
 	processFileBrowsing(br)
 }
 
+// validateAndOpenFile opens a file and validates it is suitable for browsing.
 func validateAndOpenFile(br *browseObj, targetFile string) (*os.File, error) {
 	fp, err := os.Open(targetFile)
 	if err != nil {
@@ -148,14 +153,15 @@ func validateAndOpenFile(br *browseObj, targetFile string) (*os.File, error) {
 	return fp, nil
 }
 
+// checkBinaryFile warns if the target file appears to be binary.
 func checkBinaryFile(br *browseObj, targetFile string) {
 	if isBinaryFile(targetFile) {
 		br.timedMessage(fmt.Sprintf("%s: is a binary file", filepath.Base(targetFile)), MSG_ORANGE)
 	}
 }
 
+// processFileBrowsing runs the read loop and command processing for a file.
 func processFileBrowsing(br *browseObj) {
-	// Start file reading in background
 	syncOK := make(chan bool, 1)
 	go readFile(br, syncOK)
 
@@ -173,6 +179,7 @@ func processFileBrowsing(br *browseObj) {
 	}
 }
 
+// resetState clears browsing state between file switches.
 func resetState(br *browseObj) {
 	br.firstRow = 0
 	br.lastRow = 0
@@ -180,12 +187,14 @@ func resetState(br *browseObj) {
 	br.modeScroll = MODE_SCROLL_NONE
 }
 
+// preInitialization performs startup setup before browsing begins.
 func preInitialization() {
 	setupBrDir()
 	ttySaveTerm()
 	syscall.Umask(077)
 }
 
+// setTitle returns the primary title when set, otherwise the fallback.
 func setTitle(primary, fallback string) string {
 	if primary != "" {
 		return primary

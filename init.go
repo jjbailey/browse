@@ -1,7 +1,7 @@
 // init.go
 // functions to initialize objects
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -15,9 +15,8 @@ import (
 	"golang.org/x/term"
 )
 
+// fileInit initializes browseObj state for a new file.
 func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin bool) {
-	// file initializations
-
 	br.fileName = fileName
 	br.fp = fp
 	br.fromStdin = fromStdin
@@ -32,9 +31,8 @@ func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin boo
 	}
 }
 
+// screenInit initializes terminal sizing information.
 func (br *browseObj) screenInit(tty *os.File) {
-	// tty initializations
-
 	br.tty = tty
 
 	var width, height int

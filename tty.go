@@ -15,24 +15,26 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+// savedTermios stores the terminal settings for restoration.
 var savedTermios *unix.Termios
 
+// ttySaveTerm captures the current terminal settings.
 func ttySaveTerm() {
-	// Get the current terminal settings
 	termios, err := unix.IoctlGetTermios(int(os.Stdout.Fd()), unix.TCGETS)
 	if err == nil {
 		savedTermios = termios
 	}
 }
 
+// ttyRestore restores previously saved terminal settings.
 func ttyRestore() {
 	if savedTermios != nil {
 		unix.IoctlSetTermios(int(os.Stdout.Fd()), unix.TCSETSF, savedTermios)
 	}
 }
 
+// ttyBrowser configures the terminal for browse's input handling.
 func ttyBrowser() {
-	// Get the current terminal settings
 	termios, err := unix.IoctlGetTermios(int(os.Stdout.Fd()), unix.TCGETS)
 	if err != nil {
 		return
@@ -61,8 +63,8 @@ func ttyBrowser() {
 	unix.IoctlSetTermios(int(os.Stdout.Fd()), unix.TCSETSF, termios)
 }
 
+// ttyPrompter configures the terminal for prompt input.
 func ttyPrompter() {
-	// Get the current terminal settings
 	termios, err := unix.IoctlGetTermios(int(os.Stdout.Fd()), unix.TCGETS)
 	if err != nil {
 		return

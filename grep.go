@@ -1,7 +1,7 @@
 // grep.go
 // pipe the current search to grep -nP
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -16,12 +16,14 @@ import (
 	"path/filepath"
 )
 
+// grep options for the external grep command and browse flags.
 const (
 	grepDefaultOpts  = "-nP"
 	grepIgnoreCase   = "-inP"
 	browseIgnoreCase = "-i"
 )
 
+// runGrep pipes the current search pattern to grep and opens the results.
 func (br *browseObj) runGrep() {
 	if br.pattern == "" {
 		br.printMessage("No search pattern", MSG_ORANGE)

@@ -23,6 +23,7 @@ import (
 	"golang.org/x/term"
 )
 
+// main parses flags and launches the browse session.
 func main() {
 	var br browseObj
 	var tty *os.File
@@ -103,10 +104,12 @@ func main() {
 	br.saneExit()
 }
 
+// brVersion prints the current version string.
 func brVersion() {
 	fmt.Printf("browse: version %s\n", BR_VERSION)
 }
 
+// usageMessage prints CLI usage information.
 func usageMessage(arg0 string) {
 	fmt.Printf("Usage: %s [-finv] [-p pattern] [-t title] [filename...]\n",
 		filepath.Base(arg0))

@@ -1,7 +1,7 @@
 // runinpty.go
 // Run a bash command in a pseudo tty
 //
-// Copyright (c) 2024-2025 jjb
+// Copyright (c) 2024-2026 jjb
 // All rights reserved.
 //
 // This source code is licensed under the MIT license found
@@ -22,11 +22,13 @@ import (
 	"golang.org/x/term"
 )
 
+// Signal modes for PTY handling.
 const (
 	RUNSIGS  = 1
 	WAITSIGS = 2
 )
 
+// runInPty executes a command in a pseudo-terminal and restores state.
 func (br *browseObj) runInPty(cmdbuf string) {
 	var err error
 
@@ -116,9 +118,8 @@ func (br *browseObj) runInPty(cmdbuf string) {
 	br.catchSignals()
 }
 
+// ptySignals configures signal handling for PTY runs.
 func (br *browseObj) ptySignals(sigSet int, ptmx *os.File) {
-	// signals for pty processing
-
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan)
 
