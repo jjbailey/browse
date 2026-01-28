@@ -12,11 +12,17 @@ package main
 import (
 	"os"
 
+	"golang.org/x/sys/unix"
 	"golang.org/x/term"
 )
 
 // fileInit initializes browseObj state for a new file.
 func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin bool) {
+	if br.rescueFd > 0 {
+		_ = unix.Close(br.rescueFd)
+		br.rescueFd = 0
+		br.fdLink = ""
+	}
 	br.fileName = fileName
 	br.fp = fp
 	br.fromStdin = fromStdin

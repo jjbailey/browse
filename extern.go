@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "0.81"
+	BR_VERSION = "0.82"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -144,6 +144,8 @@ type browseObj struct {
 
 	// File handling and structure
 	fp          *os.File
+	fdLink      string
+	rescueFd    int
 	fileName    string
 	absFileName string
 	fromStdin   bool

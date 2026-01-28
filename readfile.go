@@ -11,6 +11,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
 	"time"
@@ -80,16 +81,41 @@ func readFile(br *browseObj, ch chan bool) {
 			return
 		}
 
-		// Get file info using our filename snapshot
-		// This could fail if file was deleted/moved, which is fine
+		// Get file info using our filename snapshot.
+		// If the file was deleted, fall back to the /proc fd link.
 		newFileSiz, newInode, err := getFileInodeSize(currentFileName)
 		if err != nil {
-			// File no longer accessible - signal failure and exit
-			select {
-			case ch <- false:
-			default:
+			br.mutex.Lock()
+			br.modeScroll = MODE_SCROLL_NONE
+			rescueWasSet := br.rescueFd > 0
+			if !rescueWasSet {
+				rescueFd, dupErr := unix.Dup(fd)
+				if dupErr == nil {
+					br.rescueFd = rescueFd
+					br.fdLink = fdLinkPath(rescueFd)
+				}
 			}
-			return
+			fdLink := br.fdLink
+			br.mutex.Unlock()
+
+			if fdLink != "" {
+				newFileSiz, newInode, err = getFileInodeSize(fdLink)
+			}
+			if err != nil {
+				br.printMessage("Rescue fd link no longer accessible", MSG_RED)
+				select {
+				case ch <- false:
+				default:
+				}
+				return
+			}
+			if !rescueWasSet {
+				msg := fmt.Sprintf("File removed: reading from %s", fdLink)
+				br.printMessage(msg, MSG_ORANGE)
+				br.mutex.Lock()
+				br.fileName = fdLink
+				br.mutex.Unlock()
+			}
 		}
 
 		var shouldRead bool

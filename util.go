@@ -231,4 +231,9 @@ func unQuote(s string) string {
 	return s
 }
 
+// fdLinkPath returns the /proc/<pid>/fd/<fd> link path for a file descriptor.
+func fdLinkPath(fd int) string {
+	return fmt.Sprintf("/proc/%d/fd/%d", os.Getpid(), fd)
+}
+
 // vim: set ts=4 sw=4 noet:
