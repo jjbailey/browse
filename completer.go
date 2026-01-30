@@ -415,7 +415,11 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 			desc = "block device"
 
 		default:
-			desc = ""
+			if SearchType == searchFiles && isBinaryFile(fullPath) {
+				desc = "binary file"
+			} else {
+				desc = ""
+			}
 		}
 
 		suggestions = append(suggestions, prompt.Suggest{
