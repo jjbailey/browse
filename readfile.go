@@ -35,6 +35,7 @@ func readInit(br *browseObj, bytesRead *int64) {
 func readFile(br *browseObj, ch chan bool) {
 	var bytesRead int64
 	var err error
+	initialRead := true
 
 	readInit(br, &bytesRead)
 
@@ -132,6 +133,7 @@ func readFile(br *browseObj, ch chan bool) {
 			br.modeScroll = MODE_SCROLL_NONE
 			br.shownMsg = true
 			shouldRead = true
+			initialRead = true
 		}
 
 		if br.savInode > 0 && br.newInode != br.savInode {
@@ -139,7 +141,7 @@ func readFile(br *browseObj, ch chan bool) {
 		} else if br.newFileSiz < br.savFileSiz {
 			handleFileReset("File truncated")
 		} else {
-			shouldRead = br.savFileSiz == 0 || br.savFileSiz < br.newFileSiz
+			shouldRead = initialRead || br.savFileSiz < br.newFileSiz
 		}
 
 		br.mutex.Unlock()
@@ -184,19 +186,20 @@ func readFile(br *browseObj, ch chan bool) {
 				readOffset += int64(lineLen)
 			}
 
-			if len(pendingLines) > 0 {
-				br.mutex.Lock()
-				for _, info := range pendingLines {
-					br.seekMap = append(br.seekMap, info.offset)
-					br.sizeMap = append(br.sizeMap, info.length)
-					br.mapSiz++
-				}
-				br.hitEOF = false
-				br.savFileSiz = br.newFileSiz
-				br.savInode = br.newInode
-				br.mutex.Unlock()
+			br.mutex.Lock()
+			for _, info := range pendingLines {
+				br.seekMap = append(br.seekMap, info.offset)
+				br.sizeMap = append(br.sizeMap, info.length)
+				br.mapSiz++
 			}
+			if len(pendingLines) > 0 {
+				br.hitEOF = false
+			}
+			br.savFileSiz = br.newFileSiz
+			br.savInode = br.newInode
+			br.mutex.Unlock()
 			bytesRead = readOffset
+			initialRead = false
 
 			select {
 			case ch <- true:
