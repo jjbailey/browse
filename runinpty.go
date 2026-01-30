@@ -10,11 +10,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"sync"
 	"syscall"
 
@@ -32,7 +34,17 @@ const (
 func (br *browseObj) runInPty(cmdbuf string) {
 	var err error
 
-	cmd := exec.Command("bash", "-c", cmdbuf)
+	bashPath, err := exec.LookPath("bash")
+	if err != nil {
+		if errors.Is(err, exec.ErrDot) {
+			bashPath, _ = filepath.Abs(bashPath)
+		} else {
+			br.printMessage("Cannot find bash", MSG_RED)
+			return
+		}
+	}
+
+	cmd := exec.Command(bashPath, "-c", cmdbuf)
 
 	// for manPage()
 	cmd.Env = os.Environ()
@@ -43,6 +55,7 @@ func (br *browseObj) runInPty(cmdbuf string) {
 
 	ptmx, err := pty.Start(cmd)
 	if err != nil {
+		br.printMessage(fmt.Sprintf("Failed to start pty: %v", err), MSG_RED)
 		// reset signals
 		br.catchSignals()
 		return
@@ -120,23 +133,31 @@ func (br *browseObj) runInPty(cmdbuf string) {
 
 // ptySignals configures signal handling for PTY runs.
 func (br *browseObj) ptySignals(sigSet int, ptmx *os.File) {
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan)
+	if sigChan != nil {
+		signal.Stop(sigChan)
+		close(sigChan)
+		sigChan = nil
+	}
 
 	switch sigSet {
 
 	case RUNSIGS:
 		signal.Ignore(syscall.SIGALRM, syscall.SIGURG)
-		signal.Reset(syscall.SIGWINCH)
+		signal.Reset(syscall.SIGWINCH, syscall.SIGCHLD)
+		return
 
 	case WAITSIGS:
-		signal.Ignore(syscall.SIGALRM, syscall.SIGCHLD, syscall.SIGURG)
+		sigChan = make(chan os.Signal, 1)
+		signal.Notify(sigChan, syscall.SIGWINCH, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM)
+		signal.Ignore(syscall.SIGALRM, syscall.SIGURG)
 	}
 
-	go func() {
-		defer signal.Stop(sigChan)
+	sc := sigChan
 
-		for sig := range sigChan {
+	go func() {
+		defer signal.Stop(sc)
+
+		for sig := range sc {
 			switch sig {
 
 			case syscall.SIGWINCH:
