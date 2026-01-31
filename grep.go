@@ -30,6 +30,13 @@ func (br *browseObj) runGrep() {
 		return
 	}
 
+	// Check if file exists before attempting to grep
+	_, err := os.Stat(br.fileName)
+	if err != nil {
+		br.printMessage("File does not exist", MSG_ORANGE)
+		return
+	}
+
 	grepPath, err := exec.LookPath("grep")
 	if err != nil {
 		br.printMessage("Cannot find 'grep' in $PATH", MSG_ORANGE)
@@ -57,11 +64,14 @@ func (br *browseObj) runGrep() {
 	patternArg := shellEscapeSingle(br.pattern)
 	titleArg := shellEscapeSingle(title)
 	fileNameArg := shellEscapeSingle(br.fileName)
+	grepPathArg := shellEscapeSingle(grepPath)
+	brPathArg := shellEscapeSingle(brPath)
 
+	// Construct command - grep should pipe output to browse for display
 	cmd := fmt.Sprintf(
 		"%s %s -e %s %s | %s %s -p %s -t %s",
-		grepPath, grepOpts, patternArg, fileNameArg,
-		brPath, brOpts, patternArg, titleArg,
+		grepPathArg, grepOpts, patternArg, fileNameArg,
+		brPathArg, brOpts, patternArg, titleArg,
 	)
 
 	// Display command preview
