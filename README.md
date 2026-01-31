@@ -140,7 +140,7 @@ Saves current session state, including:
 
 - `a` - Show the list of files you're working with. When you press `a`, you'll see the file you're currently viewing, plus any other files still in the list. For example, if you started with several files (like `browse file1 file2 file3`) and you're browsing file2, pressing `a` will show file2 and file3. This feature is handy when the program is started with multiple filenames or a wildcard (e.g., `browse *.go`), as it lets the user see which file they are currently viewing and which files remain in the queue.
 
-- `C` - Change the current working directory. This command prompts you to select a directory to switch to. You can use `~` for your home directory, or `-` and `~-` to jump back to the directory you were just in. If your directory name has spaces, put it in quotes.
+- `C` - Change the current working directory. This command prompts you to select a directory to switch to. You can use `~` for your home directory, or `-` and `~-` to jump back to the directory you were just in. If your directory name has spaces, put it in quotes. If CDPATH is set, browse will suggest directories from it.
 
 - `q` - Close the file you're browsing. Before closing, browse remembers things like your last search, marks, and where you were in the file. `Q` also closes the file you're browsing, but doesn't save your session.
 
