@@ -71,9 +71,6 @@ func userSearchComp(searchDir bool) (string, bool) {
 func runCompleter(promptStr, historyFile string) (string, bool) {
 	history := loadHistory(historyFile)
 
-	// Get hostname title
-	title := getHostnameTitle()
-
 	// reset go-prompt BackedOut flag
 	prompt.BackedOut = false
 
@@ -94,7 +91,7 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 		prompt.OptionSelectedSuggestionBGColor(prompt.DarkGray),
 		prompt.OptionSelectedSuggestionTextColor(prompt.Yellow),
 		prompt.OptionSwitchKeyBindMode(prompt.EmacsKeyBind),
-		prompt.OptionTitle(title),
+		prompt.OptionDisableTitle(),
 		prompt.OptionAddKeyBind(prompt.KeyBind{
 			Key: prompt.ControlC,
 			Fn: func(buf *prompt.Buffer) {
@@ -104,7 +101,6 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 	)
 
 	input := p.Input()
-	fmt.Printf(XTERMTITLE, title)
 	ttyBrowser()
 
 	if len(input) == 0 {
@@ -112,20 +108,6 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 	}
 
 	return input, false
-}
-
-// getHostnameTitle returns a short hostname for display in the prompt title.
-func getHostnameTitle() string {
-	hostname, err := os.Hostname()
-	if err != nil || hostname == "" {
-		return "unknown"
-	}
-
-	if dotIndex := strings.IndexByte(hostname, '.'); dotIndex != -1 {
-		hostname = hostname[:dotIndex]
-	}
-
-	return hostname
 }
 
 // completer provides suggestions based on the current SearchType and input.
@@ -164,42 +146,34 @@ func completer(d prompt.Document) []prompt.Suggest {
 
 		// Current user input before the cursor
 		text := d.TextBeforeCursor()
-
-		// If just at the very start
-		if strings.TrimSpace(text) == "" {
-			return pathCompleter("")
-		}
-
-		// If currently typing (partial) after a pipe: "|cmd"
-		if strings.HasPrefix(word, "|") {
-			if word == "|" {
-				return nil
-			}
-
-			suggestions := pathCompleter(word[1:])
-			for i := range suggestions {
-				suggestions[i].Text = "|" + suggestions[i].Text
-			}
-			return suggestions
-		}
-
-		// Split on whitespace for tokens *before* current cursor position
 		parts := strings.Fields(text)
-		numParts := len(parts)
+		n := len(parts)
+		tokenIndex := n
+		if word != "" {
+			tokenIndex = n - 1
+		}
+		isCommand := tokenIndex == 0 || (tokenIndex > 0 && parts[tokenIndex-1] == "|")
 
-		// If previous *token* is a pipe
-		if numParts > 0 && ((word == "" && parts[numParts-1] == "|") ||
-			(word != "" && numParts > 1 && parts[numParts-2] == "|")) {
+		if isCommand {
+			// If currently typing (partial) after a pipe: "|cmd"
+			if strings.HasPrefix(word, "|") {
+				if word == "|" {
+					return nil
+				}
+
+				suggestions := pathCompleter(word[1:])
+				for i := range suggestions {
+					suggestions[i].Text = "|" + suggestions[i].Text
+				}
+				return suggestions
+			}
+
+			// By default, normal path completion
 			return pathCompleter(word)
 		}
 
-		// If second or later word supplied, drop to anyCompleter
-		if numParts > 1 || (numParts == 1 && word == "") {
-			return anyCompleter(".", originalWord, onlyFiles)
-		}
-
-		// By default, normal path completion
-		return pathCompleter(word)
+		// Otherwise, complete files
+		return anyCompleter(".", originalWord, onlyFiles)
 
 	default:
 		return anyCompleter(".", originalWord, onlyFiles)
