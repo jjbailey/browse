@@ -16,7 +16,15 @@ import (
 	"path/filepath"
 )
 
+// runFormat pipes the current search pattern to fmt and opens the results.
 func (br *browseObj) runFormat() {
+	// Check if file exists before attempting to format
+	_, err := os.Stat(br.fileName)
+	if os.IsNotExist(err) {
+		br.printMessage("File does not exist", MSG_ORANGE)
+		return
+	}
+
 	formatPath, err := exec.LookPath("fmt")
 	if err != nil {
 		br.printMessage("Cannot find 'fmt' in $PATH", MSG_ORANGE)
@@ -29,20 +37,25 @@ func (br *browseObj) runFormat() {
 		return
 	}
 
-	formatOpts := fmt.Sprintf("-s -w %d", maximum(10, br.dispWidth-NUMCOLWIDTH-1))
-
 	title := "fmt -s"
 	if !br.fromStdin {
 		title += " " + filepath.Base(br.fileName)
 	}
 	titleArg := shellEscapeSingle(title)
 	fileNameArg := shellEscapeSingle(br.fileName)
+	formatPathArg := shellEscapeSingle(formatPath)
+	brPathArg := shellEscapeSingle(brPath)
 
-	cmd := fmt.Sprintf(
-		"%s %s %s | %s -t %s",
-		formatPath, formatOpts, fileNameArg,
-		brPath, titleArg,
-	)
+	// Use correct fmt command options with width parameter
+	formatOpts := fmt.Sprintf("-s -w %d", maximum(10, br.dispWidth-NUMCOLWIDTH-1))
+
+	// Construct command - fmt should pipe output to browse for display
+	cmd := fmt.Sprintf("%s %s %s | %s -t %s",
+		formatPathArg, formatOpts, fileNameArg, brPathArg, titleArg)
+
+	if br.pattern != "" {
+		cmd += " -p " + shellEscapeSingle(br.pattern)
+	}
 
 	// Display command preview
 	moveCursor(br.dispHeight, 1, true)

@@ -32,7 +32,7 @@ func (br *browseObj) printHelp() {
 		"  > [TAB]  < [BACKSPACE] [DEL]  Scroll 4 characters right/left       ",
 		"  ^ $                           Scroll to column 1, scroll to EOL    ",
 		"  #                             Line numbers                         ",
-		"  % ^G                          Page position                        ",
+		"  % = ^G                        File position                        ",
 		"  j                             Jump to line number                  ",
 		"  0 [HOME]                      Jump to SOF, column 1                ",
 		"  G                             Jump to EOF                          ",

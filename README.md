@@ -1,14 +1,14 @@
 # browse
 
-A simple, unconventional file browser designed for efficient file navigation and viewing.
+**browse**: A Simple and Unconventional File Browser for Efficient Navigation and Viewing
 
 ## Description
 
-**browse** is a minimalist file browser that focuses on essential features while maintaining a user-friendly interface. It's ideal for developers and system administrators who need a lightweight, keyboard-driven alternative to traditional file viewers.
+**browse** is a minimalist file browser that focuses on essential features while providing a user-friendly interface. It is ideal for developers and system administrators who seek a lightweight, keyboard-driven alternative to traditional file viewers.
 
-The browser supports multi-file browsing by accepting a list of files (or globs expanded by your shell), ensuring each path is resolved and validated before browsing. Input via pipe is supported and handled as if it were a temporary file. Invalid files, such as directories or non-existent files, are safely skipped with feedback.
+The browser supports multi-file browsing by accepting a list of files (or globs expanded by your shell), ensuring that each path is resolved and validated before browsing. It also supports input via pipe, treating it as if it were a temporary file. Invalid files, such as directories or non-existent files, are safely skipped, and feedback is provided.
 
-The browser enables you to temporarily leave your current file list to browse a new set of files; when you finish browsing the new list, **browse** automatically returns you to where you left off in the previous list. This "recursive file list" feature lets you explore deeply and flexibly without losing your place.
+**browse** allows you to temporarily leave your current file list to explore a new set of files. Once you finish browsing the new list, **browse** automatically returns you to your previous list. This feature, known as "recursive file listing," enables deep and flexible exploration without losing your place in the original file list.
 
 ## ✨ Features
 
@@ -81,33 +81,33 @@ browse [OPTIONS] [FILE] [FILE...]
 
 #### Search
 
-| Key | Function                                                            |
-| --- | ------------------------------------------------------------------- |
-| `/` | Regex search forward (empty pattern repeats or changes direction)   |
-| `?` | Regex search reverse (empty pattern repeats or changes direction)   |
-| `n` | Repeat search in current direction                                  |
-| `N` | Repeat search in opposite direction                                 |
-| `i` | Toggle case-sensitive/insensitive search                            |
-| `p` | Print current search pattern                                        |
-| `P` | Clear search pattern                                                |
-| `&` | Run `grep -nP` on current file for search pattern in a new session  |
+| Key | Function                                                           |
+| --- | ------------------------------------------------------------------ |
+| `/` | Regex search forward (empty pattern repeats or changes direction)  |
+| `?` | Regex search reverse (empty pattern repeats or changes direction)  |
+| `n` | Repeat search in current direction                                 |
+| `N` | Repeat search in opposite direction                                |
+| `i` | Toggle case-sensitive/insensitive search                           |
+| `p` | Print current search pattern                                       |
+| `P` | Clear search pattern                                               |
+| `&` | Run `grep -nP` on current file for search pattern in a new session |
 
 #### Miscellaneous
 
-| Key           | Function                                             |
-| ------------- | ---------------------------------------------------- |
-| `#`           | Toggle line numbers on/off                           |
-| `%`, `Ctrl+G` | Show page position                                   |
-| `!`           | Run a bash command (expands `!`, `%`, `&`, `~`)      |
-| `F`           | Run `fmt -s` on the current file in a new session    |
-| `B`           | Browse another file (expands `%`, `~`, shell glob)   |
-| `a`           | Print filenames in the browse list                   |
-| `c`           | Print current working directory                      |
-| `C`           | Change working directory                             |
-| `q`           | Quit, save session, next file in list                |
-| `Q`           | Quit without saving session, next file in list       |
-| `x`           | Exit list, save session                              |
-| `X`           | Exit list, don't save session                        |
+| Key                | Function                                           |
+| ------------------ | -------------------------------------------------- |
+| `#`                | Toggle line numbers on/off                         |
+| `%`, `=`, `Ctrl+G` | Show file position                                 |
+| `!`                | Run a bash command (expands `!`, `%`, `&`, `~`)    |
+| `F`                | Run `fmt -s` on the current file in a new session  |
+| `B`                | Browse another file (expands `%`, `~`, shell glob) |
+| `a`                | Print filenames in the browse list                 |
+| `c`                | Print current working directory                    |
+| `C`                | Change working directory                           |
+| `q`                | Quit, save session, next file in list              |
+| `Q`                | Quit without saving session, next file in list     |
+| `x`                | Exit list, save session                            |
+| `X`                | Exit list, don't save session                      |
 
 ### Symbol Expansions
 
@@ -136,24 +136,27 @@ Saves current session state, including:
 
 ## ⚙️ Working with Files and Directories
 
-- `B` - Open a new file. You'll be asked for a file name or a list of files to open. You can use wildcards (like `*.go` or `access_log.*`) to match multiple files at once. If you start your file name with a tilde (~), it points to your home directory. Typing `%` will use the current file name, and `-` will bring back the last file you viewed. You can enter multiple file names at once; separate them with spaces. If a file name has spaces, put it in quotes.
+- **`B`** - Open a new file. You will be prompted to enter a file name or a list of files to open. You can use wildcards (such as `*.go` or `access_log.*`) to match multiple files at once. If you prefix your file name with a tilde (`~`), it will refer to your home directory. Typing `%` will use the current file name, and typing `-` will bring up the last file you viewed. You can input multiple file names by separating them with spaces. If a file name contains spaces, enclose it in quotes.
 
-- `a` - Show the list of files you're working with. When you press `a`, you'll see the file you're currently viewing, plus any other files still in the list. For example, if you started with several files (like `browse file1 file2 file3`) and you're browsing file2, pressing `a` will show file2 and file3. This feature is handy when the program is started with multiple filenames or a wildcard (e.g., `browse *.go`), as it lets the user see which file they are currently viewing and which files remain in the queue.
+- **`a`** - Display the list of files you are currently working with. When you press `a`, you will see the file you are currently viewing alongside any other files still in the list. For instance, if you started with several files (like `browse file1 file2 file3`) and are viewing `file2`, pressing `a` will show `file2` and `file3`. This feature is useful when the program is initiated with multiple filenames or a wildcard (e.g., `browse *.go`), as it allows you to see which file you are currently viewing and which files remain in the queue.
 
-- `C` - Change the current working directory. This command prompts you to select a directory to switch to. You can use `~` for your home directory, or `-` and `~-` to jump back to the directory you were just in. If your directory name has spaces, put it in quotes.
+- **`C`** - Change the current working directory. This command will prompt you to select a directory to switch to. You can use `~` to refer to your home directory, or `-` and `~-` to return to the directory you were just in. If the directory name contains spaces, enclose it in quotes. If `CDPATH` is set, the program will suggest directories from that path.
 
-- `q` - Close the file you're browsing. Before closing, browse remembers things like your last search, marks, and where you were in the file. `Q` also closes the file you're browsing, but doesn't save your session.
+- **`q`** - Close the file you are currently browsing. Before closing, the program remembers your last search, any marks, and your position in the file. Alternatively, `Q` also closes the file but does not save your session.
 
-- `x` - Stop processing the current list of files and go back to where you were before. If you still have files from an earlier session, browsing will resume from that session. If there aren't any left, the program will close. `X` works the same way but doesn't save your session.
+- **`x`** - Stop processing the current list of files and return to your previous position. If you have files from an earlier session, browsing will resume from that session. If there are no remaining files, the program will close. The command `X` functions the same way but does not save your session.
 
 ## 🕑 Histories
 
-**browse** maintains persistent histories to streamline your workflow and make repeated tasks faster and easier. If you're familiar with Linux tools like bash, these history features will feel instantly familiar:
+**Browse** maintains a persistent history to streamline your workflow and make repetitive tasks faster and easier. If you're familiar with Linux tools like Bash, these history features will feel instantly familiar:
 
-- **Bash Command History:** Every time you run a shell command from within browse (using the `!` key), it's remembered. You can quickly recall, edit, and rerun previous commands—just like using the up-arrow in bash.
-- **Directory History:** Whenever you change your working directory within browse, it's recorded. You can quickly cycle through or return to recently used directories, helping you navigate large projects or complex file trees more efficiently.
-- **File History:** Files browsed are saved (as full pathnames) for easy access in the current or future sessions.
-- **Search Pattern History:** Search patterns entered for regex or text searches are saved. This feature lets you easily repeat searches or revisit common queries without retyping them.
+- **Bash Command History:** Every time you execute a shell command in Browse (using the `!` key), it is remembered. You can quickly recall, edit, and rerun previous commands, just like using the up-arrow key in Bash.
+  
+- **Directory History:** Whenever you change your working directory in Browse, it is recorded. You can easily cycle through or return to recently used directories, which helps you navigate large projects or complex file structures more efficiently.
+
+- **File History:** Files that you browse are saved (as full pathnames) for easy access in both current and future sessions.
+
+- **Search Pattern History:** Search patterns entered for regex or text searches are saved. This feature allows you to easily repeat searches or revisit common queries without having to retype them.
 
 **History Files:**
 

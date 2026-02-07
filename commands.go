@@ -80,8 +80,9 @@ const (
 	CMD_JUMP      = 'j'
 	CMD_MARK      = 'm'
 	CMD_NUMBERS   = '#'
-	CMD_PERCENT   = '%'
-	CMD_PERCENT_1 = '\007'
+	CMD_FILEPOS   = '%'
+	CMD_FILEPOS_1 = '='
+	CMD_FILEPOS_2 = '\007'
 )
 
 // ─── Virtual Key Mappings ───────────────────────────────────────────
@@ -413,21 +414,9 @@ func commands(br *browseObj) {
 			// scroll half page backward/up
 			br.scrollUp(br.dispRows >> 1)
 
-		case CMD_PERCENT, CMD_PERCENT_1:
+		case CMD_FILEPOS, CMD_FILEPOS_1, CMD_FILEPOS_2:
 			// page position
-			// -1 for SOF
-			br.mutex.Lock()
-			mapSize := br.mapSiz
-			br.mutex.Unlock()
-
-			var t float32
-			if mapSize <= 1 {
-				t = 0.0
-			} else {
-				t = float32(br.firstRow) / float32(mapSize-1) * 100.0
-			}
-			br.printMessage(fmt.Sprintf("\"%s\" %d lines --%1.1f%%--",
-				filepath.Base(br.fileName), mapSize-1, t), MSG_GREEN)
+			filePosition(br)
 
 		case CMD_NEWDIR:
 			dirCommand(br)
@@ -764,6 +753,33 @@ func handlePanic(br *browseObj) {
 		fmt.Printf("%s%s panic: %v %s\n", CLEARSCREEN, MSG_RED, r, VIDOFF)
 		br.saneExit()
 	}
+}
+
+// Print page position
+func filePosition(br *browseObj) {
+	br.mutex.Lock()
+	mapSize := br.mapSiz
+	br.mutex.Unlock()
+
+	var t float32
+	lineCount := 0
+
+	if mapSize <= 1 {
+		t = 0.0
+	} else {
+		lineCount = mapSize - 1
+		t = float32(br.firstRow) / float32(lineCount) * 100.0
+	}
+
+	availableWidth := br.dispWidth >> 1
+	dispName := br.fileName
+
+	if len(dispName) > availableWidth {
+		dispName = "..." + "/" + filepath.Base(dispName)
+	}
+
+	br.printMessage(fmt.Sprintf("\"%s\" %d lines --%1.1f%%--",
+		dispName, lineCount, t), MSG_GREEN)
 }
 
 // vim: set ts=4 sw=4 noet:

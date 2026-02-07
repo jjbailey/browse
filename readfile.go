@@ -11,6 +11,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
 	"time"
@@ -34,6 +35,7 @@ func readInit(br *browseObj, bytesRead *int64) {
 func readFile(br *browseObj, ch chan bool) {
 	var bytesRead int64
 	var err error
+	initialRead := true
 
 	readInit(br, &bytesRead)
 
@@ -80,16 +82,41 @@ func readFile(br *browseObj, ch chan bool) {
 			return
 		}
 
-		// Get file info using our filename snapshot
-		// This could fail if file was deleted/moved, which is fine
+		// Get file info using our filename snapshot.
+		// If the file was deleted, fall back to the /proc fd link.
 		newFileSiz, newInode, err := getFileInodeSize(currentFileName)
 		if err != nil {
-			// File no longer accessible - signal failure and exit
-			select {
-			case ch <- false:
-			default:
+			br.mutex.Lock()
+			br.modeScroll = MODE_SCROLL_NONE
+			rescueWasSet := br.rescueFd > 0
+			if !rescueWasSet {
+				rescueFd, dupErr := unix.Dup(fd)
+				if dupErr == nil {
+					br.rescueFd = rescueFd
+					br.fdLink = fdLinkPath(rescueFd)
+				}
 			}
-			return
+			fdLink := br.fdLink
+			br.mutex.Unlock()
+
+			if fdLink != "" {
+				newFileSiz, newInode, err = getFileInodeSize(fdLink)
+			}
+			if err != nil {
+				br.printMessage("Rescue fd link no longer accessible", MSG_RED)
+				select {
+				case ch <- false:
+				default:
+				}
+				return
+			}
+			if !rescueWasSet {
+				msg := fmt.Sprintf("File removed: reading from %s", fdLink)
+				br.printMessage(msg, MSG_ORANGE)
+				br.mutex.Lock()
+				br.fileName = fdLink
+				br.mutex.Unlock()
+			}
 		}
 
 		var shouldRead bool
@@ -106,6 +133,7 @@ func readFile(br *browseObj, ch chan bool) {
 			br.modeScroll = MODE_SCROLL_NONE
 			br.shownMsg = true
 			shouldRead = true
+			initialRead = true
 		}
 
 		if br.savInode > 0 && br.newInode != br.savInode {
@@ -113,7 +141,7 @@ func readFile(br *browseObj, ch chan bool) {
 		} else if br.newFileSiz < br.savFileSiz {
 			handleFileReset("File truncated")
 		} else {
-			shouldRead = br.savFileSiz == 0 || br.savFileSiz < br.newFileSiz
+			shouldRead = initialRead || br.savFileSiz < br.newFileSiz
 		}
 
 		br.mutex.Unlock()
@@ -158,19 +186,20 @@ func readFile(br *browseObj, ch chan bool) {
 				readOffset += int64(lineLen)
 			}
 
-			if len(pendingLines) > 0 {
-				br.mutex.Lock()
-				for _, info := range pendingLines {
-					br.seekMap = append(br.seekMap, info.offset)
-					br.sizeMap = append(br.sizeMap, info.length)
-					br.mapSiz++
-				}
-				br.hitEOF = false
-				br.savFileSiz = br.newFileSiz
-				br.savInode = br.newInode
-				br.mutex.Unlock()
+			br.mutex.Lock()
+			for _, info := range pendingLines {
+				br.seekMap = append(br.seekMap, info.offset)
+				br.sizeMap = append(br.sizeMap, info.length)
+				br.mapSiz++
 			}
+			if len(pendingLines) > 0 {
+				br.hitEOF = false
+			}
+			br.savFileSiz = br.newFileSiz
+			br.savInode = br.newInode
+			br.mutex.Unlock()
 			bytesRead = readOffset
+			initialRead = false
 
 			select {
 			case ch <- true:
