@@ -91,6 +91,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "browse: %v\n", err)
 		os.Exit(1)
 	}
+	defer tty.Close()
 	br.screenInit(tty)
 	br.catchSignals()
 
