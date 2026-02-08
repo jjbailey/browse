@@ -415,7 +415,7 @@ func commands(br *browseObj) {
 			br.scrollUp(br.dispRows >> 1)
 
 		case CMD_FILEPOS, CMD_FILEPOS_1, CMD_FILEPOS_2:
-			// page position
+			// file position
 			filePosition(br)
 
 		case CMD_NEWDIR:
@@ -755,7 +755,7 @@ func handlePanic(br *browseObj) {
 	}
 }
 
-// Print page position
+// Print file position
 func filePosition(br *browseObj) {
 	br.mutex.Lock()
 	mapSize := br.mapSiz
@@ -775,7 +775,19 @@ func filePosition(br *browseObj) {
 	dispName := br.fileName
 
 	if len(dispName) > availableWidth {
-		dispName = "..." + "/" + filepath.Base(dispName)
+		// Get parent directory and base name
+		parentDir := filepath.Dir(dispName)
+		baseName := filepath.Base(dispName)
+
+		// Create abbreviated name with parent directory
+		abbrevName := "..." + "/" + filepath.Base(parentDir) + "/" + baseName
+
+		// If still too long, just use parent/base format without ellipsis
+		if len(abbrevName) > availableWidth {
+			abbrevName = filepath.Base(parentDir) + "/" + baseName
+		}
+
+		dispName = abbrevName
 	}
 
 	br.printMessage(fmt.Sprintf("\"%s\" %d lines --%1.1f%%--",
