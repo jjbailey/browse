@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "0.82"
+	BR_VERSION = "0.83"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
