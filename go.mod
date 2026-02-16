@@ -5,7 +5,7 @@ go 1.25.7
 // Direct dependencies
 require (
 	github.com/creack/pty v1.1.24
-	github.com/jjbailey/go-prompt v0.2.3
+	github.com/jjbailey/go-prompt v0.2.4
 	github.com/pborman/getopt/v2 v2.1.0
 	golang.org/x/sys v0.41.0
 	golang.org/x/term v0.40.0
@@ -13,13 +13,10 @@ require (
 
 // Indirect dependencies
 require (
+	github.com/clipperhouse/uax29/v2 v2.6.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/mattn/go-tty v0.0.7 // indirect
-)
-
-require (
-	github.com/clipperhouse/uax29/v2 v2.6.0 // indirect
 	github.com/pkg/term v1.2.0-beta.2 // indirect
 )
