@@ -493,7 +493,11 @@ func dirCommand(br *browseObj) bool {
 		br.pageCurrent()
 		return false
 	}
+
 	newDir := expandHome(strings.Join(fields, " "))
+
+	// on %, substitute the current file's parent
+	newDir = subCommandChars(newDir, "%", filepath.Dir(br.fileName))
 
 	// Handle "cd -"
 	if newDir == "-" || newDir == "~-" {
@@ -771,7 +775,7 @@ func filePosition(br *browseObj) {
 		t = float32(br.firstRow) / float32(lineCount) * 100.0
 	}
 
-	dispName := abbreviateFileName(br.fileName, br.dispWidth >> 1)
+	dispName := abbreviateFileName(br.fileName, br.dispWidth>>1)
 
 	br.printMessage(fmt.Sprintf("\"%s\" %d lines --%1.1f%%--",
 		dispName, lineCount, t), MSG_GREEN)
