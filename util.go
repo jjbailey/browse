@@ -236,4 +236,25 @@ func fdLinkPath(fd int) string {
 	return fmt.Sprintf("/proc/%d/fd/%d", os.Getpid(), fd)
 }
 
+// abbreviateFileName abbreviates the file name if it's too long for display.
+func abbreviateFileName(dispName string, availableWidth int) string {
+	if len(dispName) <= availableWidth {
+		return dispName
+	}
+
+	// Get parent directory and base name
+	parentDir := filepath.Dir(dispName)
+	baseName := filepath.Base(dispName)
+
+	// Create abbreviated name with parent directory
+	abbrevName := "..." + "/" + filepath.Base(parentDir) + "/" + baseName
+
+	// If still too long, just use parent/base format without ellipsis
+	if len(abbrevName) > availableWidth {
+		abbrevName = filepath.Base(parentDir) + "/" + baseName
+	}
+
+	return abbrevName
+}
+
 // vim: set ts=4 sw=4 noet:

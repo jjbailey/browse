@@ -771,24 +771,7 @@ func filePosition(br *browseObj) {
 		t = float32(br.firstRow) / float32(lineCount) * 100.0
 	}
 
-	availableWidth := br.dispWidth >> 1
-	dispName := br.fileName
-
-	if len(dispName) > availableWidth {
-		// Get parent directory and base name
-		parentDir := filepath.Dir(dispName)
-		baseName := filepath.Base(dispName)
-
-		// Create abbreviated name with parent directory
-		abbrevName := "..." + "/" + filepath.Base(parentDir) + "/" + baseName
-
-		// If still too long, just use parent/base format without ellipsis
-		if len(abbrevName) > availableWidth {
-			abbrevName = filepath.Base(parentDir) + "/" + baseName
-		}
-
-		dispName = abbrevName
-	}
+	dispName := abbreviateFileName(br.fileName, br.dispWidth >> 1)
 
 	br.printMessage(fmt.Sprintf("\"%s\" %d lines --%1.1f%%--",
 		dispName, lineCount, t), MSG_GREEN)
