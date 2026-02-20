@@ -497,7 +497,9 @@ func dirCommand(br *browseObj) bool {
 	newDir := expandHome(strings.Join(fields, " "))
 
 	// on %, substitute the current file's parent
-	newDir = subCommandChars(newDir, "%", filepath.Dir(br.fileName))
+	if strings.Contains(dirInput, "%") {
+		newDir = subCommandChars(newDir, "%", filepath.Dir(br.fileName))
+	}
 
 	// Handle "cd -"
 	if newDir == "-" || newDir == "~-" {
