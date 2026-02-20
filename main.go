@@ -32,6 +32,7 @@ func main() {
 	// define command line flags
 
 	followFlag := getopt.BoolLong("follow", 'f', "follow file")
+	tailFlag := getopt.BoolLong("tail", 'F', "fast follow")
 	caseFlag := getopt.BoolLong("ignore-case", 'i', "search ignores case")
 	numberFlag := getopt.BoolLong("numbers", 'n', "line numbers")
 	patternStr := getopt.StringLong("pattern", 'p', "", "search pattern")
@@ -70,6 +71,11 @@ func main() {
 
 	if *followFlag {
 		br.modeScroll = MODE_SCROLL_FOLLOW
+	}
+
+	// subtle precedence
+	if *tailFlag {
+		br.modeScroll = MODE_SCROLL_TAIL
 	}
 
 	br.ignoreCase = *caseFlag
@@ -112,9 +118,10 @@ func brVersion() {
 
 // usageMessage prints CLI usage information.
 func usageMessage(arg0 string) {
-	fmt.Printf("Usage: %s [-finv] [-p pattern] [-t title] [filename...]\n",
+	fmt.Printf("Usage: %s [-fFinv] [-p pattern] [-t title] [filename...]\n",
 		filepath.Base(arg0))
 	fmt.Print("  -f, --follow       follow file\n")
+	fmt.Print("  -F, --tail         fast follow\n")
 	fmt.Print("  -i, --ignore-case  search ignores case\n")
 	fmt.Print("  -n, --numbers      line numbers\n")
 	fmt.Print("  -p, --pattern      search pattern\n")

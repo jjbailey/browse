@@ -48,7 +48,8 @@ browse [OPTIONS] [FILE] [FILE...]
 
 | Option                | Function                                          |
 | --------------------- | ------------------------------------------------- |
-| `-f`, `--follow`      | Follow file changes (like `tail -f`)              |
+| `-f`, `--follow`      | Follow file changes (browsable)                   |
+| `-F`, `--tail`        | Follow file changes (like `tail -f`)              |
 | `-i`, `--ignore-case` | Search ignores case                               |
 | `-n`, `--numbers`     | Start with line numbers turned on                 |
 | `-p`, `--pattern`     | Initial search pattern                            |
@@ -140,7 +141,7 @@ Saves current session state, including:
 
 - **`a`** - Display the list of files you are currently working with. When you press `a`, you will see the file you are currently viewing alongside any other files still in the list. For instance, if you started with several files (like `browse file1 file2 file3`) and are viewing `file2`, pressing `a` will show `file2` and `file3`. This feature is useful when the program is initiated with multiple filenames or a wildcard (e.g., `browse *.go`), as it allows you to see which file you are currently viewing and which files remain in the queue.
 
-- **`C`** - Change the current working directory. This command will prompt you to select a directory to switch to. You can use `~` to refer to your home directory, or `-` and `~-` to return to the directory you were just in. If the directory name contains spaces, enclose it in quotes. If `CDPATH` is set, the program will suggest directories from that path.
+- **`C`** - Change the current working directory. This command will prompt you to select a directory to switch to. You can use `~` to refer to your home directory, or `-` and `~-` to return to the directory you were just in. If the directory name contains spaces, enclose it in quotes. If `CDPATH` is set, the program will suggest directories from that path. `%` expands to the parent directory of the current file name.
 
 - **`q`** - Close the file you are currently browsing. Before closing, the program remembers your last search, any marks, and your position in the file. Alternatively, `Q` also closes the file but does not save your session.
 
@@ -151,7 +152,7 @@ Saves current session state, including:
 **Browse** maintains a persistent history to streamline your workflow and make repetitive tasks faster and easier. If you're familiar with Linux tools like Bash, these history features will feel instantly familiar:
 
 - **Bash Command History:** Every time you execute a shell command in Browse (using the `!` key), it is remembered. You can quickly recall, edit, and rerun previous commands, just like using the up-arrow key in Bash.
-  
+
 - **Directory History:** Whenever you change your working directory in Browse, it is recorded. You can easily cycle through or return to recently used directories, which helps you navigate large projects or complex file structures more efficiently.
 
 - **File History:** Files that you browse are saved (as full pathnames) for easy access in both current and future sessions.

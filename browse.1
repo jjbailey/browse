@@ -106,6 +106,11 @@ _
 T{
 \f[V]-f\f[R], \f[V]--follow\f[R]
 T}@T{
+Follow file changes (browsable)
+T}
+T{
+\f[V]-F\f[R], \f[V]--tail\f[R]
+T}@T{
 Follow file changes (like \f[V]tail -f\f[R])
 T}
 T{
@@ -442,6 +447,7 @@ just in.
 If the directory name contains spaces, enclose it in quotes.
 If \f[V]CDPATH\f[R] is set, the program will suggest directories from
 that path.
+\f[V]%\f[R] expands to the parent directory of the current file name.
 .IP \[bu] 2
 \f[B]\f[VB]q\f[B]\f[R] - Close the file you are currently browsing.
 Before closing, the program remembers your last search, any marks, and
