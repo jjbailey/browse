@@ -137,21 +137,21 @@ Saves current session state, including:
 
 ## ⚙️ Working with Files and Directories
 
-- **`B`** - Open a new file. You will be prompted to enter a file name or a list of files to open. You can use wildcards (such as `*.go` or `access_log.*`) to match multiple files at once. If you prefix your file name with a tilde (`~`), it will refer to your home directory. Typing `%` will use the current file name, and typing `-` will bring up the last file you viewed. You can input multiple file names by separating them with spaces. If a file name contains spaces, enclose it in quotes.
+- **`B`** - Open a new file. You will be prompted to enter a file name or a list of files to open. You can use wildcards (such as `*.go` or `access_log.*`) to match multiple files at once. If you prefix your file name with a tilde (**`~`**), it will refer to your home directory. Typing **`%`** will use the current file name, and typing **`-`** will bring up the last file you viewed. You can input multiple file names by separating them with spaces. If a file name contains spaces, enclose it in quotes.
 
-- **`a`** - Display the list of files you are currently working with. When you press `a`, you will see the file you are currently viewing alongside any other files still in the list. For instance, if you started with several files (like `browse file1 file2 file3`) and are viewing `file2`, pressing `a` will show `file2` and `file3`. This feature is useful when the program is initiated with multiple filenames or a wildcard (e.g., `browse *.go`), as it allows you to see which file you are currently viewing and which files remain in the queue.
+- **`a`** - Display the list of files you are currently working with. When you press **`a`**, you will see the file you are currently viewing alongside any other files still in the list. For instance, if you started with several files (like `browse file1 file2 file3`) and are viewing `file2`, pressing **`a`** will show `file2` and `file3`. This feature is useful when the program is initiated with multiple filenames or a wildcard (e.g., `browse *.go`), as it allows you to see which file you are currently viewing and which files remain in the queue.
 
-- **`C`** - Change the current working directory. This command will prompt you to select a directory to switch to. You can use `~` to refer to your home directory, or `-` and `~-` to return to the directory you were just in. If the directory name contains spaces, enclose it in quotes. If `CDPATH` is set, the program will suggest directories from that path. `%` expands to the parent directory of the current file name.
+- **`C`** - Change the current working directory. This command will prompt you to select a directory to switch to. You can use **`~`** to refer to your home directory, or **`-`** and **`~-`** to return to the directory you were just in. If the directory name contains spaces, enclose it in quotes. If `CDPATH` is set, the program will suggest directories from that path. **`%`** expands to the parent directory of the current file name.
 
-- **`q`** - Close the file you are currently browsing. Before closing, the program remembers your last search, any marks, and your position in the file. Alternatively, `Q` also closes the file but does not save your session.
+- **`q`** - Close the file you are currently browsing. Before closing, the program remembers your last search, any marks, and your position in the file. Alternatively, **`Q`** also closes the file but does not save your session.
 
-- **`x`** - Stop processing the current list of files and return to your previous position. If you have files from an earlier session, browsing will resume from that session. If there are no remaining files, the program will close. The command `X` functions the same way but does not save your session.
+- **`x`** - If you have files from a previous list, **`x`** stops processing the current list and resumes processing the next file in the previous list. If there are no remaining files, the program will close. The command **`X`** functions the same way but does not save your session.
 
 ## 🕑 Histories
 
 **Browse** maintains a persistent history to streamline your workflow and make repetitive tasks faster and easier. If you're familiar with Linux tools like Bash, these history features will feel instantly familiar:
 
-- **Bash Command History:** Every time you execute a shell command in Browse (using the `!` key), it is remembered. You can quickly recall, edit, and rerun previous commands, just like using the up-arrow key in Bash.
+- **Bash Command History:** Every time you execute a shell command in Browse (using the **`!`** key), it is remembered. You can quickly recall, edit, and rerun previous commands, just like using the up-arrow key in Bash.
 
 - **Directory History:** Whenever you change your working directory in Browse, it is recorded. You can easily cycle through or return to recently used directories, which helps you navigate large projects or complex file structures more efficiently.
 
