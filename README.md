@@ -1,0 +1,181 @@
+# browse
+
+**browse**: A Simple and Unconventional File Browser for Efficient Navigation and Viewing
+
+## Description
+
+**browse** is a minimalist file browser that focuses on essential features while providing a user-friendly interface. It is ideal for developers and system administrators who seek a lightweight, keyboard-driven alternative to traditional file viewers.
+
+The browser supports multi-file browsing by accepting a list of files (or globs expanded by your shell), ensuring that each path is resolved and validated before browsing. It also supports input via pipe, treating it as if it were a temporary file. Invalid files, such as directories or non-existent files, are safely skipped, and feedback is provided.
+
+**browse** allows you to temporarily leave your current file list to explore a new set of files. Once you finish browsing the new list, **browse** automatically returns you to your previous list. This feature, known as "recursive file listing," enables deep and flexible exploration without losing your place in the original file list.
+
+## ✨ Features
+
+### 🧭 Navigation
+
+- Forward and reverse paging
+- Continuous scrolling (forward and reverse)
+- Horizontal scrolling
+- Line jumping
+- Page marking
+
+### 🔍 Search & Filter
+
+- Forward and reverse regex searches
+- Case-sensitive/case-insensitive search toggle
+- Pattern highlighting
+- Search pattern history
+
+### 🛠️ Additional Features
+
+- File completion
+- Shell escape with command completion
+- `tail -f` functionality
+- Line numbers
+- Session saving
+- Shell command history
+- Change working directory
+- Built-in help screen
+
+## 📖 Usage
+
+### Command Line Options
+
+```bash
+browse [OPTIONS] [FILE] [FILE...]
+```
+
+| Option                | Function                                          |
+| --------------------- | ------------------------------------------------- |
+| `-f`, `--follow`      | Follow file changes (browsable)                   |
+| `-F`, `--tail`        | Follow file changes (like `tail -f`)              |
+| `-i`, `--ignore-case` | Search ignores case                               |
+| `-n`, `--numbers`     | Start with line numbers turned on                 |
+| `-p`, `--pattern`     | Initial search pattern                            |
+| `-t`, `--title`       | Page title (default is filename, blank for stdin) |
+| `-v`, `--version`     | Print browse version number                       |
+| `-?`, `--help`        | Print browse command line options                 |
+
+### Keyboard Shortcuts
+
+#### Navigation
+
+| Key                       | Function                                           |
+| ------------------------- | -------------------------------------------------- |
+| `f`, `Page Down`, `Space` | Page down toward EOF                               |
+| `b`, `Page Up`            | Page up toward SOF                                 |
+| `Ctrl+F`, `Ctrl+D`, `z`   | Scroll half page down toward EOF                   |
+| `Ctrl+B`, `Ctrl+U`, `Z`   | Scroll half page up toward SOF                     |
+| `+`, `Right`, `Enter`     | Scroll one line toward EOF                         |
+| `-`, `Left`               | Scroll one line toward SOF                         |
+| `d`, `Down`               | Toggle continuous scroll toward EOF, follow at EOF |
+| `u`, `Up`                 | Toggle continuous scroll toward SOF, stop at SOF   |
+| `>`, `Tab`                | Scroll 4 characters right                          |
+| `<`, `Backspace`, `Del`   | Scroll 4 characters left                           |
+| `^`                       | Scroll to column 1                                 |
+| `$`                       | Scroll to end of line                              |
+| `0`, `Home`               | Jump to start of file, column 1                    |
+| `G`                       | Jump to end of file                                |
+| `e`, `End`                | Jump to EOF, follow at EOF                         |
+| `t`                       | Jump to EOF, tail at EOF                           |
+
+#### Search
+
+| Key | Function                                                           |
+| --- | ------------------------------------------------------------------ |
+| `/` | Regex search forward (empty pattern repeats or changes direction)  |
+| `?` | Regex search reverse (empty pattern repeats or changes direction)  |
+| `n` | Repeat search in current direction                                 |
+| `N` | Repeat search in opposite direction                                |
+| `i` | Toggle case-sensitive/insensitive search                           |
+| `p` | Print current search pattern                                       |
+| `P` | Clear search pattern                                               |
+| `&` | Run `grep -nP` on current file for search pattern in a new session |
+
+#### Miscellaneous
+
+| Key                | Function                                           |
+| ------------------ | -------------------------------------------------- |
+| `#`                | Toggle line numbers on/off                         |
+| `%`, `=`, `Ctrl+G` | Show file position                                 |
+| `!`                | Run a bash command (expands `!`, `%`, `&`, `~`)    |
+| `F`                | Run `fmt -s` on the current file in a new session  |
+| `B`                | Browse another file (expands `%`, `~`, shell glob) |
+| `a`                | Print filenames in the browse list                 |
+| `c`                | Print current working directory                    |
+| `C`                | Change working directory                           |
+| `q`                | Quit, save session, next file in list              |
+| `Q`                | Quit without saving session, next file in list     |
+| `x`                | Exit list, save session                            |
+| `X`                | Exit list, don't save session                      |
+
+### Symbol Expansions
+
+Special symbols expanded in commands:
+
+| Symbol | Expands To             |
+| ------ | ---------------------- |
+| `!`    | Last bash command      |
+| `%`    | Current file name      |
+| `&`    | Current search pattern |
+| `~`    | Home directory         |
+
+## ⚙️ Configuration
+
+browse stores configuration and history in `~/.browse/`
+
+**Session File:** `~/.browse/browserc`
+
+Saves current session state, including:
+
+1. File name
+2. First line on page
+3. Search pattern
+4. Marks
+5. Page title
+
+## ⚙️ Working with Files and Directories
+
+- **`B`** - Open a new file. You will be prompted to enter a file name or a list of files to open. You can use wildcards (such as `*.go` or `access_log.*`) to match multiple files at once. If you prefix your file name with a tilde (**`~`**), it will refer to your home directory. Typing **`%`** will use the current file name, and typing **`-`** will bring up the last file you viewed. You can input multiple file names by separating them with spaces. If a file name contains spaces, enclose it in quotes.
+
+- **`a`** - Display the list of files you are currently working with. When you press **`a`**, you will see the file you are currently viewing alongside any other files still in the list. For instance, if you started with several files (like `browse file1 file2 file3`) and are viewing `file2`, pressing **`a`** will show `file2` and `file3`. This feature is useful when the program is initiated with multiple filenames or a wildcard (e.g., `browse *.go`), as it allows you to see which file you are currently viewing and which files remain in the queue.
+
+- **`C`** - Change the current working directory. This command will prompt you to select a directory to switch to. You can use **`~`** to refer to your home directory, or **`-`** and **`~-`** to return to the directory you were just in. If the directory name contains spaces, enclose it in quotes. If `CDPATH` is set, the program will suggest directories from that path. **`%`** expands to the parent directory of the current file name.
+
+- **`q`** - Close the file you are currently browsing. Before closing, the program remembers your last search, any marks, and your position in the file. Alternatively, **`Q`** also closes the file but does not save your session.
+
+- **`x`** - If you have files from a previous list, **`x`** stops processing the current list and resumes processing the next file in the previous list. If there are no remaining files, the program will close. The command **`X`** functions the same way but does not save your session.
+
+## 🕑 Histories
+
+**Browse** maintains a persistent history to streamline your workflow and make repetitive tasks faster and easier. If you're familiar with Linux tools like Bash, these history features will feel instantly familiar:
+
+- **Bash Command History:** Every time you execute a shell command in Browse (using the **`!`** key), it is remembered. You can quickly recall, edit, and rerun previous commands, just like using the up-arrow key in Bash.
+
+- **Directory History:** Whenever you change your working directory in Browse, it is recorded. You can easily cycle through or return to recently used directories, which helps you navigate large projects or complex file structures more efficiently.
+
+- **File History:** Files that you browse are saved (as full pathnames) for easy access in both current and future sessions.
+
+- **Search Pattern History:** Search patterns entered for regex or text searches are saved. This feature allows you to easily repeat searches or revisit common queries without having to retype them.
+
+**History Files:**
+
+- `~/.browse/browse_dirs` - Directory history
+- `~/.browse/browse_files` - File browsing history
+- `~/.browse/browse_search` - Search pattern history
+- `~/.browse/browse_shell` - Shell command history
+
+## ⚠️ Limitations
+
+- Xterm specific
+- Logical lines are truncated to screen width
+- May be US-centric
+- Can be confused by non-printable characters
+- Tabs are converted to spaces
+- go-prompt handling changes the terminal title
+- Line lengths internally capped at 4K
+
+## 📄 License
+
+MIT License - see LICENSE file for details

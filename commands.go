@@ -1,0 +1,786 @@
+// commands.go
+// The command processor
+// All user activity starts here
+//
+// Copyright (c) 2024-2026 jjb
+// All rights reserved.
+//
+// This source code is licensed under the MIT license found
+// in the root directory of this source tree.
+
+package main
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
+	"unicode"
+)
+
+// ─── Command Groups ─────────────────────────────────────────────────
+
+// Command key bindings.
+const (
+	// Navigation commands
+	CMD_PAGE_DN        = 'f'
+	CMD_PAGE_DN_1      = ' '
+	CMD_PAGE_UP        = 'b'
+	CMD_HALF_PAGE_DN   = '\006'
+	CMD_HALF_PAGE_DN_1 = '\004'
+	CMD_HALF_PAGE_DN_2 = 'z'
+	CMD_HALF_PAGE_UP   = '\002'
+	CMD_HALF_PAGE_UP_1 = '\025'
+	CMD_HALF_PAGE_UP_2 = 'Z'
+	CMD_SCROLL_DN      = '+'
+	CMD_SCROLL_DN_1    = '\r'
+	CMD_SCROLL_UP      = '-'
+	CMD_MODE_DN        = 'd'
+	CMD_MODE_UP        = 'u'
+	CMD_MODE_TAIL      = 't'
+	CMD_MODE_FOLLOW    = 'e'
+	CMD_SOF            = '0'
+	CMD_EOF            = 'G'
+
+	// Search commands
+	CMD_SEARCH_FWD      = '/'
+	CMD_SEARCH_REV      = '?'
+	CMD_SEARCH_NEXT     = 'n'
+	CMD_SEARCH_NEXT_REV = 'N'
+	CMD_SEARCH_IGN_CASE = 'i'
+	CMD_SEARCH_PRINT    = 'p'
+	CMD_SEARCH_CLEAR    = 'P'
+
+	// Horizontal scrolling commands
+	CMD_SHIFT_LEFT    = '<'
+	CMD_SHIFT_LEFT_1  = '\b'
+	CMD_SHIFT_LEFT_2  = '\177'
+	CMD_SHIFT_RIGHT   = '>'
+	CMD_SHIFT_RIGHT_1 = '\011'
+	CMD_SHIFT_ZERO    = '^'
+	CMD_SHIFT_LONGEST = '$'
+
+	// File operations
+	CMD_PRINTDIR     = 'c'
+	CMD_NEWDIR       = 'C'
+	CMD_NEWFILE      = 'B'
+	CMD_QUIT         = 'q'
+	CMD_QUIT_NO_SAVE = 'Q'
+	CMD_EXIT         = 'x'
+	CMD_EXIT_NO_SAVE = 'X'
+
+	// Other commands
+	CMD_ARGLIST   = 'a'
+	CMD_BASH      = '!'
+	CMD_FORMAT    = 'F'
+	CMD_GREP      = '&'
+	CMD_HELP      = 'h'
+	CMD_JUMP      = 'j'
+	CMD_MARK      = 'm'
+	CMD_NUMBERS   = '#'
+	CMD_FILEPOS   = '%'
+	CMD_FILEPOS_1 = '='
+	CMD_FILEPOS_2 = '\007'
+)
+
+// ─── Virtual Key Mappings ───────────────────────────────────────────
+
+// Virtual key escape sequences.
+const (
+	VK_UP    = "\033[A\000"
+	VK_DOWN  = "\033[B\000"
+	VK_LEFT  = "\033[D\000"
+	VK_RIGHT = "\033[C\000"
+
+	VK_HOME   = "\033[1~"
+	VK_HOME_1 = "\033[H\000"
+	VK_END    = "\033[4~"
+	VK_END_1  = "\033[F\000"
+	VK_PRIOR  = "\033[5~"
+	VK_NEXT   = "\033[6~"
+)
+
+// ─── Search and Scroll Constants ────────────────────────────────────
+
+// Search and scroll behavior constants.
+const (
+	SEARCH_FWD  = true
+	SEARCH_REV  = false
+	SCROLL_TAIL = 256
+	SCROLL_CONT = 2
+)
+
+// commands is the main input loop for browsing and command handling.
+func commands(br *browseObj) {
+	br.reCompile(br.pattern)
+
+	// wait for a full page
+	waitForInput(br)
+
+	ttyBrowser()
+	br.pageHeader()
+
+	// gratuitous save cursor
+	moveCursor(2, 1, false)
+	fmt.Print(CURSAVE)
+
+	if br.inMotion() {
+		br.pageLast()
+		fmt.Print(CURRESTORE)
+	} else {
+		br.pageCurrent()
+	}
+
+	// searchDir controls the direction of search operations
+	var searchDir bool = SEARCH_FWD
+
+	// handle panic
+	defer handlePanic(br)
+
+	b := make([]byte, 4)
+
+	for {
+		// scan for input -- compare 4 characters
+
+		b[0], b[1], b[2], b[3] = 0, 0, 0, 0
+		n, err := br.tty.Read(b)
+
+		// continuous modes
+
+		if err != nil || n == 0 {
+			switch br.modeScroll {
+
+			case MODE_SCROLL_UP:
+				// in continuous scroll-up mode
+				br.scrollUp(SCROLL_CONT)
+
+			case MODE_SCROLL_DN:
+				// in continuous scroll-down mode
+				br.scrollDown(SCROLL_CONT)
+
+			case MODE_SCROLL_TAIL:
+				// in tail mode
+				br.scrollDown(SCROLL_TAIL)
+
+			case MODE_SCROLL_FOLLOW:
+				// in follow mode
+				br.scrollDown(SCROLL_CONT)
+			}
+
+			continue
+		}
+
+		// convert arrow and page keys to commands
+
+		switch string(b) {
+
+		case VK_UP:
+			// up arrow -- lines move down
+			b[0] = CMD_MODE_UP
+
+		case VK_DOWN:
+			// down arrow -- lines move up
+			b[0] = CMD_MODE_DN
+
+		case VK_RIGHT:
+			// right arrow -- scroll up one
+			b[0] = CMD_SCROLL_DN
+
+		case VK_LEFT:
+			// left arrow -- scroll down one
+			b[0] = CMD_SCROLL_UP
+
+		case VK_HOME, VK_HOME_1:
+			// home/SOF
+			b[0] = CMD_SOF
+
+		case VK_END, VK_END_1:
+			// end/EOF
+			b[0] = CMD_MODE_FOLLOW
+
+		case VK_PRIOR:
+			// PG UP
+			b[0] = CMD_PAGE_UP
+
+		case VK_NEXT:
+			// PG DN
+			b[0] = CMD_PAGE_DN
+		}
+
+		// mode cancellations
+
+		prevMotion := br.inMotion()
+
+		if string(b) != "" {
+			switch b[0] {
+
+			case CMD_MODE_UP:
+				// toggle scroll up mode
+				br.toggleMode(MODE_SCROLL_UP)
+
+			case CMD_MODE_DN:
+				// toggle scroll down mode
+				br.toggleMode(MODE_SCROLL_DN)
+
+			case CMD_MODE_TAIL:
+				// toggle tail mode
+				br.toggleMode(MODE_SCROLL_TAIL)
+
+			case CMD_MODE_FOLLOW:
+				// toggle follow mode
+				br.toggleMode(MODE_SCROLL_FOLLOW)
+
+			default:
+				br.modeScroll = MODE_SCROLL_NONE
+
+				if prevMotion && b[0] == CMD_PAGE_DN_1 {
+					// CMD_PAGE_DN_1 doubles as mode cancel
+					moveCursor(2, 1, false)
+					continue
+				}
+			}
+		}
+
+		// commands
+
+		switch b[0] {
+
+		case CMD_PAGE_DN, CMD_PAGE_DN_1:
+			// page forward/down
+			br.pageDown()
+
+		case CMD_SCROLL_DN, CMD_SCROLL_DN_1:
+			// scroll forward/down
+			br.scrollDown(1)
+			moveCursor(2, 1, false)
+
+		case CMD_MODE_DN:
+			// follow mode -- follow file leisurely
+			if br.inMotion() {
+				fmt.Print(CURRESTORE)
+			} else {
+				moveCursor(2, 1, false)
+			}
+
+		case CMD_MODE_UP:
+			// continuous scroll-up mode
+			moveCursor(2, 1, false)
+
+		case CMD_PAGE_UP:
+			// page backward/up
+			if br.firstRow > 0 {
+				br.pageUp()
+			} else {
+				moveCursor(2, 1, false)
+			}
+
+		case CMD_SCROLL_UP:
+			// scroll backward/up
+			br.scrollUp(1)
+
+		case CMD_SHIFT_LEFT, CMD_SHIFT_LEFT_1, CMD_SHIFT_LEFT_2:
+			// horizontal scroll left
+			if br.shiftWidth >= TABWIDTH {
+				br.shiftWidth -= TABWIDTH
+				br.pageCurrent()
+			}
+			br.restoreLast()
+
+		case CMD_SHIFT_RIGHT, CMD_SHIFT_RIGHT_1:
+			// horizontal scroll right
+			if br.shiftWidth < (READBUFSIZ - (TABWIDTH * 2)) {
+				br.shiftWidth += TABWIDTH
+				br.pageCurrent()
+			}
+
+		case CMD_SHIFT_ZERO:
+			// horizontal scroll left to column 1
+			if br.shiftWidth > 0 {
+				br.shiftWidth = 0
+				br.pageCurrent()
+			}
+			br.restoreLast()
+
+		case CMD_SHIFT_LONGEST:
+			// horizontal scroll longest
+			br.shiftWidth = shiftLongest(br)
+			br.pageCurrent()
+
+		case CMD_SOF:
+			// beginning of file at column 1
+			br.shiftWidth = 0
+			br.printPage(0)
+
+		case CMD_EOF:
+			// end of file
+			br.pageLast()
+
+		case CMD_NUMBERS:
+			// show line numbers
+			br.modeNumbers = !br.modeNumbers
+			br.pageCurrent()
+
+		case CMD_MODE_TAIL, CMD_MODE_FOLLOW:
+			// tail or follow
+			br.pageLast()
+			if br.inMotion() {
+				fmt.Print(CURRESTORE)
+			}
+
+		case CMD_JUMP:
+			// jump to line
+			lbuf, cancelled := br.userInput("Jump: ")
+			if !cancelled && len(lbuf) > 0 {
+				n, err := strconv.Atoi(strings.TrimSpace(lbuf))
+				if err != nil {
+					br.printMessage("Invalid line number", MSG_ORANGE)
+				} else if n < 0 {
+					br.printMessage("Line number must be positive", MSG_ORANGE)
+				} else {
+					br.printPage(n)
+				}
+			}
+
+		case CMD_SEARCH_FWD:
+			// search forward/down
+			searchDir = br.doSearch(searchDir, SEARCH_FWD)
+
+		case CMD_SEARCH_REV:
+			// search backward/up
+			searchDir = br.doSearch(searchDir, SEARCH_REV)
+
+		case CMD_SEARCH_NEXT:
+			br.searchFile(br.pattern, searchDir, true)
+
+		case CMD_SEARCH_NEXT_REV:
+			// vim compat
+			br.searchFile(br.pattern, !searchDir, true)
+
+		case CMD_SEARCH_IGN_CASE:
+			br.ignoreCase = !br.ignoreCase
+			br.reCompile(br.pattern)
+			if br.ignoreCase {
+				br.printMessage("Search ignores case", MSG_GREEN)
+			} else {
+				br.printMessage("Search considers case", MSG_GREEN)
+			}
+
+		case CMD_SEARCH_PRINT:
+			// print the search pattern
+			if len(br.pattern) == 0 {
+				br.printMessage("No search pattern", MSG_GREEN)
+			} else {
+				br.printMessage(br.pattern, MSG_GREEN)
+			}
+
+		case CMD_SEARCH_CLEAR:
+			// clear the search pattern
+			br.re = nil
+			br.pattern = ""
+			br.printMessage("Search pattern cleared", MSG_GREEN)
+
+		case CMD_MARK:
+			// mark page
+			lbuf, cancelled := br.userInput("Mark: ")
+			if !cancelled && len(lbuf) > 0 {
+				m := getMark(lbuf)
+				if m == 0 {
+					br.printMessage("Invalid mark (use 1-9)", MSG_ORANGE)
+				} else {
+					br.marks[m] = br.firstRow
+					br.printMessage(fmt.Sprintf("Mark %d at line %d", m, br.marks[m]), MSG_GREEN)
+				}
+			}
+
+		case CMD_BASH:
+			br.bashCommand()
+
+		case CMD_FORMAT:
+			// fmt -s
+			br.runFormat()
+
+		case CMD_GREP:
+			// grep -nP pattern
+			br.runGrep()
+
+		case CMD_HALF_PAGE_DN, CMD_HALF_PAGE_DN_1, CMD_HALF_PAGE_DN_2:
+			// scroll half page forward/down
+			br.scrollDown(br.dispRows >> 1)
+			moveCursor(2, 1, false)
+
+		case CMD_HALF_PAGE_UP, CMD_HALF_PAGE_UP_1, CMD_HALF_PAGE_UP_2:
+			// scroll half page backward/up
+			br.scrollUp(br.dispRows >> 1)
+
+		case CMD_FILEPOS, CMD_FILEPOS_1, CMD_FILEPOS_2:
+			// file position
+			filePosition(br)
+
+		case CMD_NEWDIR:
+			dirCommand(br)
+
+		case CMD_PRINTDIR:
+			dir, _ := os.Getwd()
+			br.printMessage(dir, MSG_GREEN)
+
+		case CMD_NEWFILE:
+			if fileCommand(br) {
+				return
+			}
+
+		case CMD_ARGLIST:
+			br.printCurrentList()
+
+		case CMD_QUIT:
+			br.saveRC = true
+			br.exit = false
+			return
+
+		case CMD_QUIT_NO_SAVE:
+			br.saveRC = false
+			br.exit = false
+			return
+
+		case CMD_EXIT:
+			br.saveRC = true
+			br.exit = true
+			return
+
+		case CMD_EXIT_NO_SAVE:
+			br.saveRC = false
+			br.exit = true
+			return
+
+		case CMD_HELP:
+			// help
+			br.printHelp()
+
+		default:
+			// if digit, go to marked page
+			if unicode.IsDigit(rune(b[0])) {
+				m := getMark(string(b))
+				if m == 0 {
+					// Invalid mark - just move cursor
+					moveCursor(2, 1, false)
+				} else {
+					br.pageMarked(m)
+				}
+			} else {
+				// no modes active
+				moveCursor(2, 1, false)
+			}
+		}
+	}
+}
+
+// dirCommand changes the current working directory based on user input.
+func dirCommand(br *browseObj) bool {
+	moveCursor(br.dispRows, 1, true)
+
+	lbuf, cancelled := userDirComp()
+	dirInput := strings.TrimSpace(lbuf)
+
+	if cancelled || dirInput == "" {
+		br.pageCurrent()
+		return false
+	}
+
+	// Unquote/expand fields to one path
+	fields := fieldsQuoted(dirInput)
+	if len(fields) == 0 {
+		br.pageCurrent()
+		return false
+	}
+
+	newDir := expandHome(strings.Join(fields, " "))
+
+	// on %, substitute the current file's parent
+	if strings.Contains(dirInput, "%") {
+		newDir = subCommandChars(newDir, "%", filepath.Dir(br.fileName))
+	}
+
+	// Handle "cd -"
+	if newDir == "-" || newDir == "~-" {
+		pdir := prevDirectory()
+		if pdir == "" {
+			br.timedMessage("No previous directory", MSG_ORANGE)
+			br.pageCurrent()
+			return false
+		}
+
+		newDir = unQuote(pdir)
+	}
+
+	// Save original working directory
+	savDir, err := os.Getwd()
+	if err != nil {
+		br.timedMessage("Cannot get current directory", MSG_ORANGE)
+		br.pageCurrent()
+		return false
+	}
+
+	// No-op if already in target directory
+	if newDir == savDir {
+		br.pageCurrent()
+		br.printMessage(savDir, MSG_GREEN)
+		return true
+	}
+
+	// Try to change directory
+	if err := os.Chdir(newDir); err != nil {
+		br.timedMessage(fmt.Sprintf("Cannot chdir to %s", newDir), MSG_ORANGE)
+		br.pageCurrent()
+		return false
+	}
+
+	// Save directory history (only if actually changed)
+	curDir, _ := os.Getwd()
+	if curDir != savDir {
+		updateDirHistory(savDir, curDir)
+	}
+
+	br.pageCurrent()
+	br.printMessage(curDir, MSG_GREEN)
+	return true
+}
+
+// fileCommand opens new files or globs based on user input.
+func fileCommand(br *browseObj) bool {
+	moveCursor(br.dispRows, 1, true)
+
+	lbuf, cancelled := userFileComp()
+	newFile := strings.TrimSpace(lbuf)
+
+	if cancelled || newFile == "" {
+		br.pageCurrent()
+		return false
+	}
+
+	// remove quotes from filenames with spaces
+	tokens := fieldsQuoted(subCommandChars(newFile, "%", br.fileName))
+	if len(tokens) == 0 {
+		br.pageCurrent()
+		return false
+	}
+
+	// Pre-allocate with estimated capacity
+	allFiles := make([]string, 0, len(tokens))
+
+	for _, tok := range tokens {
+		tok = expandHome(tok)
+
+		if tok == "-" {
+			history := loadHistory(fileHistory)
+
+			if len(history) < 2 {
+				br.userAnyKey(fmt.Sprintf("%s No previous file ... [press any key] %s",
+					MSG_RED, VIDOFF))
+				br.pageCurrent()
+				return false
+			}
+
+			tok = unQuote(history[len(history)-2])
+		}
+
+		// Expand globs for each token
+		if strings.ContainsAny(tok, "*?[") {
+			files, err := filepath.Glob(tok)
+			if err != nil || len(files) == 0 {
+				if err != nil {
+					br.timedMessage("Invalid glob pattern", MSG_ORANGE)
+				} else {
+					br.timedMessage(fmt.Sprintf("No files match pattern: %s", tok), MSG_ORANGE)
+				}
+				continue
+			}
+			allFiles = append(allFiles, files...)
+		} else {
+			allFiles = append(allFiles, tok)
+		}
+	}
+
+	if len(allFiles) > 0 {
+		resetState(br)
+		processFileList(br, allFiles, false)
+		return true
+	}
+
+	br.pageCurrent()
+	return false
+}
+
+// fieldsQuoted splits a string into fields, preserving quoted substrings.
+func fieldsQuoted(s string) []string {
+	var (
+		fields  []string
+		inQuote rune
+		field   strings.Builder
+	)
+
+	for i, r := range s {
+		switch {
+
+		case r == '\'' || r == '"':
+			switch inQuote {
+
+			case 0:
+				inQuote = r
+
+			case r:
+				inQuote = 0
+
+			default:
+				field.WriteRune(r)
+			}
+
+		case unicode.IsSpace(r):
+			if inQuote == 0 {
+				if field.Len() > 0 || i > 0 && !unicode.IsSpace(rune(s[i-1])) {
+					fields = append(fields, field.String())
+					field.Reset()
+				}
+				continue
+			}
+			fallthrough
+
+		default:
+			field.WriteRune(r)
+		}
+	}
+
+	// Add the last field if not empty
+	if field.Len() > 0 || (len(s) > 0 && !unicode.IsSpace(rune(s[len(s)-1]))) {
+		fields = append(fields, field.String())
+	}
+
+	return fields
+}
+
+// waitForInput waits for enough file data to render a page.
+// strike a balance between waiting for a page and small files.
+func waitForInput(br *browseObj) {
+	const (
+		maxAttempts      = 20
+		stableThreshold  = 10
+		waitInterval     = 150 * time.Millisecond
+		modTimeThreshold = 4 * time.Second
+	)
+
+	targetSize := br.firstRow + br.dispHeight
+
+	br.mutex.Lock()
+	lastMapSize := br.mapSiz
+	br.mutex.Unlock()
+
+	stableCount := 0
+
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		br.mutex.Lock()
+		curMapSiz := br.mapSiz
+		br.mutex.Unlock()
+
+		if curMapSiz >= targetSize {
+			break
+		}
+
+		info, err := os.Stat(br.fileName)
+		if err == nil && time.Since(info.ModTime()) > modTimeThreshold {
+			// don't wait for unchanged files
+			break
+		}
+
+		if curMapSiz == lastMapSize {
+			stableCount++
+		} else {
+			stableCount = 0
+			lastMapSize = curMapSiz
+		}
+
+		if stableCount > stableThreshold {
+			break
+		}
+
+		time.Sleep(waitInterval)
+	}
+
+	br.mutex.Lock()
+	curMapSiz := br.mapSiz
+	br.mutex.Unlock()
+
+	if curMapSiz < targetSize {
+		// did not get a full read -- reset
+		// +2 for header, EOF
+		br.firstRow = maximum(0, curMapSiz-br.dispHeight+2)
+	}
+}
+
+// shiftLongest returns the horizontal shift needed to view the longest line.
+func shiftLongest(br *browseObj) int {
+	if TABWIDTH == 0 {
+		return 0
+	}
+
+	longest := 0
+
+	br.mutex.Lock()
+	mapSize := br.mapSiz
+	br.mutex.Unlock()
+	lastRow := minimum(br.firstRow+br.dispRows, mapSize)
+
+	for i := br.firstRow; i < lastRow; i++ {
+		line := br.readFromMap(i)
+		if line == nil {
+			continue
+		}
+		lineLength := len(line)
+
+		if lineLength > longest {
+			longest = lineLength
+		}
+	}
+
+	if br.modeNumbers {
+		longest += NUMCOLWIDTH
+	}
+
+	if longest <= br.dispWidth {
+		return 0
+	}
+
+	return ((longest - br.dispWidth + TABWIDTH) / TABWIDTH) * TABWIDTH
+}
+
+// handlePanic recovers from panics and exits cleanly.
+func handlePanic(br *browseObj) {
+	if r := recover(); r != nil {
+		moveCursor(br.dispRows, 1, true)
+		fmt.Printf("%s%s panic: %v %s\n", CLEARSCREEN, MSG_RED, r, VIDOFF)
+		br.saneExit()
+	}
+}
+
+// Print file position
+func filePosition(br *browseObj) {
+	br.mutex.Lock()
+	mapSize := br.mapSiz
+	br.mutex.Unlock()
+
+	var t float32
+	lineCount := 0
+
+	if mapSize <= 1 {
+		t = 0.0
+	} else {
+		lineCount = mapSize - 1
+		t = float32(br.firstRow) / float32(lineCount) * 100.0
+	}
+
+	dispName := abbreviateFileName(br.fileName, br.dispWidth>>1)
+
+	br.printMessage(fmt.Sprintf("\"%s\" %d lines --%1.1f%%--",
+		dispName, lineCount, t), MSG_GREEN)
+}
+
+// vim: set ts=4 sw=4 noet:
