@@ -39,7 +39,12 @@ func (br *browseObj) runFormat() {
 
 	title := "fmt -s"
 	if !br.fromStdin {
-		title += " " + filepath.Base(br.fileName)
+		// aesthetical
+		if br.title == filepath.Base(br.fileName) {
+			title += " " + filepath.Base(br.fileName)
+		} else {
+			title += " " + abbreviateFileName(br.fileName, br.dispWidth>>1)
+		}
 	}
 	titleArg := shellEscapeSingle(title)
 	fileNameArg := shellEscapeSingle(br.fileName)
