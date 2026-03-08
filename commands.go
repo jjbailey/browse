@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 	"unicode"
+	"unicode/utf8"
 )
 
 // ─── Command Groups ─────────────────────────────────────────────────
@@ -213,7 +214,7 @@ func commands(br *browseObj) {
 
 		prevMotion := br.inMotion()
 
-		if string(b) != "" {
+		if n > 0 {
 			switch b[0] {
 
 			case CMD_MODE_UP:
@@ -419,7 +420,7 @@ func commands(br *browseObj) {
 			filePosition(br)
 
 		case CMD_NEWDIR:
-			dirCommand(br)
+			_ = dirCommand(br)
 
 		case CMD_PRINTDIR:
 			dir, _ := os.Getwd()
@@ -619,7 +620,7 @@ func fieldsQuoted(s string) []string {
 		field   strings.Builder
 	)
 
-	for i, r := range s {
+	for _, r := range s {
 		switch {
 
 		case r == '\'' || r == '"':
@@ -637,7 +638,7 @@ func fieldsQuoted(s string) []string {
 
 		case unicode.IsSpace(r):
 			if inQuote == 0 {
-				if field.Len() > 0 || i > 0 && !unicode.IsSpace(rune(s[i-1])) {
+				if field.Len() > 0 {
 					fields = append(fields, field.String())
 					field.Reset()
 				}
@@ -651,7 +652,7 @@ func fieldsQuoted(s string) []string {
 	}
 
 	// Add the last field if not empty
-	if field.Len() > 0 || (len(s) > 0 && !unicode.IsSpace(rune(s[len(s)-1]))) {
+	if field.Len() > 0 {
 		fields = append(fields, field.String())
 	}
 
@@ -734,7 +735,7 @@ func shiftLongest(br *browseObj) int {
 		if line == nil {
 			continue
 		}
-		lineLength := len(line)
+		lineLength := utf8.RuneCount(line)
 
 		if lineLength > longest {
 			longest = lineLength
