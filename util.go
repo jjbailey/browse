@@ -16,10 +16,11 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"slices"
 	"strings"
 	"sync"
 )
+
+var tabSpaces = [TABWIDTH]byte{' ', ' ', ' ', ' '}
 
 var tabBufPool = sync.Pool{
 	New: func() any {
@@ -47,9 +48,7 @@ func expandTabs(data []byte) []byte {
 
 		case '\t':
 			spaces := TABWIDTH - (buf.Len() % TABWIDTH)
-			for i := 0; i < spaces; i++ {
-				buf.WriteByte(' ')
-			}
+			buf.Write(tabSpaces[:spaces])
 
 		default:
 			buf.WriteByte(b)
@@ -156,7 +155,7 @@ func isBinaryFile(filename string) bool {
 		return false
 	}
 
-	return slices.Contains(buffer[:bytesRead], 0)
+	return bytes.IndexByte(buffer[:bytesRead], 0) >= 0
 }
 
 // subCommandChars replaces unescaped occurrences of a character.
