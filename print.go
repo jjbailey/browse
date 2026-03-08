@@ -10,6 +10,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"sync"
@@ -89,6 +90,9 @@ func (br *browseObj) printPage(lineno int) {
 	for i := sop; i < eop; i++ {
 		br.printLine(i)
 	}
+
+	// reset
+	fmt.Print(SGR0)
 
 	// reset these
 	br.firstRow, br.lastRow = sop, eop
