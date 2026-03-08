@@ -28,10 +28,11 @@ func processPipeInput(br *browseObj) {
 		return
 	}
 	defer os.Remove(fpStdin.Name())
-	defer fpStdin.Close()
 
+	// Goroutine owns fpStdin and closes it when stdin is exhausted
 	go func() {
 		br.readStdin(os.Stdin, fpStdin)
+		fpStdin.Close()
 	}()
 
 	// Fast path for stdin: open temp file ourselves and pass to browseFile
@@ -148,6 +149,13 @@ func validateAndOpenFile(br *browseObj, targetFile string) (*os.File, error) {
 		br.userAnyKey(fmt.Sprintf("%s %s: is a directory ... [press any key] %s",
 			MSG_RED, lastNChars(targetFile, br.dispWidth), VIDOFF))
 		return nil, fmt.Errorf("%s: is a directory", targetFile)
+	}
+
+	if !stat.Mode().IsRegular() {
+		fp.Close()
+		br.userAnyKey(fmt.Sprintf("%s %s: not a regular file ... [press any key] %s",
+			MSG_RED, lastNChars(targetFile, br.dispWidth), VIDOFF))
+		return nil, fmt.Errorf("%s: not a regular file", targetFile)
 	}
 
 	return fp, nil
