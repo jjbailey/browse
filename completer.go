@@ -359,7 +359,7 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 
 		if strings.Contains(displayName, " ") {
 			if strings.Contains(displayName, "'") {
-				displayName = "\"" + displayName + "\""
+				displayName = "\"" + strings.ReplaceAll(displayName, "\"", "\\\"") + "\""
 			} else {
 				displayName = "'" + displayName + "'"
 			}
