@@ -29,11 +29,7 @@ func (br *browseObj) scrollDown(count int) {
 	for i := 0; i < count && !br.hitEOF; i++ {
 		// printLine finds EOF, sets hitEOF
 		// add line -- +1 for header
-		row := br.lastRow + 1
-		if row > br.dispHeight {
-			row = br.dispHeight
-		}
-		moveCursor(row, 1, false)
+		moveCursor(minimum(br.lastRow+1, br.dispHeight), 1, false)
 
 		if br.shownEOF {
 			// print previous line before printing the current line
@@ -68,13 +64,14 @@ func (br *browseObj) scrollUp(count int) {
 	}
 
 	rowsToScroll := minimum(count, br.firstRow)
+	scrollRevCmd := fmt.Sprintf(CURPOS+SCROLLREV, 2, 1)
 
 	for i := 0; i < rowsToScroll; i++ {
 		br.firstRow--
 		br.lastRow--
 
 		// add line
-		fmt.Printf(CURPOS+SCROLLREV, 2, 1)
+		fmt.Print(scrollRevCmd)
 
 		// printLine starts with \n
 		moveCursor(1, 1, false)
