@@ -266,7 +266,7 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 
 	if pattern == "" {
 		br.printMessage("No search pattern", MSG_ORANGE)
-		return false
+		return oldDir
 	}
 
 	// Substitute '&' with previous pattern for continued searches
@@ -380,7 +380,7 @@ func (br *browseObj) undisplayedMatches(input []byte, sol int) (bool, bool) {
 		}
 
 		// Calculate right boundary with safety checks
-		rightBoundary := index[0] - br.shiftWidth + 2
+		rightBoundary := index[1] - br.shiftWidth + 2
 		if !rightMatch && rightBoundary > displayWidth {
 			// NB: off by two
 			rightMatch = true
