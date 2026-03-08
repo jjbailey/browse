@@ -48,7 +48,6 @@ const (
 	SCROLLREGION = "\033[%d;%dr"
 	SCROLLREV    = "\033[1L"
 	SGR0         = "\033[0m\017"
-	XTERMTITLE   = "\033]0;%s\007"
 )
 
 // ─── Graphic Line Drawing ───────────────────────────────────────────
