@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "1.0.1"
+	BR_VERSION = "1.0.2"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -36,18 +36,18 @@ const (
 
 // Terminal escape sequences.
 const (
-	CURPOS       = "\033[%d;%dH"
-	CURUP        = "\033[A"
-	CURSAVE      = "\r\033\067"
-	CURRESTORE   = "\033\070"
-	CLEARSCREEN  = "\033[0J"
 	CLEARLINE    = "\033[0K"
-	SCROLLREGION = "\033[%d;%dr"
-	SCROLLREV    = "\033[1L"
-	RESETREGION  = "\033[r"
+	CLEARSCREEN  = "\033[0J"
+	CURPOS       = "\033[%d;%dH"
+	CURRESTORE   = "\033\070"
+	CURSAVE      = "\r\033\067"
+	CURUP        = "\033[A"
 	LINEWRAPOFF  = "\033[?7l"
 	LINEWRAPON   = "\033[?7h"
-	XTERMTITLE   = "\033]0;%s\007"
+	RESETREGION  = "\033[r"
+	SCROLLREGION = "\033[%d;%dr"
+	SCROLLREV    = "\033[1L"
+	SGR0         = "\033[0m\017"
 )
 
 // ─── Graphic Line Drawing ───────────────────────────────────────────

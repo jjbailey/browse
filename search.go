@@ -1,0 +1,397 @@
+// search.go
+// search the file for a given regex
+//
+// Copyright (c) 2024-2026 jjb
+// All rights reserved.
+//
+// This source code is licensed under the MIT license found
+// in the root directory of this source tree.
+
+package main
+
+import (
+	"fmt"
+	"regexp"
+	"strings"
+)
+
+// Search formatting and limits.
+const (
+	// %6d + one space
+	NUMCOLWIDTH = 7
+
+	// Maximum regex pattern length to prevent ReDoS attacks
+	MAX_PATTERN_LENGTH = 1000
+)
+
+// searchFile scans for a regex pattern and updates the view accordingly.
+// forward: true = forward, false = reverse
+// next: true = continue search, false = new search
+func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
+	var err error
+	var patternLen int
+
+	if pattern == "" {
+		br.printMessage("No search pattern", MSG_ORANGE)
+		return false
+	}
+
+	// Reset search state if pattern changed
+	if pattern != br.pattern {
+		br.lastMatch = SEARCH_RESET
+		br.re = nil
+		next = false
+
+		patternLen, err = br.reCompile(pattern)
+		if err != nil {
+			br.printMessage(fmt.Sprintf("Regex compilation error: %v", err), MSG_ORANGE)
+			return false
+		}
+
+		if patternLen == 0 {
+			br.printMessage("Empty search pattern", MSG_ORANGE)
+			return false
+		}
+	}
+
+	dispRows := br.dispRows
+
+	// Determine start and end of page
+	var startOfPage, endOfPage int
+	var wrapped, warned bool
+
+	if br.lastMatch == SEARCH_RESET || !next {
+		// New search or not continuing - use current page
+		startOfPage = br.firstRow
+		endOfPage = startOfPage + dispRows
+	} else {
+		// Continuing search - get next page
+		startOfPage, endOfPage, wrapped = br.setNextPage(forward, br.firstRow)
+	}
+
+	for {
+		firstMatch, lastMatch := br.pageIsMatch(startOfPage, endOfPage)
+
+		if wrapped && warned {
+			br.printMessage("Pattern not found", MSG_ORANGE)
+			moveCursor(2, 1, false)
+			return false
+		}
+
+		if wrapped && !warned {
+			br.displayWrapMessage(forward)
+			warned = true
+		}
+
+		if firstMatch < 0 {
+			startOfPage, endOfPage, wrapped = br.setNextPage(forward, startOfPage)
+			continue
+		}
+
+		// Display strategy: go to the page wherever the next match occurs
+		if br.lastMatch == SEARCH_RESET {
+			br.printPage(startOfPage)
+			return true
+		}
+
+		// Display strategy: reposition the page to provide match context
+		// 1/6 searching down, 5/6 searching up
+		downOffset := dispRows / 6
+		upOffset := downOffset * 5
+
+		if forward {
+			br.printPage(firstMatch - downOffset)
+		} else {
+			br.printPage(lastMatch - upOffset)
+		}
+
+		return true
+	}
+}
+
+// displayWrapMessage informs the user when the search wraps.
+func (br *browseObj) displayWrapMessage(forward bool) {
+	if forward {
+		br.timedMessage("Resuming search from SOF", MSG_GREEN)
+	} else {
+		br.timedMessage("Resuming search from EOF", MSG_GREEN)
+	}
+}
+
+// pageIsMatch returns the first and last match lines on a page.
+func (br *browseObj) pageIsMatch(startOfPage, endOfPage int) (int, int) {
+	var (
+		firstMatchLine int = -1
+		lastMatchLine  int = -1
+	)
+
+	for lineNum := startOfPage; lineNum < endOfPage; lineNum++ {
+		matchCount, _ := br.lineIsMatch(lineNum)
+		if matchCount == 0 {
+			continue
+		}
+
+		if firstMatchLine == -1 {
+			firstMatchLine = lineNum
+		}
+
+		lastMatchLine = lineNum
+	}
+
+	return firstMatchLine, lastMatchLine
+}
+
+// lineIsMatch reports the number of matches on a line and returns its content.
+func (br *browseObj) lineIsMatch(lineno int) (int, []byte) {
+	if lineno < 0 || lineno >= br.mapSiz {
+		return 0, nil
+	}
+
+	lineContent := br.readFromMap(lineno)
+	if br.re == nil {
+		return 0, lineContent
+	}
+
+	matchIndices := br.re.FindAllIndex(lineContent, -1)
+	return len(matchIndices), lineContent
+}
+
+// setNextPage calculates the next page boundaries for searching.
+func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool) {
+	dispRows := br.dispRows
+	totalRows := br.mapSiz
+	wrapped := false
+
+	if totalRows <= 0 {
+		return 0, 0, false
+	}
+
+	var newStart, newEnd int
+
+	if forward {
+		newStart = startOfPage + dispRows
+		if newStart >= totalRows {
+			newStart = 0
+			wrapped = true
+		}
+		newEnd = minimum(newStart+dispRows, totalRows)
+	} else {
+		if startOfPage == 0 {
+			// At SOF, wrap to last page at EOF
+			newStart = maximum(totalRows-dispRows, 0)
+			newEnd = totalRows
+			wrapped = true
+		} else {
+			// Go up one page
+			newEnd = startOfPage
+			newStart = 0
+			if newEnd > dispRows {
+				newStart = newEnd - dispRows
+			}
+		}
+	}
+
+	return newStart, newEnd, wrapped
+}
+
+// replaceMatch highlights matches in a line and formats it for display.
+func (br *browseObj) replaceMatch(lineno int, input []byte) string {
+	sol := br.shiftWidth
+	if sol < 0 {
+		sol = 0
+	}
+
+	// Slice safely
+	var content []byte
+
+	if sol < len(input) {
+		content = input[sol:]
+	} else {
+		content = nil
+	}
+
+	if br.re == nil {
+		return br.formatLine(lineno, string(content))
+	}
+
+	leftMatch, rightMatch := br.undisplayedMatches(input, sol)
+
+	if len(content) == 0 {
+		if leftMatch {
+			boldLeftArrow := _VID_BOLD + _VID_GREEN_FG + "\u2190" + VIDOFF
+			return br.formatLine(lineno, boldLeftArrow)
+		}
+
+		return br.formatLine(lineno, "")
+	}
+
+	var replaced []byte
+
+	if leftMatch || rightMatch {
+		replaced = br.re.ReplaceAll(content, []byte(br.replace+_VID_GREEN_FG))
+		replaced = append([]byte(_VID_GREEN_FG), replaced...)
+	} else {
+		replaced = br.re.ReplaceAll(content, []byte(br.replace))
+	}
+
+	return br.formatLine(lineno, string(replaced))
+}
+
+// formatLine formats a line with optional line numbers.
+func (br *browseObj) formatLine(lineno int, content string) string {
+	if br.modeNumbers {
+		// dim attribute is optional in the ANSI spec
+		return fmt.Sprintf("%s%6d%s %s", _VID_DIM, lineno, _VID_OFF, content)
+	}
+
+	return content
+}
+
+// doSearch prompts for a pattern and performs a search in the given direction.
+func (br *browseObj) doSearch(oldDir, newDir bool) bool {
+	moveCursor(br.dispRows, 1, true)
+
+	pattern, cancelled := userSearchComp(newDir)
+	br.shownMsg = true
+
+	if cancelled {
+		br.restoreLast()
+		return oldDir
+	}
+
+	prevPattern := br.pattern
+	if pattern == "" {
+		pattern = prevPattern
+	}
+
+	if pattern == "" {
+		br.printMessage("No search pattern", MSG_ORANGE)
+		return oldDir
+	}
+
+	// Substitute '&' with previous pattern for continued searches
+	if strings.Contains(pattern, "&") {
+		pattern = subCommandChars(pattern, "&", prevPattern)
+	}
+
+	updateHistory(pattern, searchHistory)
+
+	if oldDir != newDir {
+		if newDir {
+			br.timedMessage("Searching forward", MSG_GREEN)
+		} else {
+			br.timedMessage("Searching reverse", MSG_GREEN)
+		}
+		br.lastMatch = SEARCH_RESET
+	}
+
+	continueSearch := (oldDir == newDir && pattern == prevPattern)
+	br.searchFile(pattern, newDir, continueSearch)
+	return newDir
+}
+
+// reCompile compiles the regex and updates search state.
+func (br *browseObj) reCompile(pattern string) (int, error) {
+	if pattern == "" {
+		if br.pattern == "" {
+			return 0, nil
+		}
+
+		pattern = br.pattern
+	}
+
+	// Validate pattern length to prevent ReDoS attacks
+	if len(pattern) > MAX_PATTERN_LENGTH {
+		return 0, fmt.Errorf("pattern too long (max %d characters)", MAX_PATTERN_LENGTH)
+	}
+
+	if strings.HasPrefix(pattern, "(?i)") {
+		br.ignoreCase = true
+		pattern = strings.TrimPrefix(pattern, "(?i)")
+	}
+
+	var cp string
+
+	if br.ignoreCase {
+		cp = "(?i)" + pattern
+	} else {
+		cp = pattern
+	}
+
+	// Additional validation: check combined length after flag prefix
+	if len(cp) > MAX_PATTERN_LENGTH {
+		return 0, fmt.Errorf("pattern too long (max %d characters)", MAX_PATTERN_LENGTH)
+	}
+
+	re, err := regexp.Compile(cp)
+	if err != nil {
+		return 0, err
+	}
+
+	br.pattern = pattern
+	br.re = re
+	br.replace = fmt.Sprintf("%s%s%s", MSG_GREEN, "$0", VIDOFF)
+
+	return len(pattern), nil
+}
+
+// undisplayedMatches reports whether matches exist outside the visible slice.
+func (br *browseObj) undisplayedMatches(input []byte, sol int) (bool, bool) {
+	if br.re == nil {
+		return false, false
+	}
+
+	// Bounds check for sol parameter
+	if sol < 0 {
+		sol = 0
+	}
+
+	// Use FindAllIndex for efficiency
+	matches := br.re.FindAllIndex(input, -1)
+	if len(matches) == 0 {
+		return false, false
+	}
+
+	displayWidth := br.dispWidth
+	if br.modeNumbers {
+		displayWidth -= NUMCOLWIDTH
+	}
+
+	// Additional safety: ensure displayWidth is positive
+	if displayWidth <= 0 {
+		return false, false
+	}
+
+	leftMatch, rightMatch := false, false
+
+	for _, index := range matches {
+		// Ensure index has at least 2 elements (start and end positions)
+		if len(index) < 2 {
+			continue
+		}
+
+		// Validate index bounds
+		if index[0] < 0 || index[0] >= len(input) {
+			continue
+		}
+
+		if !leftMatch && index[0] < sol {
+			leftMatch = true
+		}
+
+		// Calculate right boundary with safety checks
+		rightBoundary := index[1] - br.shiftWidth + 2
+		if !rightMatch && rightBoundary > displayWidth {
+			// NB: off by two
+			rightMatch = true
+		}
+
+		if leftMatch && rightMatch {
+			break
+		}
+	}
+
+	return leftMatch, rightMatch
+}
+
+// vim: set ts=4 sw=4 noet:

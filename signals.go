@@ -32,8 +32,6 @@ func (br *browseObj) resizeWindow() {
 
 // saneExit restores terminal state and exits cleanly.
 func (br *browseObj) saneExit() {
-	const SGR0 = "\033[0m\017"
-
 	ttyRestore()
 	resetScrRegion()
 	fmt.Print(LINEWRAPON + SGR0)

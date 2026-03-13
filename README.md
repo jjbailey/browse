@@ -8,7 +8,7 @@
 
 The browser supports multi-file browsing by accepting a list of files (or globs expanded by your shell), ensuring that each path is resolved and validated before browsing. It also supports input via pipe, treating it as if it were a temporary file. Invalid files, such as directories or non-existent files, are safely skipped, and feedback is provided.
 
-**browse** allows you to temporarily leave your current file list to explore a new set of files. Once you finish browsing the new list, **browse** automatically returns you to your previous list. This feature, known as "recursive file listing," enables deep and flexible exploration without losing your place in the original file list.
+**browse** allows you to temporarily leave your current file list to explore a new set of files. Once you finish browsing the new list, **browse** automatically returns you to your previous list. This feature, known as "recursive browsing," enables deep and flexible exploration without losing your place in the original file list.
 
 ## ✨ Features
 
@@ -75,8 +75,11 @@ browse [OPTIONS] [FILE] [FILE...]
 | `<`, `Backspace`, `Del`   | Scroll 4 characters left                           |
 | `^`                       | Scroll to column 1                                 |
 | `$`                       | Scroll to end of line                              |
+| `j`                       | Jump to line number                                |
 | `0`, `Home`               | Jump to start of file, column 1                    |
 | `G`                       | Jump to end of file                                |
+| `m`                       | Mark current page with number 1-9                  |
+| `1`-`9`                   | Jump to mark                                       |
 | `e`, `End`                | Jump to EOF, follow at EOF                         |
 | `t`                       | Jump to EOF, tail at EOF                           |
 
