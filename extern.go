@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "1.0.3"
+	BR_VERSION = "1.0.4"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -183,7 +183,9 @@ type browseObj struct {
 	modeScroll  int
 
 	// Synchronization
-	mutex sync.Mutex
+	mutex         sync.Mutex
+	rereadPending bool
+	rereadReady   bool
 }
 
 // vim: set ts=4 sw=4 noet:
