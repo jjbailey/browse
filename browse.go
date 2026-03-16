@@ -71,7 +71,7 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 	savedList := CurrentList
 	defer func() { CurrentList = savedList }()
 
-	// Build absolute and symlink-resolved paths
+	// Build absolute and symlink-resolved paths against the starting cwd
 	absArgs := make([]string, len(args))
 	for i, fileName := range args {
 		abs, err := filepath.Abs(fileName)
@@ -117,7 +117,7 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 func browseFile(br *browseObj, fp *os.File, fileName, title string, fromStdin bool) {
 	targetFile := strings.TrimSuffix(fileName, "/")
 
-	checkBinaryFile(br, targetFile)
+	checkBinaryFile(br, fp, targetFile)
 	br.fileInit(fp, targetFile, title, fromStdin)
 
 	if !br.fromStdin {
@@ -162,8 +162,8 @@ func validateAndOpenFile(br *browseObj, targetFile string) (*os.File, error) {
 }
 
 // checkBinaryFile warns if the target file appears to be binary.
-func checkBinaryFile(br *browseObj, targetFile string) {
-	if isBinaryFile(targetFile) {
+func checkBinaryFile(br *browseObj, fp *os.File, targetFile string) {
+	if isBinaryFileFp(fp) {
 		br.timedMessage(fmt.Sprintf("%s: is a binary file", filepath.Base(targetFile)), MSG_ORANGE)
 	}
 }
