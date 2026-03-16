@@ -70,6 +70,8 @@ func readFile(br *browseObj, ch chan bool) {
 	bufReader := bufio.NewReader(readerFp)
 	type lineMeta struct{ offset, length int64 }
 	pendingLines := make([]lineMeta, 0, 1024)
+	var postRereadRefresh bool
+	var rereadDetected bool
 
 	for {
 		// Get current filename snapshot under lock
@@ -80,6 +82,62 @@ func readFile(br *browseObj, ch chan bool) {
 		if currentFileName != savFileName {
 			// new file -- exit thread
 			return
+		}
+
+		// Check for manual re-read request
+		br.mutex.Lock()
+		pendingReread := br.rereadPending
+		targetReread := br.absFileName
+		br.mutex.Unlock()
+
+		if pendingReread && targetReread != "" {
+			newFp, err := os.Open(targetReread)
+			if err != nil {
+				br.printMessage("Cannot re-open: "+err.Error(), MSG_RED)
+				continue
+			}
+
+			// Open succeeded — clear the flag and replace reader
+			readerFp.Close()
+
+			br.mutex.Lock()
+			br.rereadPending = false
+			if br.rescueFd > 0 {
+				unix.Close(br.rescueFd)
+				br.rescueFd = 0
+				br.fdLink = ""
+			}
+			br.mutex.Unlock()
+
+			newDupFd, err := unix.Dup(int(newFp.Fd()))
+			if err != nil {
+				newFp.Close()
+				br.printMessage("Cannot dup fd: "+err.Error(), MSG_RED)
+				select {
+				case ch <- false:
+				default:
+				}
+				return
+			}
+
+			br.mutex.Lock()
+			oldFp := br.fp
+			br.fp = newFp
+			br.fileName = targetReread
+			readInit(br, &bytesRead)
+			br.rereadReady = false
+			br.mutex.Unlock()
+
+			oldFp.Close()
+			readerFp = os.NewFile(uintptr(newDupFd), targetReread)
+			dupFd = newDupFd
+			fd = int(newFp.Fd())
+			bufReader.Reset(readerFp)
+			initialRead = true
+			savFileName = targetReread
+			rereadDetected = false
+			postRereadRefresh = true
+			continue
 		}
 
 		// Get file info using our filename snapshot.
@@ -96,12 +154,14 @@ func readFile(br *browseObj, ch chan bool) {
 					br.fdLink = fdLinkPath(rescueFd)
 				}
 			}
+
 			fdLink := br.fdLink
 			br.mutex.Unlock()
 
 			if fdLink != "" {
 				newFileSiz, newInode, err = getFileInodeSize(fdLink)
 			}
+
 			if err != nil {
 				br.printMessage("Rescue fd link no longer accessible", MSG_RED)
 				select {
@@ -110,12 +170,31 @@ func readFile(br *browseObj, ch chan bool) {
 				}
 				return
 			}
+
 			if !rescueWasSet {
 				msg := fmt.Sprintf("File removed: reading from %s", fdLink)
 				br.printMessage(msg, MSG_ORANGE)
 				br.mutex.Lock()
 				br.fileName = fdLink
 				br.mutex.Unlock()
+				savFileName = fdLink
+			}
+		}
+
+		// Check if original file reappeared while in rescue mode
+		if !rereadDetected {
+			br.mutex.Lock()
+			rescueActive := br.rescueFd > 0
+			absFile := br.absFileName
+			br.mutex.Unlock()
+
+			if rescueActive && absFile != "" {
+				if _, _, absErr := getFileInodeSize(absFile); absErr == nil {
+					br.mutex.Lock()
+					br.rereadReady = true
+					br.mutex.Unlock()
+					rereadDetected = true
+				}
 			}
 		}
 
@@ -128,7 +207,9 @@ func readFile(br *browseObj, ch chan bool) {
 		br.newInode = newInode
 
 		handleFileReset := func(msg string) {
-			br.printMessage(msg, MSG_RED)
+			if msg != "" {
+				br.printMessage(msg, MSG_RED)
+			}
 			readInit(br, &bytesRead)
 			br.modeScroll = MODE_SCROLL_NONE
 			br.shownMsg = true
@@ -137,8 +218,10 @@ func readFile(br *browseObj, ch chan bool) {
 		}
 
 		if br.savInode > 0 && br.newInode != br.savInode {
-			handleFileReset("File replaced")
+			br.rereadReady = true
+			handleFileReset("")
 		} else if br.newFileSiz < br.savFileSiz {
+			br.rereadReady = true
 			handleFileReset("File truncated")
 		} else {
 			shouldRead = initialRead || br.savFileSiz < br.newFileSiz
@@ -205,6 +288,12 @@ func readFile(br *browseObj, ch chan bool) {
 			case ch <- true:
 			default:
 			}
+		}
+
+		if postRereadRefresh {
+			postRereadRefresh = false
+			br.timedMessage("Re-reading file", MSG_GREEN)
+			br.pageCurrent()
 		}
 
 		time.Sleep(time.Second)

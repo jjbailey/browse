@@ -67,6 +67,7 @@ const (
 	CMD_PRINTDIR     = 'c'
 	CMD_NEWDIR       = 'C'
 	CMD_NEWFILE      = 'B'
+	CMD_REREAD       = 'r'
 	CMD_QUIT         = 'q'
 	CMD_QUIT_NO_SAVE = 'Q'
 	CMD_EXIT         = 'x'
@@ -430,6 +431,13 @@ func commands(br *browseObj) {
 			if fileCommand(br) {
 				return
 			}
+
+		case CMD_REREAD:
+			br.mutex.Lock()
+			if !br.fromStdin && br.rereadReady {
+				br.rereadPending = true
+			}
+			br.mutex.Unlock()
 
 		case CMD_ARGLIST:
 			br.printCurrentList()
