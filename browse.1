@@ -189,12 +189,12 @@ T}
 T{
 \f[V]d\f[R], \f[V]Down\f[R]
 T}@T{
-Toggle continuous scroll toward EOF, follow at EOF
+Continuous scroll toward EOF, follow at EOF
 T}
 T{
 \f[V]u\f[R], \f[V]Up\f[R]
 T}@T{
-Toggle continuous scroll toward SOF, stop at SOF
+Continuous scroll toward SOF, stop at SOF
 T}
 T{
 \f[V]>\f[R], \f[V]Tab\f[R]
@@ -343,6 +343,11 @@ T}@T{
 Browse another file (expands \f[V]%\f[R], \f[V]\[ti]\f[R], shell glob)
 T}
 T{
+\f[V]r\f[R]
+T}@T{
+Re-read the current file from disk
+T}
+T{
 \f[V]a\f[R]
 T}@T{
 Print filenames in the browse list
@@ -454,6 +459,12 @@ This feature is useful when the program is initiated with multiple
 filenames or a wildcard (e.g., \f[V]browse *.go\f[R]), as it allows you
 to see which file you are currently viewing and which files remain in
 the queue.
+.IP \[bu] 2
+\f[B]\f[VB]r\f[B]\f[R] - Re-read the current file from disk.
+Useful when a file has been replaced (e.g.,
+\f[V]mv log log.old && app > log\f[R]).
+browse detects the replacement silently; press \f[V]r\f[R] at any time
+to re-read the new file.
 .IP \[bu] 2
 \f[B]\f[VB]C\f[B]\f[R] - Change the current working directory.
 This command will prompt you to select a directory to switch to.

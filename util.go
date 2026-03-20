@@ -139,6 +139,19 @@ func getMark(buf string) int {
 	return int(buf[idx] - '0')
 }
 
+// isBinaryFileFp reports whether an open file appears to be binary.
+func isBinaryFileFp(file *os.File) bool {
+	const sampleSize = 4 * 1024
+	buffer := make([]byte, sampleSize)
+
+	bytesRead, err := file.ReadAt(buffer, 0)
+	if err != nil && err != io.EOF {
+		return false
+	}
+
+	return bytes.IndexByte(buffer[:bytesRead], 0) >= 0
+}
+
 // isBinaryFile reports whether a file appears to be binary.
 func isBinaryFile(filename string) bool {
 	file, err := os.Open(filename)
@@ -147,15 +160,7 @@ func isBinaryFile(filename string) bool {
 	}
 	defer file.Close()
 
-	const sampleSize = 4 * 1024
-	buffer := make([]byte, sampleSize)
-
-	bytesRead, err := file.Read(buffer)
-	if err != nil && err != io.EOF {
-		return false
-	}
-
-	return bytes.IndexByte(buffer[:bytesRead], 0) >= 0
+	return isBinaryFileFp(file)
 }
 
 // subCommandChars replaces unescaped occurrences of a character.
