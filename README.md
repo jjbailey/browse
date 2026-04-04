@@ -74,27 +74,27 @@ browse [OPTIONS] [FILE] [FILE...]
 
 #### Navigation
 
-| Key                       | Function                                         |
-| ------------------------- | ------------------------------------------------ |
-| `f`, `Page Down`, `Space` | Page down toward EOF                             |
-| `b`, `Page Up`            | Page up toward SOF                               |
-| `Ctrl+F`, `Ctrl+D`, `z`   | Scroll half page down toward EOF                 |
-| `Ctrl+B`, `Ctrl+U`, `Z`   | Scroll half page up toward SOF                   |
-| `+`, `Right`, `Enter`     | Scroll one line toward EOF                       |
-| `-`, `Left`               | Scroll one line toward SOF                       |
-| `d`, `Down`               | Continuous scroll toward EOF, follow at EOF      |
-| `u`, `Up`                 | Continuous scroll toward SOF, stop at SOF        |
-| `>`, `Tab`                | Scroll 4 characters right                        |
-| `<`, `Backspace`, `Del`   | Scroll 4 characters left                         |
-| `^`                       | Scroll to column 1                               |
-| `$`                       | Scroll to end of line                            |
-| `j`                       | Jump to line number                              |
-| `0`, `Home`               | Jump to start of file, column 1                  |
-| `G`                       | Jump to end of file                              |
-| `m`                       | Mark current page with number 1-9                |
-| `1`-`9`                   | Jump to mark                                     |
-| `e`, `End`                | Jump to EOF, follow at EOF                       |
-| `t`                       | Jump to EOF, tail at EOF                         |
+| Key                           | Function                                    |
+| ----------------------------- | ------------------------------------------- |
+| `f`, `Page Down`, `Space`     | Page down toward EOF                        |
+| `b`, `Page Up`                | Page up toward SOF                          |
+| `Ctrl+F`, `Ctrl+D`, `z`       | Scroll half page down toward EOF            |
+| `Ctrl+B`, `Ctrl+U`, `Z`       | Scroll half page up toward SOF              |
+| `+`, `Right`, `Enter`         | Scroll one line toward EOF                  |
+| `-`, `Left`                   | Scroll one line toward SOF                  |
+| `d`, `Down`                   | Continuous scroll toward EOF, follow at EOF |
+| `u`, `Up`                     | Continuous scroll toward SOF, stop at SOF   |
+| `>`, `Tab`, `Ctrl+Right`      | Scroll 4 characters right                   |
+| `<`, `Backspace`, `Ctrl+Left` | Scroll 4 characters left                    |
+| `^`                           | Scroll to column 1                          |
+| `$`                           | Scroll to end of line                       |
+| `j`                           | Jump to line number                         |
+| `0`, `Home`                   | Jump to start of file, column 1             |
+| `G`                           | Jump to end of file                         |
+| `m`                           | Mark current page with number 1-9           |
+| `1`-`9`                       | Jump to mark                                |
+| `e`, `End`                    | Jump to EOF, follow at EOF                  |
+| `t`                           | Jump to EOF, tail at EOF                    |
 
 #### Search
 
@@ -122,6 +122,7 @@ browse [OPTIONS] [FILE] [FILE...]
 | `a`                | Print filenames in the browse list                 |
 | `c`                | Print current working directory                    |
 | `C`                | Change working directory                           |
+| `h`                | Show the help screen                               |
 | `q`                | Quit, save session, next file in list              |
 | `Q`                | Quit without saving session, next file in list     |
 | `x`                | Exit list, save session                            |

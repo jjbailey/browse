@@ -91,15 +91,17 @@ const (
 
 // Virtual key escape sequences.
 const (
-	VK_UP    = "\033[A\000"
-	VK_DOWN  = "\033[B\000"
-	VK_LEFT  = "\033[D\000"
-	VK_RIGHT = "\033[C\000"
+	VK_UP         = "\033[A"
+	VK_DOWN       = "\033[B"
+	VK_LEFT       = "\033[D"
+	VK_RIGHT      = "\033[C"
+	VK_CTRL_LEFT  = "\033[1;5D"
+	VK_CTRL_RIGHT = "\033[1;5C"
 
 	VK_HOME   = "\033[1~"
-	VK_HOME_1 = "\033[H\000"
+	VK_HOME_1 = "\033[H"
 	VK_END    = "\033[4~"
-	VK_END_1  = "\033[F\000"
+	VK_END_1  = "\033[F"
 	VK_PRIOR  = "\033[5~"
 	VK_NEXT   = "\033[6~"
 )
@@ -141,13 +143,23 @@ func commands(br *browseObj) {
 	// handle panic
 	defer handlePanic(br)
 
-	b := make([]byte, 4)
+	b := make([]byte, 8)
 
 	for {
-		// scan for input -- compare 4 characters
+		// scan for input and collect a full escape sequence when available
 
-		b[0], b[1], b[2], b[3] = 0, 0, 0, 0
 		n, err := br.tty.Read(b)
+
+		if err == nil && n > 0 && b[0] == '\033' {
+			for n < len(b) {
+				m, readErr := br.tty.Read(b[n:])
+				n += m
+
+				if readErr != nil || m == 0 {
+					break
+				}
+			}
+		}
 
 		// continuous modes
 
@@ -176,7 +188,7 @@ func commands(br *browseObj) {
 
 		// convert arrow and page keys to commands
 
-		switch string(b) {
+		switch string(b[:n]) {
 
 		case VK_UP:
 			// up arrow -- lines move down
@@ -193,6 +205,14 @@ func commands(br *browseObj) {
 		case VK_LEFT:
 			// left arrow -- scroll down one
 			b[0] = CMD_SCROLL_UP
+
+		case VK_CTRL_LEFT:
+			// ctrl-left -- horizontal scroll left
+			b[0] = CMD_SHIFT_LEFT
+
+		case VK_CTRL_RIGHT:
+			// ctrl-right -- horizontal scroll right
+			b[0] = CMD_SHIFT_RIGHT
 
 		case VK_HOME, VK_HOME_1:
 			// home/SOF
@@ -469,7 +489,7 @@ func commands(br *browseObj) {
 		default:
 			// if digit, go to marked page
 			if unicode.IsDigit(rune(b[0])) {
-				m := getMark(string(b))
+				m := getMark(string(b[:n]))
 				if m == 0 {
 					// Invalid mark - just move cursor
 					moveCursor(2, 1, false)
