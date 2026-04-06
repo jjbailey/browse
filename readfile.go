@@ -93,6 +93,9 @@ func readFile(br *browseObj, ch chan bool) {
 		if pendingReread && targetReread != "" {
 			newFp, err := os.Open(targetReread)
 			if err != nil {
+				br.mutex.Lock()
+				br.rereadPending = false
+				br.mutex.Unlock()
 				br.printMessage("Cannot re-open: "+err.Error(), MSG_RED)
 				continue
 			}
@@ -246,17 +249,19 @@ func readFile(br *browseObj, ch chan bool) {
 			for {
 				line, err := bufReader.ReadString('\n')
 				if err != nil {
-					if err == io.EOF {
-						break
+					if err != io.EOF {
+						// Report and exit for unexpected error
+						select {
+						case ch <- false:
+						default:
+						}
+						return
 					}
-					// Report and exit for unexpected error
-					select {
-					case ch <- false:
-					default:
-					}
-					return
 				}
 				lineLen := len(line)
+				if lineLen == 0 {
+					break
+				}
 				readLen := int64(lineLen)
 				if lineLen > 0 && line[lineLen-1] == '\n' {
 					readLen--
@@ -267,6 +272,10 @@ func readFile(br *browseObj, ch chan bool) {
 				}
 				pendingLines = append(pendingLines, lineMeta{offset: readOffset, length: cappedLen})
 				readOffset += int64(lineLen)
+
+				if err == io.EOF {
+					break
+				}
 			}
 
 			br.mutex.Lock()
