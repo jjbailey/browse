@@ -45,8 +45,9 @@ func ttyBrowser() {
 		savedTermios = termios
 	}
 
-	// Set input flags - clear all except INLCR
-	termios.Iflag &^= ^uint32(unix.INLCR)
+	// Map NL to CR without clobbering unrelated input flags.
+	termios.Iflag |= unix.INLCR
+	termios.Iflag &^= unix.ICRNL
 
 	// Set local flags - clear ISIG, ICANON, ECHO, ECHOK, ECHONL
 	lflag := unix.ISIG | unix.ICANON | unix.ECHO | unix.ECHOK | unix.ECHONL

@@ -174,7 +174,10 @@ func subCommandChars(input, char, repl string) string {
 		return input
 	}
 
-	return re.ReplaceAllString(input, `${1}`+repl)
+	return re.ReplaceAllStringFunc(input, func(match string) string {
+		prefix := strings.TrimSuffix(match, char)
+		return prefix + repl
+	})
 }
 
 // resolveSymlink resolves symlinks and returns a clean path.
