@@ -39,8 +39,7 @@ func readFile(br *browseObj, ch chan bool) {
 
 	readInit(br, &bytesRead)
 
-	fd := int(br.fp.Fd())
-	dupFd, err := unix.Dup(fd)
+	dupFd, err := unix.Dup(int(br.fp.Fd()))
 	if err != nil {
 		br.printMessage("Failed to duplicate file descriptor: "+err.Error(), MSG_RED)
 		select {
@@ -61,10 +60,12 @@ func readFile(br *browseObj, ch chan bool) {
 		return
 	}
 	defer readerFp.Close()
+	fd := int(readerFp.Fd())
 
 	// Get initial filename with mutex protection
 	br.mutex.Lock()
 	savFileName := br.fileName
+	savFileSeq := br.fileSeq
 	br.mutex.Unlock()
 
 	bufReader := bufio.NewReader(readerFp)
@@ -77,9 +78,10 @@ func readFile(br *browseObj, ch chan bool) {
 		// Get current filename snapshot under lock
 		br.mutex.Lock()
 		currentFileName := br.fileName
+		currentFileSeq := br.fileSeq
 		br.mutex.Unlock()
 
-		if currentFileName != savFileName {
+		if currentFileSeq != savFileSeq || currentFileName != savFileName {
 			// new file -- exit thread
 			return
 		}
@@ -134,7 +136,7 @@ func readFile(br *browseObj, ch chan bool) {
 			oldFp.Close()
 			readerFp = os.NewFile(uintptr(newDupFd), targetReread)
 			dupFd = newDupFd
-			fd = int(newFp.Fd())
+			fd = int(readerFp.Fd())
 			bufReader.Reset(readerFp)
 			initialRead = true
 			savFileName = targetReread
@@ -204,6 +206,10 @@ func readFile(br *browseObj, ch chan bool) {
 		var shouldRead bool
 
 		br.mutex.Lock()
+		if br.fileSeq != savFileSeq || br.fileName != savFileName {
+			br.mutex.Unlock()
+			return
+		}
 
 		// Store the file info we just retrieved
 		br.newFileSiz = newFileSiz
@@ -279,6 +285,10 @@ func readFile(br *browseObj, ch chan bool) {
 			}
 
 			br.mutex.Lock()
+			if br.fileSeq != savFileSeq || br.fileName != savFileName {
+				br.mutex.Unlock()
+				return
+			}
 			for _, info := range pendingLines {
 				br.seekMap = append(br.seekMap, info.offset)
 				br.sizeMap = append(br.sizeMap, info.length)

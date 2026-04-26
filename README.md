@@ -119,6 +119,7 @@ browse [OPTIONS] [FILE] [FILE...]
 | `F`                | Run `fmt -s` on the current file in a new session  |
 | `B`                | Browse another file (expands `%`, `~`, shell glob) |
 | `r`                | Re-read the current file from disk                 |
+| `Ctrl+R`           | Rewind the current browse list                     |
 | `a`                | Print filenames in the browse list                 |
 | `c`                | Print current working directory                    |
 | `C`                | Change working directory                           |
@@ -178,6 +179,10 @@ Saves current session state, including:
   been replaced (e.g., `mv log log.old && app > log`). browse detects
   the replacement silently; press `r` at any time to re-read the new
   file.
+
+- **`Ctrl+R`** - Rewind the current browse list. This returns to the
+  first file in the active list, including a nested list opened with
+  **`B`**, without rewinding any parent list.
 
 - **`C`** - Change the current working directory. This command will
   prompt you to select a directory to switch to. You can use **`~`**

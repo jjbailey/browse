@@ -18,8 +18,11 @@ import (
 
 // fileInit initializes browseObj state for a new file.
 func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin bool) {
+	var rescueFd int
+
+	br.mutex.Lock()
 	if br.rescueFd > 0 {
-		_ = unix.Close(br.rescueFd)
+		rescueFd = br.rescueFd
 		br.rescueFd = 0
 		br.fdLink = ""
 	}
@@ -27,6 +30,12 @@ func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin boo
 	br.fp = fp
 	br.fromStdin = fromStdin
 	br.lastMatch = SEARCH_RESET
+	br.fileSeq++
+	br.mutex.Unlock()
+
+	if rescueFd > 0 {
+		_ = unix.Close(rescueFd)
+	}
 
 	if br.initTitle != "" {
 		// one-time use of -t option

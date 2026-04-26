@@ -49,7 +49,7 @@ func processPipeInput(br *browseObj) {
 }
 
 // processFileList iterates through a list of files and opens them for browsing.
-func processFileList(br *browseObj, args []string, toplevel bool) {
+func processFileList(br *browseObj, args []string, toplevel bool) bool {
 	if len(args) == 0 {
 		abs, err := filepath.Abs(br.fileName)
 		if err != nil {
@@ -58,14 +58,19 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 
 		fp, err := validateAndOpenFile(br, abs)
 		if err != nil {
-			return
+			return false
 		}
 		defer fp.Close()
 
 		CurrentList = []string{abs}
 		br.absFileName = abs
 		browseFile(br, fp, br.absFileName, setTitle(br.title, abs), false)
-		return
+		if br.listAction == LIST_ACTION_REWIND {
+			br.listAction = LIST_ACTION_NONE
+			resetState(br)
+			processFileList(br, []string{abs}, toplevel)
+		}
+		return true
 	}
 
 	savedList := CurrentList
@@ -86,18 +91,32 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 
 	CurrentList = args
 	lastIdx := len(args) - 1
+	openedAny := false
 
-	for i, fileName := range args {
+	for i := 0; i < len(args); i++ {
+		fileName := args[i]
 		fp, err := validateAndOpenFile(br, absArgs[i])
 		if err != nil {
 			continue
 		}
 
+		if !toplevel && !openedAny {
+			resetState(br)
+		}
+
 		// Save for browserc
 		br.absFileName = absArgs[i]
 		CurrentList = args[i:]
+		openedAny = true
 		browseFile(br, fp, absArgs[i], fileName, false)
 		fp.Close()
+
+		if br.listAction == LIST_ACTION_REWIND {
+			br.listAction = LIST_ACTION_NONE
+			resetState(br)
+			i = -1
+			continue
+		}
 
 		if i != lastIdx {
 			resetState(br)
@@ -111,6 +130,8 @@ func processFileList(br *browseObj, args []string, toplevel bool) {
 			break
 		}
 	}
+
+	return openedAny
 }
 
 // browseFile initializes browsing state for a file and begins processing.
