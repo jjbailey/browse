@@ -36,12 +36,8 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 		return false
 	}
 
-	// Reset search state if pattern changed
-	if pattern != br.pattern {
-		br.lastMatch = SEARCH_RESET
-		br.re = nil
-		next = false
-
+	// Reset search state after a new or missing regexp compiles successfully.
+	if pattern != br.pattern || br.re == nil {
 		patternLen, err = br.reCompile(pattern)
 		if err != nil {
 			br.printMessage(fmt.Sprintf("Regex compilation error: %v", err), MSG_ORANGE)
@@ -52,6 +48,9 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 			br.printMessage("Empty search pattern", MSG_ORANGE)
 			return false
 		}
+
+		br.lastMatch = SEARCH_RESET
+		next = false
 	}
 
 	dispRows := br.dispRows
@@ -143,7 +142,7 @@ func (br *browseObj) pageIsMatch(startOfPage, endOfPage int) (int, int) {
 
 // lineIsMatch reports the number of matches on a line and returns its content.
 func (br *browseObj) lineIsMatch(lineno int) (int, []byte) {
-	if lineno < 0 || lineno >= br.mapSiz {
+	if lineno <= 0 || lineno >= br.mapSiz {
 		return 0, nil
 	}
 
@@ -305,14 +304,19 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 		return 0, fmt.Errorf("pattern too long (max %d characters)", MAX_PATTERN_LENGTH)
 	}
 
+	ignoreCase := br.ignoreCase
 	if strings.HasPrefix(pattern, "(?i)") {
-		br.ignoreCase = true
+		ignoreCase = true
 		pattern = strings.TrimPrefix(pattern, "(?i)")
+	}
+
+	if pattern == "" {
+		return 0, nil
 	}
 
 	var cp string
 
-	if br.ignoreCase {
+	if ignoreCase {
 		cp = "(?i)" + pattern
 	} else {
 		cp = pattern
@@ -328,6 +332,7 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 		return 0, err
 	}
 
+	br.ignoreCase = ignoreCase
 	br.pattern = pattern
 	br.re = re
 	br.replace = fmt.Sprintf("%s%s%s", MSG_GREEN, "$0", VIDOFF)
