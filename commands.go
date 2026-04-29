@@ -155,23 +155,13 @@ func commands(br *browseObj) {
 	// handle panic
 	defer handlePanic(br)
 
-	b := make([]byte, 8)
+	b := make([]byte, 4)
 
 	for {
-		// scan for input and collect a full escape sequence when available
+		// scan for input -- compare 4 characters
 
+		b[0], b[1], b[2], b[3] = 0, 0, 0, 0
 		n, err := br.tty.Read(b)
-
-		if err == nil && n > 0 && b[0] == '\033' {
-			for n < len(b) {
-				m, readErr := br.tty.Read(b[n:])
-				n += m
-
-				if readErr != nil || m == 0 {
-					break
-				}
-			}
-		}
 
 		// continuous modes
 
