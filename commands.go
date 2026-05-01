@@ -68,6 +68,7 @@ const (
 	CMD_NEWDIR       = 'C'
 	CMD_NEWFILE      = 'B'
 	CMD_REREAD       = 'r'
+	CMD_REWIND       = '\022'
 	CMD_QUIT         = 'q'
 	CMD_QUIT_NO_SAVE = 'Q'
 	CMD_EXIT         = 'x'
@@ -118,7 +119,14 @@ const (
 
 // commands is the main input loop for browsing and command handling.
 func commands(br *browseObj) {
-	br.reCompile(br.pattern)
+	var searchCompileErr error
+
+	if _, err := br.reCompile(br.pattern); err != nil {
+		searchCompileErr = err
+		br.pattern = ""
+		br.re = nil
+		br.replace = ""
+	}
 
 	// wait for a full page
 	waitForInput(br)
@@ -137,29 +145,23 @@ func commands(br *browseObj) {
 		br.pageCurrent()
 	}
 
+	if searchCompileErr != nil {
+		br.printMessage(fmt.Sprintf("Regex compilation error: %v", searchCompileErr), MSG_ORANGE)
+	}
+
 	// searchDir controls the direction of search operations
 	var searchDir bool = SEARCH_FWD
 
 	// handle panic
 	defer handlePanic(br)
 
-	b := make([]byte, 8)
+	b := make([]byte, 4)
 
 	for {
-		// scan for input and collect a full escape sequence when available
+		// scan for input -- compare 4 characters
 
+		b[0], b[1], b[2], b[3] = 0, 0, 0, 0
 		n, err := br.tty.Read(b)
-
-		if err == nil && n > 0 && b[0] == '\033' {
-			for n < len(b) {
-				m, readErr := br.tty.Read(b[n:])
-				n += m
-
-				if readErr != nil || m == 0 {
-					break
-				}
-			}
-		}
 
 		// continuous modes
 
@@ -381,8 +383,13 @@ func commands(br *browseObj) {
 			br.searchFile(br.pattern, !searchDir, true)
 
 		case CMD_SEARCH_IGN_CASE:
+			oldIgnoreCase := br.ignoreCase
 			br.ignoreCase = !br.ignoreCase
-			br.reCompile(br.pattern)
+			if _, err := br.reCompile(br.pattern); err != nil {
+				br.ignoreCase = oldIgnoreCase
+				br.printMessage(fmt.Sprintf("Regex compilation error: %v", err), MSG_ORANGE)
+				break
+			}
 			if br.ignoreCase {
 				br.printMessage("Search ignores case", MSG_GREEN)
 			} else {
@@ -458,6 +465,16 @@ func commands(br *browseObj) {
 				br.rereadPending = true
 			}
 			br.mutex.Unlock()
+
+		case CMD_REWIND:
+			if br.fromStdin {
+				br.printMessage("No browse list to rewind", MSG_ORANGE)
+				break
+			}
+			br.saveRC = true
+			br.exit = false
+			br.listAction = LIST_ACTION_REWIND
+			return
 
 		case CMD_ARGLIST:
 			br.printCurrentList()
@@ -631,9 +648,12 @@ func fileCommand(br *browseObj) bool {
 	}
 
 	if len(allFiles) > 0 {
-		resetState(br)
-		processFileList(br, allFiles, false)
-		return true
+		if processFileList(br, allFiles, false) {
+			return true
+		}
+
+		br.pageCurrent()
+		return false
 	}
 
 	br.pageCurrent()

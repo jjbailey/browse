@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "1.0.5"
+	BR_VERSION = "1.1.0"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -115,6 +115,14 @@ const (
 	MODE_SCROLL_FOLLOW = 4
 )
 
+// ─── Browse List Actions ────────────────────────────────────────────
+
+// List action constants request control-flow changes from processFileList.
+const (
+	LIST_ACTION_NONE = iota
+	LIST_ACTION_REWIND
+)
+
 // ─── Default and Browse History Files ───────────────────────────────
 
 // History and configuration file names.
@@ -146,6 +154,7 @@ type browseObj struct {
 	fp          *os.File
 	fdLink      string
 	rescueFd    int
+	fileSeq     uint64
 	fileName    string
 	absFileName string
 	fromStdin   bool
@@ -163,11 +172,12 @@ type browseObj struct {
 	lastMatch  int
 
 	// State flags
-	hitEOF   bool
-	shownEOF bool
-	shownMsg bool
-	saveRC   bool
-	exit     bool
+	hitEOF     bool
+	shownEOF   bool
+	shownMsg   bool
+	saveRC     bool
+	exit       bool
+	listAction int
 
 	// File size tracking
 	newFileSiz int64
