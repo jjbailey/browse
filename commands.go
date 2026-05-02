@@ -155,12 +155,14 @@ func commands(br *browseObj) {
 	// handle panic
 	defer handlePanic(br)
 
-	b := make([]byte, 4)
+	b := make([]byte, 6) // max length of any key press
 
 	for {
-		// scan for input -- compare 4 characters
+		// scan for input -- compare full escape sequences
 
-		b[0], b[1], b[2], b[3] = 0, 0, 0, 0
+		for i := range b {
+			b[i] = 0
+		}
 		n, err := br.tty.Read(b)
 
 		// continuous modes
