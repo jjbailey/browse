@@ -463,7 +463,7 @@ func commands(br *browseObj) {
 
 		case CMD_REREAD:
 			br.mutex.Lock()
-			if !br.fromStdin && br.rereadReady {
+			if !br.fromStdin && br.absFileName != "" {
 				br.rereadPending = true
 			}
 			br.mutex.Unlock()
