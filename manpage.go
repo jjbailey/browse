@@ -37,7 +37,8 @@ func (br *browseObj) manPage() {
 		return
 	}
 
-	cmd := manPath + " browse | " + brPath + " -t browse.1"
+	cmd := fmt.Sprintf("MANWIDTH=%d %s browse | %s -t browse.1",
+		br.dispWidth-1, shellEscapeSingle(manPath), shellEscapeSingle(brPath))
 
 	// Display command preview
 	moveCursor(br.dispHeight, 1, true)
