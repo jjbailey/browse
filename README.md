@@ -1,59 +1,89 @@
 # browse
 
-**browse**: A Simple and Unconventional File Browser for Efficient
-Navigation and Viewing
+**browse**: a multi-file pager with recursive navigation
 
-## Description
+**browse** is an interactive pager for navigating *sets of files*, not just
+viewing one file at a time.
 
-**browse** is a minimalist file browser that focuses on essential
-features while providing a user-friendly interface. It is ideal for
-developers and system administrators who seek a lightweight,
-keyboard-driven alternative to traditional file viewers.
+Unlike traditional pagers, **browse** lets you temporarily switch to a new set
+of files and then return exactly where you left off. This recursive browsing
+model makes it natural to explore logs, search results, source trees, and
+related files without losing context.
 
-The browser supports multi-file browsing by accepting a list of files
-(or globs expanded by your shell), ensuring that each path is resolved
-and validated before browsing. It also supports input via pipe,
-treating it as if it were a temporary file. Invalid files, such as
-directories or non-existent files, are safely skipped, and feedback is
-provided.
+**Think:** `less` + `pushd/popd` for files.
 
-**browse** allows you to temporarily leave your current file list to
-explore a new set of files. Once you finish browsing the new list,
-**browse** automatically returns you to your previous list. This
-feature, known as "recursive browsing," enables deep and flexible
-exploration without losing your place in the original file list.
+## Why Use Browse?
 
-## ✨ Features
+- Explore multiple files as one workflow.
+- Drill into a new file set and return to your previous place.
+- Browse command output from pipelines as if it were a file.
+- Use keyboard-driven navigation, search, shell commands, and history.
+- Keep your context while investigating logs, source, or generated results.
 
-### 🧭 Navigation
+## Features
 
-- Forward and reverse paging
-- Continuous scrolling (forward and reverse)
-- Horizontal scrolling
-- Line jumping
-- Page marking
+### Navigation Features
 
-### 🔍 Search & Filter
+- Forward and reverse paging.
+- Continuous scrolling in both directions.
+- Horizontal scrolling for wide lines.
+- Jump to line numbers.
+- Mark pages and jump back to them.
+- Follow and tail modes for changing files.
 
-- Forward and reverse regex searches
-- Case-sensitive/case-insensitive search toggle
-- Pattern highlighting
-- Search pattern history
+### Search and Exploration
 
-### 🛠️ Additional Features
+- Forward and reverse regex search.
+- Case-sensitive and case-insensitive search.
+- Pattern highlighting.
+- Search pattern history.
+- Run `grep` on the current file in a nested browse session.
 
-- File completion
-- Shell escape with command completion
-- `tail -f` functionality
-- Line numbers
-- Session saving
-- Shell command history
-- Change working directory
-- Built-in help screen
+### Multi-File Workflow
 
-## 📖 Usage
+- Browse multiple files from the command line.
+- Browse standard input as a temporary file.
+- Open nested file sets with `B`.
+- Return from nested file sets with `x` or `X`.
+- Rewind the active file list with `Ctrl+R`.
+- Show the current remaining file list with `a`.
 
-### Command Line Options
+### Convenience
+
+- File and directory completion.
+- Shell escape with command completion.
+- Persistent file, directory, search, and shell histories.
+- Session saving and restoration.
+- Run `fmt -s` on the current file in a nested browse session.
+- Built-in help screen.
+
+## Usage
+
+Browse one or more files:
+
+```bash
+browse file1.log file2.log file3.log
+```
+
+Browse shell-expanded globs:
+
+```bash
+browse *.go
+```
+
+Browse results from a pipeline:
+
+```bash
+grep -rl timeout /var/log | browse
+```
+
+Start with an initial search pattern:
+
+```bash
+browse -p ERROR app.log
+```
+
+## Command Line Options
 
 ```bash
 browse [OPTIONS] [FILE] [FILE...]
@@ -61,18 +91,18 @@ browse [OPTIONS] [FILE] [FILE...]
 
 | Option                | Function                                          |
 | --------------------- | ------------------------------------------------- |
-| `-f`, `--follow`      | Follow file changes (browsable)                   |
-| `-F`, `--tail`        | Follow file changes (like `tail -f`)              |
+| `-f`, `--follow`      | Follow file changes while still browsing          |
+| `-F`, `--tail`        | Follow file changes like `tail -f`                |
 | `-i`, `--ignore-case` | Search ignores case                               |
 | `-n`, `--numbers`     | Start with line numbers turned on                 |
 | `-p`, `--pattern`     | Initial search pattern                            |
-| `-t`, `--title`       | Page title (default is filename, blank for stdin) |
+| `-t`, `--title`       | Page title, default filename, blank for stdin     |
 | `-v`, `--version`     | Print browse version number                       |
 | `-?`, `--help`        | Print browse command line options                 |
 
-### Keyboard Shortcuts
+## Keyboard Shortcuts
 
-#### Navigation
+### Navigation Keys
 
 | Key                           | Function                                    |
 | ----------------------------- | ------------------------------------------- |
@@ -84,8 +114,8 @@ browse [OPTIONS] [FILE] [FILE...]
 | `-`, `Left`                   | Scroll one line toward SOF                  |
 | `d`, `Down`                   | Continuous scroll toward EOF, follow at EOF |
 | `u`, `Up`                     | Continuous scroll toward SOF, stop at SOF   |
-| `>`, `Tab`, `Ctrl+Right`      | Scroll 4 characters right                   |
-| `<`, `Backspace`, `Ctrl+Left` | Scroll 4 characters left                    |
+| `>`, `Tab`, `Ctrl+Right`      | Scroll right                                |
+| `<`, `Backspace`, `Ctrl+Left` | Scroll left                                 |
 | `^`                           | Scroll to column 1                          |
 | `$`                           | Scroll to end of line                       |
 | `j`                           | Jump to line number                         |
@@ -96,154 +126,145 @@ browse [OPTIONS] [FILE] [FILE...]
 | `e`, `End`                    | Jump to EOF, follow at EOF                  |
 | `t`                           | Jump to EOF, tail at EOF                    |
 
-#### Search
+### Search
 
 | Key | Function                                                           |
 | --- | ------------------------------------------------------------------ |
-| `/` | Regex search forward (empty pattern repeats or changes direction)  |
-| `?` | Regex search reverse (empty pattern repeats or changes direction)  |
+| `/` | Regex search forward                                               |
+| `?` | Regex search reverse                                               |
 | `n` | Repeat search in current direction                                 |
 | `N` | Repeat search in opposite direction                                |
-| `i` | Toggle case-sensitive/insensitive search                           |
+| `i` | Toggle case-sensitive or case-insensitive search                   |
 | `p` | Print current search pattern                                       |
 | `P` | Clear search pattern                                               |
 | `&` | Run `grep -nP` on current file for search pattern in a new session |
 
-#### Miscellaneous
+### Files, Lists, and Session Control
 
-| Key                | Function                                           |
-| ------------------ | -------------------------------------------------- |
-| `#`                | Toggle line numbers on/off                         |
-| `%`, `=`, `Ctrl+G` | Show file position                                 |
-| `!`                | Run a bash command (expands `!`, `%`, `&`, `~`)    |
-| `F`                | Run `fmt -s` on the current file in a new session  |
-| `B`                | Browse another file (expands `%`, `~`, shell glob) |
-| `r`                | Re-read the current file from disk                 |
-| `Ctrl+R`           | Rewind the current browse list                     |
-| `a`                | Print filenames in the browse list                 |
-| `c`                | Print current working directory                    |
-| `C`                | Change working directory                           |
-| `h`                | Show the help screen                               |
-| `q`                | Quit, save session, next file in list              |
-| `Q`                | Quit without saving session, next file in list     |
-| `x`                | Exit list, save session                            |
-| `X`                | Exit list, don't save session                      |
+| Key      | Function                                           |
+| -------- | -------------------------------------------------- |
+| `B`      | Browse another file or file set                    |
+| `r`      | Re-read the current file from disk                 |
+| `Ctrl+R` | Rewind the current browse list                     |
+| `a`      | Print filenames in the current browse list         |
+| `q`      | Quit current file, save session, continue list     |
+| `Q`      | Quit current file without saving, continue list    |
+| `x`      | Exit current list, save session                    |
+| `X`      | Exit current list without saving session           |
 
-### Symbol Expansions
+### Miscellaneous
 
-Special symbols expanded in commands:
+| Key                | Function                                      |
+| ------------------ | --------------------------------------------- |
+| `#`                | Toggle line numbers                           |
+| `%`, `=`, `Ctrl+G` | Show file position                            |
+| `!`                | Run a shell command                           |
+| `F`                | Run `fmt -s` on current file in a new session |
+| `c`                | Print current working directory               |
+| `C`                | Change working directory                      |
+| `h`                | Show the help screen                          |
 
-| Symbol | Expands To             |
-| ------ | ---------------------- |
-| `!`    | Last bash command      |
-| `%`    | Current file name      |
-| `&`    | Current search pattern |
-| `~`    | Home directory         |
+## Working With Files
 
-## ⚙️ Configuration
+### Opening File Sets
 
-browse stores configuration and history in `~/.browse/`
+Press `B` to open a new file or file set. The prompt accepts one or more file
+names, shell globs such as `*.go`, quoted filenames containing spaces, and
+history entries. It also expands special symbols such as `%` for the current
+file and `~` for your home directory.
 
-**Session File:** `~/.browse/browserc`
+When you open a file set with `B`, **browse** temporarily leaves the current
+list. When the nested list is finished, **browse** automatically resumes the
+previous list where you left off.
 
-Saves current session state, including:
+### Showing the Current List
 
-1. File name
-2. First line on page
-3. Search pattern
-4. Marks
-5. Page title
+Press `a` to show the current file and any remaining files in the active list.
+If you started with:
 
-## ⚙️ Working with Files and Directories
+```bash
+browse file1 file2 file3
+```
 
-- **`B`** - Open a new file. You will be prompted to enter a file name
-  or a list of files to open. You can use wildcards (such as `*.go` or
-  `access_log.*`) to match multiple files at once. If you prefix your
-  file name with a tilde (**`~`**), it will refer to your home
-  directory. Typing **`%`** will use the current file name, and typing
-  **`-`** will bring up the last file you viewed. You can input
-  multiple file names by separating them with spaces. If a file name
-  contains spaces, enclose it in quotes.
+and are currently viewing `file2`, pressing `a` shows `file2` and `file3`.
 
-- **`a`** - Display the list of files you are currently working with.
-  When you press **`a`**, you will see the file you are currently
-  viewing alongside any other files still in the list. For instance,
-  if you started with several files (like `browse file1 file2 file3`)
-  and are viewing `file2`, pressing **`a`** will show `file2` and
-  `file3`. This feature is useful when the program is initiated with
-  multiple filenames or a wildcard (e.g., `browse *.go`), as it allows
-  you to see which file you are currently viewing and which files
-  remain in the queue.
+### Re-Reading Files
 
-- **`r`** - Re-read the current file from disk. Useful when a file has
-  been replaced (e.g., `mv log log.old && app > log`). browse detects
-  the replacement silently; press `r` at any time to re-read the new
-  file.
+Press `r` to re-read the current file from disk. This is useful when a file is
+rewritten in place, replaced, truncated, or otherwise changed in a way that the
+automatic file tracking did not fully capture.
 
-- **`Ctrl+R`** - Rewind the current browse list. This returns to the
-  first file in the active list, including a nested list opened with
-  **`B`**, without rewinding any parent list.
+For example:
 
-- **`C`** - Change the current working directory. This command will
-  prompt you to select a directory to switch to. You can use **`~`**
-  to refer to your home directory, or **`-`** and **`~-`** to return
-  to the directory you were just in. If the directory name contains
-  spaces, enclose it in quotes. If `CDPATH` is set, the program will
-  suggest directories from that path. **`%`** expands to the parent
-  directory of the current file name.
+```bash
+mv log log.old
+app > log
+```
 
-- **`q`** - Close the file you are currently browsing. Before closing,
-  the program remembers your last search, any marks, and your position
-  in the file. Alternatively, **`Q`** also closes the file but does
-  not save your session.
+If the screen stops matching the file you expect, `r` is the manual escape
+hatch: it reopens the original path and rebuilds the browse state from disk.
 
-- **`x`** - If you have files from a previous list, **`x`** stops
-  processing the current list and resumes processing the next file in
-  the previous list. If there are no remaining files, the program will
-  close. The command **`X`** functions the same way but does not save
-  your session.
+### Rewinding Lists
 
-## 🕑 Histories
+Press `Ctrl+R` to rewind the active browse list. This returns to the first file
+in the current list, including a nested list opened with `B`, without rewinding
+any parent list.
 
-**Browse** maintains a persistent history to streamline your workflow
-and make repetitive tasks faster and easier. If you're familiar with
-Linux tools like Bash, these history features will feel instantly
-familiar:
+### Changing Directory
 
-- **Bash Command History:** Every time you execute a shell command in
-  Browse (using the **`!`** key), it is remembered. You can quickly
-  recall, edit, and rerun previous commands, just like using the
-  up-arrow key in Bash.
+Press `C` to change the current working directory. The prompt accepts `~`, `-`,
+and `~-`, quoted directory names, and directories from `CDPATH`. The `%` symbol
+expands to the parent directory of the current file.
 
-- **Directory History:** Whenever you change your working directory in
-  Browse, it is recorded. You can easily cycle through or return to
-  recently used directories, which helps you navigate large projects
-  or complex file structures more efficiently.
+## Symbol Expansions
 
-- **File History:** Files that you browse are saved (as full pathnames)
-  for easy access in both current and future sessions.
+Special symbols are expanded in file and directory prompts, and shell commands:
 
-- **Search Pattern History:** Search patterns entered for regex or text
-  searches are saved. This feature allows you to easily repeat
-  searches or revisit common queries without having to retype them.
+| Symbol | Expands To                                                         |
+| ------ | ------------------------------------------------------------------ |
+| `!`    | Last shell command                                                 |
+| `%`    | Current file name; parent directory of current file in `C` prompt  |
+| `&`    | Current search pattern                                             |
+| `~`    | Home directory                                                     |
 
-**History Files:**
+## Configuration and History
 
-- `~/.browse/browse_dirs` - Directory history
-- `~/.browse/browse_files` - File browsing history
-- `~/.browse/browse_search` - Search pattern history
-- `~/.browse/browse_shell` - Shell command history
+**browse** stores configuration and history in:
 
-## ⚠️ Limitations
+```text
+~/.browse/
+```
 
-- Xterm specific
-- Logical lines are truncated to screen width
-- May be US-centric
-- Can be confused by non-printable characters
-- Tabs are converted to spaces
-- go-prompt handling changes the terminal title
-- Line lengths internally capped at 4K
+The session file is:
 
-## 📄 License
+```text
+~/.browse/browserc
+```
 
-MIT License - see LICENSE file for details
+It saves:
+
+- Current file name.
+- First line on the page.
+- Search pattern.
+- Marks.
+- Page title.
+
+History files:
+
+- `~/.browse/browse_dirs` - directory history.
+- `~/.browse/browse_files` - file browsing history.
+- `~/.browse/browse_search` - search pattern history.
+- `~/.browse/browse_shell` - shell command history.
+
+## Limitations
+
+- Xterm-specific behavior.
+- Logical lines are truncated to screen width.
+- Long lines are internally capped at about 4K.
+- Tabs are converted to spaces.
+- Non-printable characters may display poorly.
+- Terminal title handling may vary by environment.
+
+## License
+
+MIT License - see LICENSE file for details.
