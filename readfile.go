@@ -333,37 +333,16 @@ func getFileInodeSize(filename string) (int64, uint64, error) {
 
 // readStdin copies stdin into a temp file and returns true if empty.
 func (br *browseObj) readStdin(fin, fout *os.File) bool {
-	r := bufio.NewReader(fin)
-	w := bufio.NewWriter(fout)
-	defer w.Flush()
+	const copyBufSize = 64 * 1024
 
-	empty := true
+	buf := make([]byte, copyBufSize)
+	bytesWritten, err := io.CopyBuffer(fout, fin, buf)
 
-	for {
-		line, err := r.ReadString('\n')
-		if err == io.EOF {
-			if len(line) > 0 {
-				w.WriteString(line)
-				empty = false
-			}
-
-			return empty
-		}
-
-		if err != nil {
-			return empty
-		}
-
-		if _, err := w.WriteString(line); err != nil {
-			return empty
-		}
-
-		if err := w.Flush(); err != nil {
-			return empty
-		}
-
-		empty = false
+	if err != nil {
+		return bytesWritten == 0
 	}
+
+	return bytesWritten == 0
 }
 
 // readFromMap reads a line by index using the seek and size maps.
