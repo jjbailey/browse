@@ -318,32 +318,23 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 
 		fullPath := filepath.Join(dir, name)
 
-		// Handle onlyDirs filter
-		if onlyType == onlyDirs {
-			isDir := file.IsDir()
-			isSymlink := file.Type()&os.ModeSymlink != 0
-			if !isDir && !isSymlink {
+		switch onlyType {
+
+		case onlyDirs:
+			info, err := os.Stat(fullPath)
+			if err != nil || !info.IsDir() {
 				continue
 			}
 
-			if isSymlink {
-				// Stat the link target
-				fi, err := os.Stat(fullPath)
-				if err != nil || !fi.IsDir() {
-					continue
-				}
-			}
-		}
-
-		// If filtering for executables, only stat if not directory
-		if onlyType == onlyExec && !file.IsDir() {
-			info, err := file.Info()
-			if err != nil {
+		case onlyExec:
+			info, err := os.Stat(fullPath)
+			if err != nil || info.IsDir() || info.Mode().Perm()&0111 == 0 {
 				continue
 			}
 
-			mode := info.Mode().Perm()
-			if mode&0111 == 0 {
+		case onlyFiles:
+			info, err := os.Stat(fullPath)
+			if err != nil || !info.Mode().IsRegular() {
 				continue
 			}
 		}
