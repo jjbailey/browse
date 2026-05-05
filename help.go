@@ -53,6 +53,7 @@ func (br *browseObj) printHelp() {
 		"  ^R                            Rewind current browse list           ",
 		"  a                             Print filenames in the browse list   ",
 		"  c C                           Print/Change working directory       ",
+		"  h                             Show this help screen                ",
 		"  q Q                           Quit, save/don't save browserc       ",
 		"  x X                           Exit list, save/don't save browserc  ",
 		"                                                                     ",
