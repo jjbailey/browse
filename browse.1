@@ -19,74 +19,115 @@
 .hy
 .SH NAME
 .PP
-browse - A simple, unconventional file browser.
+browse - A multi-file pager with recursive navigation.
 .SH SYNOPSIS
 .PP
-browse [-finv] [-p pattern] [-t title] [filename\&...]
+browse [-fFinv] [-p pattern] [-t title] [filename\&...]
 .SH DESCRIPTION
 .PP
 Browse and search text files, follow changes.
-.SS Description
 .PP
-\f[B]browse\f[R] is a minimalist file browser that focuses on essential
-features while providing a user-friendly interface.
-It is ideal for developers and system administrators who seek a
-lightweight, keyboard-driven alternative to traditional file viewers.
+\f[B]browse\f[R] is an interactive pager for navigating \f[I]sets of
+files\f[R], not just viewing one file at a time.
 .PP
-The browser supports multi-file browsing by accepting a list of files
-(or globs expanded by your shell), ensuring that each path is resolved
-and validated before browsing.
-It also supports input via pipe, treating it as if it were a temporary
-file.
-Invalid files, such as directories or non-existent files, are safely
-skipped, and feedback is provided.
+Unlike traditional pagers, \f[B]browse\f[R] lets you temporarily switch
+to a new set of files and then return exactly where you left off.
+This recursive browsing model makes it natural to explore logs, search
+results, source trees, and related files without losing context.
 .PP
-\f[B]browse\f[R] allows you to temporarily leave your current file list
-to explore a new set of files.
-Once you finish browsing the new list, \f[B]browse\f[R] automatically
-returns you to your previous list.
-This feature, known as \[lq]recursive browsing,\[rq] enables deep and
-flexible exploration without losing your place in the original file
-list.
-.SS ✨ Features
-.SS 🧭 Navigation
+\f[B]Think:\f[R] \f[V]less\f[R] + \f[V]pushd/popd\f[R] for files.
+.SS Why Use Browse?
 .IP \[bu] 2
-Forward and reverse paging
+Explore multiple files as one workflow.
 .IP \[bu] 2
-Continuous scrolling (forward and reverse)
+Drill into a new file set and return to your previous place.
 .IP \[bu] 2
-Horizontal scrolling
+Browse command output from pipelines as if it were a file.
 .IP \[bu] 2
-Line jumping
+Use keyboard-driven navigation, search, shell commands, and history.
 .IP \[bu] 2
-Page marking
-.SS 🔍 Search & Filter
+Keep your context while investigating logs, source, or generated
+results.
+.SS Features
+.SS Navigation Features
 .IP \[bu] 2
-Forward and reverse regex searches
+Forward and reverse paging.
 .IP \[bu] 2
-Case-sensitive/case-insensitive search toggle
+Continuous scrolling in both directions.
 .IP \[bu] 2
-Pattern highlighting
+Horizontal scrolling for wide lines.
 .IP \[bu] 2
-Search pattern history
-.SS 🛠️ Additional Features
+Jump to line numbers.
 .IP \[bu] 2
-File completion
+Mark pages and jump back to them.
 .IP \[bu] 2
-Shell escape with command completion
+Follow and tail modes for changing files.
+.SS Search and Exploration
 .IP \[bu] 2
-\f[V]tail -f\f[R] functionality
+Forward and reverse regex search.
 .IP \[bu] 2
-Line numbers
+Case-sensitive and case-insensitive search.
 .IP \[bu] 2
-Session saving
+Pattern highlighting.
 .IP \[bu] 2
-Shell command history
+Search pattern history.
 .IP \[bu] 2
-Change working directory
+Run \f[V]grep\f[R] on the current file in a nested browse session.
+.SS Multi-File Workflow
 .IP \[bu] 2
-Built-in help screen
-.SS 📖 Usage
+Browse multiple files from the command line.
+.IP \[bu] 2
+Browse standard input as a temporary file.
+.IP \[bu] 2
+Open nested file sets with \f[V]B\f[R].
+.IP \[bu] 2
+Return from nested file sets with \f[V]x\f[R] or \f[V]X\f[R].
+.IP \[bu] 2
+Rewind the active file list with \f[V]Ctrl+R\f[R].
+.IP \[bu] 2
+Show the current remaining file list with \f[V]a\f[R].
+.SS Convenience
+.IP \[bu] 2
+File and directory completion.
+.IP \[bu] 2
+Shell escape with command completion.
+.IP \[bu] 2
+Persistent file, directory, search, and shell histories.
+.IP \[bu] 2
+Session saving and restoration.
+.IP \[bu] 2
+Run \f[V]fmt -s\f[R] on the current file in a nested browse session.
+.IP \[bu] 2
+Built-in help screen.
+.SS Usage
+.PP
+Browse one or more files:
+.nf
+
+browse file1.log file2.log file3.log
+\f[R]
+.fi
+.PP
+Browse shell-expanded globs:
+.nf
+
+browse *.go
+\f[R]
+.fi
+.PP
+Browse results from a pipeline:
+.nf
+
+grep -rl timeout /var/log | browse
+\f[R]
+.fi
+.PP
+Start with an initial search pattern:
+.nf
+
+browse -p ERROR app.log
+\f[R]
+.fi
 .SS Command Line Options
 .nf
 
@@ -106,12 +147,12 @@ _
 T{
 \f[V]-f\f[R], \f[V]--follow\f[R]
 T}@T{
-Follow file changes (browsable)
+Follow file changes while still browsing
 T}
 T{
 \f[V]-F\f[R], \f[V]--tail\f[R]
 T}@T{
-Follow file changes (like \f[V]tail -f\f[R])
+Follow file changes like \f[V]tail -f\f[R]
 T}
 T{
 \f[V]-i\f[R], \f[V]--ignore-case\f[R]
@@ -131,7 +172,7 @@ T}
 T{
 \f[V]-t\f[R], \f[V]--title\f[R]
 T}@T{
-Page title (default is filename, blank for stdin)
+Page title, default filename, blank for stdin
 T}
 T{
 \f[V]-v\f[R], \f[V]--version\f[R]
@@ -145,7 +186,7 @@ Print browse command line options
 T}
 .TE
 .SS Keyboard Shortcuts
-.SS Navigation
+.SS Navigation Keys
 .PP
 .TS
 tab(@);
@@ -199,12 +240,12 @@ T}
 T{
 \f[V]>\f[R], \f[V]Tab\f[R], \f[V]Ctrl+Right\f[R]
 T}@T{
-Scroll 4 characters right
+Scroll right
 T}
 T{
 \f[V]<\f[R], \f[V]Backspace\f[R], \f[V]Ctrl+Left\f[R]
 T}@T{
-Scroll 4 characters left
+Scroll left
 T}
 T{
 \f[V]\[ha]\f[R]
@@ -266,12 +307,12 @@ _
 T{
 \f[V]/\f[R]
 T}@T{
-Regex search forward (empty pattern repeats or changes direction)
+Regex search forward
 T}
 T{
 \f[V]?\f[R]
 T}@T{
-Regex search reverse (empty pattern repeats or changes direction)
+Regex search reverse
 T}
 T{
 \f[V]n\f[R]
@@ -286,7 +327,7 @@ T}
 T{
 \f[V]i\f[R]
 T}@T{
-Toggle case-sensitive/insensitive search
+Toggle case-sensitive or case-insensitive search
 T}
 T{
 \f[V]p\f[R]
@@ -305,7 +346,7 @@ Run \f[V]grep -nP\f[R] on current file for search pattern in a new
 session
 T}
 .TE
-.SS Miscellaneous
+.SS Files, Lists, and Session Control
 .PP
 .TS
 tab(@);
@@ -317,30 +358,9 @@ Function
 T}
 _
 T{
-\f[V]#\f[R]
-T}@T{
-Toggle line numbers on/off
-T}
-T{
-\f[V]%\f[R], \f[V]=\f[R], \f[V]Ctrl+G\f[R]
-T}@T{
-Show file position
-T}
-T{
-\f[V]!\f[R]
-T}@T{
-Run a bash command (expands \f[V]!\f[R], \f[V]%\f[R], \f[V]&\f[R],
-\f[V]\[ti]\f[R])
-T}
-T{
-\f[V]F\f[R]
-T}@T{
-Run \f[V]fmt -s\f[R] on the current file in a new session
-T}
-T{
 \f[V]B\f[R]
 T}@T{
-Browse another file (expands \f[V]%\f[R], \f[V]\[ti]\f[R], shell glob)
+Browse another file or file set
 T}
 T{
 \f[V]r\f[R]
@@ -355,7 +375,59 @@ T}
 T{
 \f[V]a\f[R]
 T}@T{
-Print filenames in the browse list
+Print filenames in the current browse list
+T}
+T{
+\f[V]q\f[R]
+T}@T{
+Quit current file, save session, continue list
+T}
+T{
+\f[V]Q\f[R]
+T}@T{
+Quit current file without saving, continue list
+T}
+T{
+\f[V]x\f[R]
+T}@T{
+Exit current list, save session
+T}
+T{
+\f[V]X\f[R]
+T}@T{
+Exit current list without saving session
+T}
+.TE
+.SS Miscellaneous
+.PP
+.TS
+tab(@);
+lw(24.0n) lx.
+T{
+Key
+T}@T{
+Function
+T}
+_
+T{
+\f[V]#\f[R]
+T}@T{
+Toggle line numbers
+T}
+T{
+\f[V]%\f[R], \f[V]=\f[R], \f[V]Ctrl+G\f[R]
+T}@T{
+Show file position
+T}
+T{
+\f[V]!\f[R]
+T}@T{
+Run a shell command
+T}
+T{
+\f[V]F\f[R]
+T}@T{
+Run \f[V]fmt -s\f[R] on current file in a new session
 T}
 T{
 \f[V]c\f[R]
@@ -372,30 +444,67 @@ T{
 T}@T{
 Show the help screen
 T}
-T{
-\f[V]q\f[R]
-T}@T{
-Quit, save session, next file in list
-T}
-T{
-\f[V]Q\f[R]
-T}@T{
-Quit without saving session, next file in list
-T}
-T{
-\f[V]x\f[R]
-T}@T{
-Exit list, save session
-T}
-T{
-\f[V]X\f[R]
-T}@T{
-Exit list, don\[cq]t save session
-T}
 .TE
+.SS Working With Files
+.SS Opening File Sets
+.PP
+Press \f[V]B\f[R] to open a new file or file set.
+The prompt accepts one or more file names, shell globs such as
+\f[V]*.go\f[R], quoted filenames containing spaces, and history entries.
+It also expands special symbols such as \f[V]%\f[R] for the current file
+and \f[V]\[ti]\f[R] for your home directory.
+.PP
+When you open a file set with \f[V]B\f[R], \f[B]browse\f[R] temporarily
+leaves the current list.
+When the nested list is finished, \f[B]browse\f[R] automatically resumes
+the previous list where you left off.
+.SS Showing the Current List
+.PP
+Press \f[V]a\f[R] to show the current file and any remaining files in
+the active list.
+If you started with:
+.nf
+
+browse file1 file2 file3
+\f[R]
+.fi
+.PP
+and are currently viewing \f[V]file2\f[R], pressing \f[V]a\f[R] shows
+\f[V]file2\f[R] and \f[V]file3\f[R].
+.SS Re-Reading Files
+.PP
+Press \f[V]r\f[R] to re-read the current file from disk.
+This is useful when a file is rewritten in place, replaced, truncated,
+or otherwise changed in a way that the automatic file tracking did not
+fully capture.
+.PP
+For example:
+.nf
+
+mv log log.old
+app > log
+\f[R]
+.fi
+.PP
+If the screen stops matching the file you expect, \f[V]r\f[R] is the
+manual escape hatch: it reopens the original path and rebuilds the
+browse state from disk.
+.SS Rewinding Lists
+.PP
+Press \f[V]Ctrl+R\f[R] to rewind the active browse list.
+This returns to the first file in the current list, including a nested
+list opened with \f[V]B\f[R], without rewinding any parent list.
+.SS Changing Directory
+.PP
+Press \f[V]C\f[R] to change the current working directory.
+The prompt accepts \f[V]\[ti]\f[R], \f[V]-\f[R], and \f[V]\[ti]-\f[R],
+quoted directory names, and directories from \f[V]CDPATH\f[R].
+The \f[V]%\f[R] symbol expands to the parent directory of the current
+file.
 .SS Symbol Expansions
 .PP
-Special symbols expanded in commands:
+Special symbols are expanded in file and directory prompts, and shell
+commands:
 .PP
 .TS
 tab(@);
@@ -409,12 +518,13 @@ _
 T{
 \f[V]!\f[R]
 T}@T{
-Last bash command
+Last shell command
 T}
 T{
 \f[V]%\f[R]
 T}@T{
-Current file name
+Current file name; parent directory of current file in \f[V]C\f[R]
+prompt
 T}
 T{
 \f[V]&\f[R]
@@ -427,135 +537,58 @@ T}@T{
 Home directory
 T}
 .TE
-.SS ⚙️ Configuration
+.SS Configuration and History
 .PP
-browse stores configuration and history in \f[V]\[ti]/.browse/\f[R]
+\f[B]browse\f[R] stores configuration and history in:
+.nf
+
+\[ti]/.browse/
+\f[R]
+.fi
 .PP
-\f[B]Session File:\f[R] \f[V]\[ti]/.browse/browserc\f[R]
+The session file is:
+.nf
+
+\[ti]/.browse/browserc
+\f[R]
+.fi
 .PP
-Saves current session state, including:
-.IP "1." 3
-File name
-.IP "2." 3
-First line on page
-.IP "3." 3
-Search pattern
-.IP "4." 3
-Marks
-.IP "5." 3
-Page title
-.SS ⚙️ Working with Files and Directories
+It saves:
 .IP \[bu] 2
-\f[B]\f[VB]B\f[B]\f[R] - Open a new file.
-You will be prompted to enter a file name or a list of files to open.
-You can use wildcards (such as \f[V]*.go\f[R] or \f[V]access_log.*\f[R])
-to match multiple files at once.
-If you prefix your file name with a tilde (\f[B]\f[VB]\[ti]\f[B]\f[R]),
-it will refer to your home directory.
-Typing \f[B]\f[VB]%\f[B]\f[R] will use the current file name, and typing
-\f[B]\f[VB]-\f[B]\f[R] will bring up the last file you viewed.
-You can input multiple file names by separating them with spaces.
-If a file name contains spaces, enclose it in quotes.
+Current file name.
 .IP \[bu] 2
-\f[B]\f[VB]a\f[B]\f[R] - Display the list of files you are currently
-working with.
-When you press \f[B]\f[VB]a\f[B]\f[R], you will see the file you are
-currently viewing alongside any other files still in the list.
-For instance, if you started with several files (like
-\f[V]browse file1 file2 file3\f[R]) and are viewing \f[V]file2\f[R],
-pressing \f[B]\f[VB]a\f[B]\f[R] will show \f[V]file2\f[R] and
-\f[V]file3\f[R].
-This feature is useful when the program is initiated with multiple
-filenames or a wildcard (e.g., \f[V]browse *.go\f[R]), as it allows you
-to see which file you are currently viewing and which files remain in
-the queue.
+First line on the page.
 .IP \[bu] 2
-\f[B]\f[VB]r\f[B]\f[R] - Re-read the current file from disk.
-Useful when a file has been replaced (e.g.,
-\f[V]mv log log.old && app > log\f[R]).
-browse detects the replacement silently; press \f[V]r\f[R] at any time
-to re-read the new file.
+Search pattern.
 .IP \[bu] 2
-\f[B]\f[VB]Ctrl+R\f[B]\f[R] - Rewind the current browse list.
-This returns to the first file in the active list, including a nested
-list opened with \f[B]\f[VB]B\f[B]\f[R], without rewinding any parent
-list.
+Marks.
 .IP \[bu] 2
-\f[B]\f[VB]C\f[B]\f[R] - Change the current working directory.
-This command will prompt you to select a directory to switch to.
-You can use \f[B]\f[VB]\[ti]\f[B]\f[R] to refer to your home directory,
-or \f[B]\f[VB]-\f[B]\f[R] and \f[B]\f[VB]\[ti]-\f[B]\f[R] to return to
-the directory you were just in.
-If the directory name contains spaces, enclose it in quotes.
-If \f[V]CDPATH\f[R] is set, the program will suggest directories from
-that path.
-\f[B]\f[VB]%\f[B]\f[R] expands to the parent directory of the current
-file name.
-.IP \[bu] 2
-\f[B]\f[VB]q\f[B]\f[R] - Close the file you are currently browsing.
-Before closing, the program remembers your last search, any marks, and
-your position in the file.
-Alternatively, \f[B]\f[VB]Q\f[B]\f[R] also closes the file but does not
-save your session.
-.IP \[bu] 2
-\f[B]\f[VB]x\f[B]\f[R] - If you have files from a previous list,
-\f[B]\f[VB]x\f[B]\f[R] stops processing the current list and resumes
-processing the next file in the previous list.
-If there are no remaining files, the program will close.
-The command \f[B]\f[VB]X\f[B]\f[R] functions the same way but does not
-save your session.
-.SS 🕑 Histories
+Page title.
 .PP
-\f[B]Browse\f[R] maintains a persistent history to streamline your
-workflow and make repetitive tasks faster and easier.
-If you\[cq]re familiar with Linux tools like Bash, these history
-features will feel instantly familiar:
+History files:
 .IP \[bu] 2
-\f[B]Bash Command History:\f[R] Every time you execute a shell command
-in Browse (using the \f[B]\f[VB]!\f[B]\f[R] key), it is remembered.
-You can quickly recall, edit, and rerun previous commands, just like
-using the up-arrow key in Bash.
+\f[V]\[ti]/.browse/browse_dirs\f[R] - directory history.
 .IP \[bu] 2
-\f[B]Directory History:\f[R] Whenever you change your working directory
-in Browse, it is recorded.
-You can easily cycle through or return to recently used directories,
-which helps you navigate large projects or complex file structures more
-efficiently.
+\f[V]\[ti]/.browse/browse_files\f[R] - file browsing history.
 .IP \[bu] 2
-\f[B]File History:\f[R] Files that you browse are saved (as full
-pathnames) for easy access in both current and future sessions.
+\f[V]\[ti]/.browse/browse_search\f[R] - search pattern history.
 .IP \[bu] 2
-\f[B]Search Pattern History:\f[R] Search patterns entered for regex or
-text searches are saved.
-This feature allows you to easily repeat searches or revisit common
-queries without having to retype them.
+\f[V]\[ti]/.browse/browse_shell\f[R] - shell command history.
+.SS Limitations
+.IP \[bu] 2
+Xterm-specific behavior.
+.IP \[bu] 2
+Logical lines are truncated to screen width.
+.IP \[bu] 2
+Long lines are internally capped at about 4K.
+.IP \[bu] 2
+Tabs are converted to spaces.
+.IP \[bu] 2
+Non-printable characters may display poorly.
+.IP \[bu] 2
+Terminal title handling may vary by environment.
+.SS License
 .PP
-\f[B]History Files:\f[R]
-.IP \[bu] 2
-\f[V]\[ti]/.browse/browse_dirs\f[R] - Directory history
-.IP \[bu] 2
-\f[V]\[ti]/.browse/browse_files\f[R] - File browsing history
-.IP \[bu] 2
-\f[V]\[ti]/.browse/browse_search\f[R] - Search pattern history
-.IP \[bu] 2
-\f[V]\[ti]/.browse/browse_shell\f[R] - Shell command history
-.SS ⚠️ Limitations
-.IP \[bu] 2
-Xterm specific
-.IP \[bu] 2
-Logical lines are truncated to screen width
-.IP \[bu] 2
-May be US-centric
-.IP \[bu] 2
-Can be confused by non-printable characters
-.IP \[bu] 2
-Tabs are converted to spaces
-.IP \[bu] 2
-go-prompt handling changes the terminal title
-.IP \[bu] 2
-Line lengths internally capped at 4K
-.SS 📄 License
-.PP
-MIT License - see LICENSE file for details
+MIT License - see LICENSE file for details.
 .SH AUTHORS
 https://github.com/jjbailey/browse

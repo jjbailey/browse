@@ -46,10 +46,6 @@ func (br *browseObj) runInPty(cmdbuf string) {
 
 	cmd := exec.Command(bashPath, "-c", cmdbuf)
 
-	// for manPage()
-	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, fmt.Sprintf("MANWIDTH=%d", br.dispWidth-1))
-
 	// child signals
 	br.ptySignals(RUNSIGS, nil)
 

@@ -56,21 +56,24 @@ func processFileList(br *browseObj, args []string, toplevel bool) bool {
 			abs = br.fileName
 		}
 
-		fp, err := validateAndOpenFile(br, abs)
-		if err != nil {
-			return false
-		}
-		defer fp.Close()
+		for {
+			fp, err := validateAndOpenFile(br, abs)
+			if err != nil {
+				return false
+			}
 
-		CurrentList = []string{abs}
-		br.absFileName = abs
-		browseFile(br, fp, br.absFileName, setTitle(br.title, abs), false)
-		if br.listAction == LIST_ACTION_REWIND {
+			CurrentList = []string{abs}
+			br.absFileName = abs
+			browseFile(br, fp, br.absFileName, setTitle(br.title, abs), false)
+			fp.Close()
+
+			if br.listAction != LIST_ACTION_REWIND {
+				return true
+			}
+
 			br.listAction = LIST_ACTION_NONE
 			resetState(br)
-			processFileList(br, []string{abs}, toplevel)
 		}
-		return true
 	}
 
 	savedList := CurrentList
