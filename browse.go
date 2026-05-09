@@ -67,12 +67,21 @@ func processFileList(br *browseObj, args []string, toplevel bool) bool {
 			browseFile(br, fp, br.absFileName, setTitle(br.title, abs), false)
 			fp.Close()
 
-			if br.listAction != LIST_ACTION_REWIND {
+			switch br.listAction {
+			case LIST_ACTION_REWIND:
+				br.listAction = LIST_ACTION_NONE
+				resetState(br)
+
+			case LIST_ACTION_RESUME:
+				br.listAction = LIST_ACTION_NONE
+				restoreResumeState(br)
+
+			case LIST_ACTION_EXIT_ALL:
+				return true
+
+			default:
 				return true
 			}
-
-			br.listAction = LIST_ACTION_NONE
-			resetState(br)
 		}
 	}
 
@@ -119,6 +128,17 @@ func processFileList(br *browseObj, args []string, toplevel bool) bool {
 			resetState(br)
 			i = -1
 			continue
+		}
+
+		if br.listAction == LIST_ACTION_RESUME {
+			br.listAction = LIST_ACTION_NONE
+			restoreResumeState(br)
+			i--
+			continue
+		}
+
+		if br.listAction == LIST_ACTION_EXIT_ALL {
+			break
 		}
 
 		if i != lastIdx {
@@ -216,6 +236,18 @@ func resetState(br *browseObj) {
 	br.firstRow = 0
 	br.lastRow = 0
 	br.shiftWidth = 0
+	br.modeScroll = MODE_SCROLL_NONE
+}
+
+// restoreResumeState restores the parent file's viewport after a nested list.
+func restoreResumeState(br *browseObj) {
+	br.fileName = br.resume.fileName
+	br.absFileName = br.resume.absFileName
+	br.title = br.resume.title
+	br.fromStdin = br.resume.fromStdin
+	br.firstRow = br.resume.firstRow
+	br.lastRow = br.resume.lastRow
+	br.shiftWidth = br.resume.shiftWidth
 	br.modeScroll = MODE_SCROLL_NONE
 }
 

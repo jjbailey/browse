@@ -118,13 +118,13 @@ browse [OPTIONS] [FILE] [FILE...]
 | `<`, `Backspace`, `Ctrl+Left` | Scroll left                                 |
 | `^`                           | Scroll to column 1                          |
 | `$`                           | Scroll to end of line                       |
+| `e`, `End`                    | Jump to EOF, follow at EOF                  |
+| `t`                           | Jump to EOF, tail at EOF                    |
 | `j`                           | Jump to line number                         |
 | `0`, `Home`                   | Jump to start of file, column 1             |
 | `G`                           | Jump to end of file                         |
 | `m`                           | Mark current page with number 1-9           |
 | `1`-`9`                       | Jump to mark                                |
-| `e`, `End`                    | Jump to EOF, follow at EOF                  |
-| `t`                           | Jump to EOF, tail at EOF                    |
 
 ### Search
 
@@ -144,13 +144,14 @@ browse [OPTIONS] [FILE] [FILE...]
 | Key      | Function                                           |
 | -------- | -------------------------------------------------- |
 | `B`      | Browse another file or file set                    |
-| `r`      | Re-read the current file from disk                 |
+| `R`      | Re-read the current file from disk                 |
 | `Ctrl+R` | Rewind the current browse list                     |
 | `a`      | Print filenames in the current browse list         |
 | `q`      | Quit current file, save session, continue list     |
 | `Q`      | Quit current file without saving, continue list    |
 | `x`      | Exit current list, save session                    |
 | `X`      | Exit current list without saving session           |
+| `Ctrl+X` | Exit from any nested list without saving session   |
 
 ### Miscellaneous
 
@@ -163,6 +164,7 @@ browse [OPTIONS] [FILE] [FILE...]
 | `c`                | Print current working directory               |
 | `C`                | Change working directory                      |
 | `h`                | Show the help screen                          |
+| `H`                | Show the man page                             |
 
 ## Working With Files
 
@@ -190,7 +192,7 @@ and are currently viewing `file2`, pressing `a` shows `file2` and `file3`.
 
 ### Re-Reading Files
 
-Press `r` to re-read the current file from disk. This is useful when a file is
+Press `R` to re-read the current file from disk. This is useful when a file is
 rewritten in place, replaced, truncated, or otherwise changed in a way that the
 automatic file tracking did not fully capture.
 
@@ -201,7 +203,7 @@ mv log log.old
 app > log
 ```
 
-If the screen stops matching the file you expect, `r` is the manual escape
+If the screen stops matching the file you expect, `R` is the manual escape
 hatch: it reopens the original path and rebuilds the browse state from disk.
 
 ### Rewinding Lists
@@ -213,8 +215,8 @@ any parent list.
 ### Changing Directory
 
 Press `C` to change the current working directory. The prompt accepts `~`, `-`,
-and `~-`, quoted directory names, and directories from `CDPATH`. The `%` symbol
-expands to the parent directory of the current file.
+and `~-`, quoted directory names, and `%` for the parent directory of the
+current file. Directory completion includes entries from `CDPATH`.
 
 ## Symbol Expansions
 
@@ -259,7 +261,8 @@ History files:
 ## Limitations
 
 - Xterm-specific behavior.
-- Logical lines are truncated to screen width.
+- Displayed lines are clipped to screen width, with horizontal scrolling
+  available for wider lines.
 - Long lines are internally capped at about 4K.
 - Tabs are converted to spaces.
 - Non-printable characters may display poorly.
