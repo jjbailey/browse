@@ -297,10 +297,7 @@ func readFile(br *browseObj, ch chan bool) {
 				if lineLen > 0 && line[lineLen-1] == '\n' {
 					readLen--
 				}
-				cappedLen := readLen
-				if cappedLen > READBUFSIZ {
-					cappedLen = READBUFSIZ
-				}
+				cappedLen := min(readLen, READBUFSIZ)
 				pendingLines = append(pendingLines, lineMeta{offset: readOffset, length: cappedLen})
 				readOffset += int64(lineLen)
 

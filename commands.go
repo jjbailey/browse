@@ -474,6 +474,7 @@ func commands(br *browseObj) {
 				}
 				br.resume = resume
 				restoreResumeState(br)
+				br.saveRC = false
 				br.listAction = LIST_ACTION_RESUME
 				return
 			}
@@ -753,7 +754,7 @@ func waitForInput(br *browseObj) {
 
 	stableCount := 0
 
-	for attempt := 0; attempt < maxAttempts; attempt++ {
+	for range maxAttempts {
 		br.mutex.Lock()
 		curMapSiz := br.mapSiz
 		br.mutex.Unlock()

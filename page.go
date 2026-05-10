@@ -47,13 +47,7 @@ func (br *browseObj) pageHeader() {
 	if len(br.title) > availableWidth {
 		// Calculate start index for the title substring
 		// Leave room for ellipsis (3 chars) and some title text
-		startIndex := len(br.title) - (availableWidth - 7)
-		if startIndex < 0 {
-			startIndex = 0
-		}
-		if startIndex > len(br.title) {
-			startIndex = len(br.title)
-		}
+		startIndex := min(max(len(br.title)-(availableWidth-7), 0), len(br.title))
 		dispTitle = "..." + br.title[startIndex:]
 	}
 

@@ -195,10 +195,7 @@ func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool)
 
 // replaceMatch highlights matches in a line and formats it for display.
 func (br *browseObj) replaceMatch(lineno int, input []byte) string {
-	sol := br.shiftWidth
-	if sol < 0 {
-		sol = 0
-	}
+	sol := max(br.shiftWidth, 0)
 
 	// Slice safely
 	var content []byte

@@ -73,9 +73,9 @@ func expandHome(path string) string {
 
 		var userPart, relative string
 
-		if idx := strings.IndexByte(remaining, '/'); idx >= 0 {
-			userPart = remaining[:idx]
-			relative = remaining[idx+1:]
+		if before, after, ok := strings.Cut(remaining, "/"); ok {
+			userPart = before
+			relative = after
 		} else {
 			userPart = remaining
 			relative = ""
