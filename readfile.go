@@ -59,7 +59,9 @@ func readFile(br *browseObj, ch chan bool) {
 		}
 		return
 	}
-	defer readerFp.Close()
+	defer func() {
+		readerFp.Close()
+	}()
 	fd := int(readerFp.Fd())
 
 	// Get initial filename with mutex protection
@@ -73,6 +75,58 @@ func readFile(br *browseObj, ch chan bool) {
 	pendingLines := make([]lineMeta, 0, 1024)
 	var postRereadRefresh bool
 	var rereadDetected bool
+
+	reopenReader := func(target string) error {
+		newFp, err := os.Open(target)
+		if err != nil {
+			return err
+		}
+
+		newDupFd, err := unix.Dup(int(newFp.Fd()))
+		if err != nil {
+			newFp.Close()
+			return err
+		}
+
+		newReaderFp := os.NewFile(uintptr(newDupFd), target)
+		if newReaderFp == nil {
+			unix.Close(newDupFd)
+			newFp.Close()
+			return fmt.Errorf("failed to create file from descriptor")
+		}
+
+		br.mutex.Lock()
+		if br.fileSeq != savFileSeq {
+			br.mutex.Unlock()
+			newReaderFp.Close()
+			newFp.Close()
+			return fmt.Errorf("file changed")
+		}
+
+		oldFp := br.fp
+		oldReaderFp := readerFp
+		br.fp = newFp
+		br.fileName = target
+		readInit(br, &bytesRead)
+		br.rereadPending = false
+		br.rereadReady = false
+		if br.rescueFd > 0 {
+			unix.Close(br.rescueFd)
+			br.rescueFd = 0
+			br.fdLink = ""
+		}
+		br.mutex.Unlock()
+
+		oldFp.Close()
+		oldReaderFp.Close()
+		readerFp = newReaderFp
+		fd = int(readerFp.Fd())
+		bufReader.Reset(readerFp)
+		initialRead = true
+		savFileName = target
+		rereadDetected = false
+		return nil
+	}
 
 	for {
 		// Get current filename snapshot under lock
@@ -93,8 +147,7 @@ func readFile(br *browseObj, ch chan bool) {
 		br.mutex.Unlock()
 
 		if pendingReread && targetReread != "" {
-			newFp, err := os.Open(targetReread)
-			if err != nil {
+			if err := reopenReader(targetReread); err != nil {
 				br.mutex.Lock()
 				br.rereadPending = false
 				br.mutex.Unlock()
@@ -102,45 +155,6 @@ func readFile(br *browseObj, ch chan bool) {
 				continue
 			}
 
-			// Open succeeded — clear the flag and replace reader
-			readerFp.Close()
-
-			br.mutex.Lock()
-			br.rereadPending = false
-			if br.rescueFd > 0 {
-				unix.Close(br.rescueFd)
-				br.rescueFd = 0
-				br.fdLink = ""
-			}
-			br.mutex.Unlock()
-
-			newDupFd, err := unix.Dup(int(newFp.Fd()))
-			if err != nil {
-				newFp.Close()
-				br.printMessage("Cannot dup fd: "+err.Error(), MSG_RED)
-				select {
-				case ch <- false:
-				default:
-				}
-				return
-			}
-
-			br.mutex.Lock()
-			oldFp := br.fp
-			br.fp = newFp
-			br.fileName = targetReread
-			readInit(br, &bytesRead)
-			br.rereadReady = false
-			br.mutex.Unlock()
-
-			oldFp.Close()
-			readerFp = os.NewFile(uintptr(newDupFd), targetReread)
-			dupFd = newDupFd
-			fd = int(readerFp.Fd())
-			bufReader.Reset(readerFp)
-			initialRead = true
-			savFileName = targetReread
-			rereadDetected = false
 			postRereadRefresh = true
 			continue
 		}
@@ -183,6 +197,17 @@ func readFile(br *browseObj, ch chan bool) {
 				br.fileName = fdLink
 				br.mutex.Unlock()
 				savFileName = fdLink
+			}
+		}
+
+		br.mutex.Lock()
+		reopenForNewInode := br.savInode > 0 && newInode != br.savInode && currentFileName == savFileName
+		br.mutex.Unlock()
+
+		if reopenForNewInode {
+			if err := reopenReader(currentFileName); err == nil {
+				postRereadRefresh = true
+				continue
 			}
 		}
 
@@ -272,10 +297,7 @@ func readFile(br *browseObj, ch chan bool) {
 				if lineLen > 0 && line[lineLen-1] == '\n' {
 					readLen--
 				}
-				cappedLen := readLen
-				if cappedLen > READBUFSIZ {
-					cappedLen = READBUFSIZ
-				}
+				cappedLen := min(readLen, READBUFSIZ)
 				pendingLines = append(pendingLines, lineMeta{offset: readOffset, length: cappedLen})
 				readOffset += int64(lineLen)
 
@@ -348,22 +370,23 @@ func (br *browseObj) readStdin(fin, fout *os.File) bool {
 // readFromMap reads a line by index using the seek and size maps.
 func (br *browseObj) readFromMap(lineno int) []byte {
 	br.mutex.Lock()
-	if lineno >= br.mapSiz {
+	if lineno >= br.mapSiz || br.fp == nil {
 		br.mutex.Unlock()
 		return nil
 	}
 
 	seek := br.seekMap[lineno]
 	size := br.sizeMap[lineno]
-	br.mutex.Unlock()
 
 	// Make sure size is reasonable to avoid panics (16MB)
 	if size < 0 || size > (16<<20) {
+		br.mutex.Unlock()
 		return nil
 	}
 
 	data := make([]byte, int(size))
 	n, err := br.fp.ReadAt(data, seek)
+	br.mutex.Unlock()
 	if err != nil && err != io.EOF {
 		return nil
 	}

@@ -258,6 +258,16 @@ T}@T{
 Scroll to end of line
 T}
 T{
+\f[V]e\f[R], \f[V]End\f[R]
+T}@T{
+Jump to EOF, follow at EOF
+T}
+T{
+\f[V]t\f[R]
+T}@T{
+Jump to EOF, tail at EOF
+T}
+T{
 \f[V]j\f[R]
 T}@T{
 Jump to line number
@@ -281,16 +291,6 @@ T{
 \f[V]1\f[R]-\f[V]9\f[R]
 T}@T{
 Jump to mark
-T}
-T{
-\f[V]e\f[R], \f[V]End\f[R]
-T}@T{
-Jump to EOF, follow at EOF
-T}
-T{
-\f[V]t\f[R]
-T}@T{
-Jump to EOF, tail at EOF
 T}
 .TE
 .SS Search
@@ -363,7 +363,7 @@ T}@T{
 Browse another file or file set
 T}
 T{
-\f[V]r\f[R]
+\f[V]R\f[R]
 T}@T{
 Re-read the current file from disk
 T}
@@ -396,6 +396,11 @@ T{
 \f[V]X\f[R]
 T}@T{
 Exit current list without saving session
+T}
+T{
+\f[V]Ctrl+X\f[R]
+T}@T{
+Exit from any nested list without saving session
 T}
 .TE
 .SS Miscellaneous
@@ -444,6 +449,11 @@ T{
 T}@T{
 Show the help screen
 T}
+T{
+\f[V]H\f[R]
+T}@T{
+Show the man page
+T}
 .TE
 .SS Working With Files
 .SS Opening File Sets
@@ -473,7 +483,7 @@ and are currently viewing \f[V]file2\f[R], pressing \f[V]a\f[R] shows
 \f[V]file2\f[R] and \f[V]file3\f[R].
 .SS Re-Reading Files
 .PP
-Press \f[V]r\f[R] to re-read the current file from disk.
+Press \f[V]R\f[R] to re-read the current file from disk.
 This is useful when a file is rewritten in place, replaced, truncated,
 or otherwise changed in a way that the automatic file tracking did not
 fully capture.
@@ -486,7 +496,7 @@ app > log
 \f[R]
 .fi
 .PP
-If the screen stops matching the file you expect, \f[V]r\f[R] is the
+If the screen stops matching the file you expect, \f[V]R\f[R] is the
 manual escape hatch: it reopens the original path and rebuilds the
 browse state from disk.
 .SS Rewinding Lists
@@ -498,9 +508,9 @@ list opened with \f[V]B\f[R], without rewinding any parent list.
 .PP
 Press \f[V]C\f[R] to change the current working directory.
 The prompt accepts \f[V]\[ti]\f[R], \f[V]-\f[R], and \f[V]\[ti]-\f[R],
-quoted directory names, and directories from \f[V]CDPATH\f[R].
-The \f[V]%\f[R] symbol expands to the parent directory of the current
-file.
+quoted directory names, and \f[V]%\f[R] for the parent directory of the
+current file.
+Directory completion includes entries from \f[V]CDPATH\f[R].
 .SS Symbol Expansions
 .PP
 Special symbols are expanded in file and directory prompts, and shell
@@ -578,7 +588,8 @@ History files:
 .IP \[bu] 2
 Xterm-specific behavior.
 .IP \[bu] 2
-Logical lines are truncated to screen width.
+Displayed lines are clipped to screen width, with horizontal scrolling
+available for wider lines.
 .IP \[bu] 2
 Long lines are internally capped at about 4K.
 .IP \[bu] 2

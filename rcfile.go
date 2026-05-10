@@ -65,7 +65,7 @@ func (br *browseObj) readRcFile() bool {
 
 	scanner := bufio.NewScanner(fp)
 
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		if !scanner.Scan() {
 			// partial read ok
 			return true

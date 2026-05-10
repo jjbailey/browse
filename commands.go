@@ -67,12 +67,13 @@ const (
 	CMD_PRINTDIR     = 'c'
 	CMD_NEWDIR       = 'C'
 	CMD_NEWFILE      = 'B'
-	CMD_REREAD       = 'r'
+	CMD_REREAD       = 'R'
 	CMD_REWIND       = '\022'
 	CMD_QUIT         = 'q'
 	CMD_QUIT_NO_SAVE = 'Q'
 	CMD_EXIT         = 'x'
 	CMD_EXIT_NO_SAVE = 'X'
+	CMD_EXIT_ALL     = '\030'
 
 	// Other commands
 	CMD_ARGLIST   = 'a'
@@ -80,6 +81,7 @@ const (
 	CMD_FORMAT    = 'F'
 	CMD_GREP      = '&'
 	CMD_HELP      = 'h'
+	CMD_MANPAGE   = 'H'
 	CMD_JUMP      = 'j'
 	CMD_MARK      = 'm'
 	CMD_NUMBERS   = '#'
@@ -457,7 +459,23 @@ func commands(br *browseObj) {
 			br.printMessage(dir, MSG_GREEN)
 
 		case CMD_NEWFILE:
+			resume := browseResumeState{
+				fileName:    br.fileName,
+				absFileName: br.absFileName,
+				title:       br.title,
+				fromStdin:   br.fromStdin,
+				firstRow:    br.firstRow,
+				lastRow:     br.lastRow,
+				shiftWidth:  br.shiftWidth,
+			}
 			if fileCommand(br) {
+				if br.listAction == LIST_ACTION_EXIT_ALL {
+					return
+				}
+				br.resume = resume
+				restoreResumeState(br)
+				br.saveRC = false
+				br.listAction = LIST_ACTION_RESUME
 				return
 			}
 
@@ -501,9 +519,18 @@ func commands(br *browseObj) {
 			br.exit = true
 			return
 
+		case CMD_EXIT_ALL:
+			br.saveRC = false
+			br.exit = true
+			br.listAction = LIST_ACTION_EXIT_ALL
+			return
+
 		case CMD_HELP:
 			// help
 			br.printHelp()
+
+		case CMD_MANPAGE:
+			br.manPage()
 
 		default:
 			// if digit, go to marked page
@@ -727,7 +754,7 @@ func waitForInput(br *browseObj) {
 
 	stableCount := 0
 
-	for attempt := 0; attempt < maxAttempts; attempt++ {
+	for range maxAttempts {
 		br.mutex.Lock()
 		curMapSiz := br.mapSiz
 		br.mutex.Unlock()

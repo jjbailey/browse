@@ -76,9 +76,7 @@ func (br *browseObj) runInPty(cmdbuf string) {
 	var wg sync.WaitGroup
 
 	// Goroutine to copy from tty to ptmx
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		// Custom copy that captures the last key press
 		buf := make([]byte, 1)
 
@@ -100,7 +98,7 @@ func (br *browseObj) runInPty(cmdbuf string) {
 
 		// Send completion signal - channel is buffered so won't block
 		execOK <- true
-	}()
+	})
 
 	// Copy from ptmx to stdout
 	io.Copy(os.Stdout, ptmx)

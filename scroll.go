@@ -66,7 +66,7 @@ func (br *browseObj) scrollUp(count int) {
 	rowsToScroll := minimum(count, br.firstRow)
 	scrollRevCmd := fmt.Sprintf(CURPOS+SCROLLREV, 2, 1)
 
-	for i := 0; i < rowsToScroll; i++ {
+	for range rowsToScroll {
 		br.firstRow--
 		br.lastRow--
 

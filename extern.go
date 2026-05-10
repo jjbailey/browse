@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "1.1.1"
+	BR_VERSION = "1.2.0"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -121,6 +121,8 @@ const (
 const (
 	LIST_ACTION_NONE = iota
 	LIST_ACTION_REWIND
+	LIST_ACTION_RESUME
+	LIST_ACTION_EXIT_ALL
 )
 
 // ─── Default and Browse History Files ───────────────────────────────
@@ -178,6 +180,7 @@ type browseObj struct {
 	saveRC     bool
 	exit       bool
 	listAction int
+	resume     browseResumeState
 
 	// File size tracking
 	newFileSiz int64
@@ -196,6 +199,17 @@ type browseObj struct {
 	mutex         sync.Mutex
 	rereadPending bool
 	rereadReady   bool
+}
+
+// browseResumeState preserves the visible position when a nested list returns.
+type browseResumeState struct {
+	fileName    string
+	absFileName string
+	title       string
+	fromStdin   bool
+	firstRow    int
+	lastRow     int
+	shiftWidth  int
 }
 
 // vim: set ts=4 sw=4 noet:
