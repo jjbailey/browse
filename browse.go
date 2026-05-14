@@ -17,9 +17,6 @@ import (
 	"syscall"
 )
 
-// CurrentList tracks the current list of files being browsed.
-var CurrentList []string
-
 // processPipeInput handles input piped on stdin into a temporary file for browsing.
 func processPipeInput(br *browseObj) {
 	fpStdin, err := os.CreateTemp("", "browse")
@@ -44,7 +41,8 @@ func processPipeInput(br *browseObj) {
 	defer fp.Close()
 
 	// Save arg list
-	CurrentList = []string{fpStdin.Name()}
+	br.currentList = []string{fpStdin.Name()}
+	br.listAtStart = true
 	browseFile(br, fp, fpStdin.Name(), "          ", true)
 }
 
@@ -62,7 +60,8 @@ func processFileList(br *browseObj, args []string, toplevel bool) bool {
 				return false
 			}
 
-			CurrentList = []string{abs}
+			br.currentList = []string{abs}
+			br.listAtStart = true
 			br.absFileName = abs
 			browseFile(br, fp, br.absFileName, setTitle(br.title, abs), false)
 			fp.Close()
@@ -85,8 +84,12 @@ func processFileList(br *browseObj, args []string, toplevel bool) bool {
 		}
 	}
 
-	savedList := CurrentList
-	defer func() { CurrentList = savedList }()
+	savedList := br.currentList
+	savedListAtStart := br.listAtStart
+	defer func() {
+		br.currentList = savedList
+		br.listAtStart = savedListAtStart
+	}()
 
 	// Build absolute and symlink-resolved paths against the starting cwd
 	absArgs := make([]string, len(args))
@@ -101,7 +104,8 @@ func processFileList(br *browseObj, args []string, toplevel bool) bool {
 		absArgs[i] = abs
 	}
 
-	CurrentList = args
+	br.currentList = args
+	br.listAtStart = true
 	lastIdx := len(args) - 1
 	openedAny := false
 
@@ -118,7 +122,8 @@ func processFileList(br *browseObj, args []string, toplevel bool) bool {
 
 		// Save for browserc
 		br.absFileName = absArgs[i]
-		CurrentList = args[i:]
+		br.currentList = args[i:]
+		br.listAtStart = i == 0
 		openedAny = true
 		browseFile(br, fp, absArgs[i], fileName, false)
 		fp.Close()
