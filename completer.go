@@ -46,6 +46,7 @@ type completionCandidate struct {
 
 type pathCompletionCache struct {
 	path       string
+	cwd        string
 	candidates []completionCandidate
 	loaded     bool
 }
@@ -245,11 +246,21 @@ func pathCompleter(word string) []prompt.Suggest {
 // pathCompleterCandidates caches executable candidates for one prompt session.
 func pathCompleterCandidates() []completionCandidate {
 	path := os.Getenv("PATH")
-	if pathCache.loaded && pathCache.path == path {
+	cwd := ""
+	if pathHasRelativeEntry(path) {
+		var err error
+		cwd, err = os.Getwd()
+		if err != nil {
+			cwd = ""
+		}
+	}
+
+	if pathCache.loaded && pathCache.path == path && pathCache.cwd == cwd {
 		return pathCache.candidates
 	}
 
 	pathCache.path = path
+	pathCache.cwd = cwd
 	pathCache.candidates = nil
 	pathCache.loaded = true
 
@@ -262,6 +273,10 @@ func pathCompleterCandidates() []completionCandidate {
 	}
 
 	for _, dir := range paths {
+		if dir == "" {
+			dir = "."
+		}
+
 		files, err := os.ReadDir(dir)
 		if err != nil {
 			continue
@@ -272,6 +287,21 @@ func pathCompleterCandidates() []completionCandidate {
 	}
 
 	return pathCache.candidates
+}
+
+// pathHasRelativeEntry reports whether PATH has entries that depend on cwd.
+func pathHasRelativeEntry(path string) bool {
+	if path == "" {
+		return false
+	}
+
+	for _, dir := range strings.Split(path, ":") {
+		if dir == "" || !filepath.IsAbs(dir) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // dirCompleter completes directories using absolute paths and CDPATH.
