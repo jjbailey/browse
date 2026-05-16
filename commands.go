@@ -491,6 +491,10 @@ func commands(br *browseObj) {
 				br.printMessage("No browse list to rewind", MSG_ORANGE)
 				break
 			}
+			if br.listAtStart {
+				moveCursor(2, 1, false)
+				break
+			}
 			br.saveRC = true
 			br.exit = false
 			br.listAction = LIST_ACTION_REWIND

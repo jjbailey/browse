@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "1.2.0"
+	BR_VERSION = "1.2.1"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -160,6 +160,7 @@ type browseObj struct {
 	fileName    string
 	absFileName string
 	fromStdin   bool
+	currentList []string
 	mapSiz      int
 	seekMap     []int64
 	sizeMap     []int64
@@ -174,13 +175,14 @@ type browseObj struct {
 	lastMatch  int
 
 	// State flags
-	hitEOF     bool
-	shownEOF   bool
-	shownMsg   bool
-	saveRC     bool
-	exit       bool
-	listAction int
-	resume     browseResumeState
+	hitEOF      bool
+	shownEOF    bool
+	shownMsg    bool
+	saveRC      bool
+	exit        bool
+	listAction  int
+	listAtStart bool
+	resume      browseResumeState
 
 	// File size tracking
 	newFileSiz int64

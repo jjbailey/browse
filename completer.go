@@ -30,13 +30,28 @@ const (
 
 // Completion filters for file types.
 const (
-	onlyDirs  = 1
-	onlyExec  = 2
-	onlyFiles = 3
+	onlyDirs         = 1
+	onlyExec         = 2
+	onlyFiles        = 3
+	onlyFilesAndDirs = 4
 )
 
 // SearchType controls which completion mode is active.
 var SearchType int
+
+type completionCandidate struct {
+	name       string
+	suggestion prompt.Suggest
+}
+
+type pathCompletionCache struct {
+	path       string
+	cwd        string
+	candidates []completionCandidate
+	loaded     bool
+}
+
+var pathCache pathCompletionCache
 
 // userDirComp prompts for a directory with completion.
 func userDirComp() (string, bool) {
@@ -70,6 +85,7 @@ func userSearchComp(searchDir bool) (string, bool) {
 // runCompleter starts the prompt UI and returns user input and cancellation state.
 func runCompleter(promptStr, historyFile string) (string, bool) {
 	history := loadHistory(historyFile)
+	pathCache = pathCompletionCache{}
 
 	// reset go-prompt BackedOut flag
 	prompt.BackedOut = false
@@ -172,8 +188,8 @@ func completer(d prompt.Document) []prompt.Suggest {
 			return pathCompleter(word)
 		}
 
-		// Otherwise, complete files
-		return anyCompleter(".", originalWord, onlyFiles)
+		// Otherwise, complete shell arguments
+		return anyCompleter(".", originalWord, onlyFilesAndDirs)
 
 	default:
 		return anyCompleter(".", originalWord, onlyFiles)
@@ -205,37 +221,87 @@ func fileCompleter(word string) []prompt.Suggest {
 		prefix = ""
 	}
 
-	return matchFiles(files, dir, prefix, true, onlyFiles)
+	return matchFiles(files, dir, prefix, true, onlyFilesAndDirs)
 }
 
 // pathCompleter completes executable names from PATH entries.
 func pathCompleter(word string) []prompt.Suggest {
-	var suggestions []prompt.Suggest
+	candidates := pathCompleterCandidates()
+	suggestions := make([]prompt.Suggest, 0, minimum(len(candidates), maxSuggestions))
 
-	// cannot test PATH with go run .
-	// go build .
-
-	paths := strings.Split(os.Getenv("PATH"), ":")
-	if len(paths) == 0 || (len(paths) == 1 && paths[0] == "") {
-		paths = []string{"/usr/local/bin", "/usr/bin", "/usr/sbin"}
-	}
-
-	for _, dir := range paths {
-		files, err := os.ReadDir(dir)
-		if err != nil {
+	for _, candidate := range candidates {
+		if !strings.HasPrefix(candidate.name, word) {
 			continue
 		}
 
-		suggestions = append(suggestions,
-			matchFiles(files, dir, word, false, onlyExec)...)
-
-		if len(suggestions) > maxSuggestions {
-			suggestions = suggestions[:maxSuggestions]
+		suggestions = append(suggestions, candidate.suggestion)
+		if len(suggestions) >= maxSuggestions {
 			break
 		}
 	}
 
 	return suggestions
+}
+
+// pathCompleterCandidates caches executable candidates for one prompt session.
+func pathCompleterCandidates() []completionCandidate {
+	path := os.Getenv("PATH")
+	cwd := ""
+	if pathHasRelativeEntry(path) {
+		var err error
+		cwd, err = os.Getwd()
+		if err != nil {
+			cwd = ""
+		}
+	}
+
+	if pathCache.loaded && pathCache.path == path && pathCache.cwd == cwd {
+		return pathCache.candidates
+	}
+
+	pathCache.path = path
+	pathCache.cwd = cwd
+	pathCache.candidates = nil
+	pathCache.loaded = true
+
+	// cannot test PATH with go run .
+	// go build .
+
+	paths := strings.Split(path, ":")
+	if len(paths) == 0 || (len(paths) == 1 && paths[0] == "") {
+		paths = []string{"/usr/local/bin", "/usr/bin", "/usr/sbin"}
+	}
+
+	for _, dir := range paths {
+		if dir == "" {
+			dir = "."
+		}
+
+		files, err := os.ReadDir(dir)
+		if err != nil {
+			continue
+		}
+
+		pathCache.candidates = append(pathCache.candidates,
+			matchFileCandidates(files, dir, "", false, onlyExec, 0)...)
+	}
+
+	return pathCache.candidates
+}
+
+// pathHasRelativeEntry reports whether PATH has entries that depend on cwd.
+func pathHasRelativeEntry(path string) bool {
+	if path == "" {
+		return false
+	}
+
+	for _, dir := range strings.Split(path, ":") {
+		if dir == "" || !filepath.IsAbs(dir) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // dirCompleter completes directories using absolute paths and CDPATH.
@@ -304,10 +370,24 @@ func anyCompleter(dir, prefix string, onlyType int) []prompt.Suggest {
 func matchFiles(files []os.DirEntry, dir, prefix string,
 	useFullPath bool, onlyType int) []prompt.Suggest {
 
-	suggestions := make([]prompt.Suggest, 0, minimum(len(files), maxSuggestions))
+	candidates := matchFileCandidates(files, dir, prefix, useFullPath, onlyType, maxSuggestions)
+	suggestions := make([]prompt.Suggest, 0, len(candidates))
+
+	for _, candidate := range candidates {
+		suggestions = append(suggestions, candidate.suggestion)
+	}
+
+	return suggestions
+}
+
+// matchFileCandidates filters directory entries and keeps raw names for caching.
+func matchFileCandidates(files []os.DirEntry, dir, prefix string,
+	useFullPath bool, onlyType, limit int) []completionCandidate {
+
+	candidates := make([]completionCandidate, 0, minimum(len(files), maxSuggestions))
 
 	for _, file := range files {
-		if len(suggestions) >= maxSuggestions {
+		if limit > 0 && len(candidates) >= limit {
 			break
 		}
 
@@ -318,25 +398,8 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 
 		fullPath := filepath.Join(dir, name)
 
-		switch onlyType {
-
-		case onlyDirs:
-			info, err := os.Stat(fullPath)
-			if err != nil || !info.IsDir() {
-				continue
-			}
-
-		case onlyExec:
-			info, err := os.Stat(fullPath)
-			if err != nil || info.IsDir() || info.Mode().Perm()&0111 == 0 {
-				continue
-			}
-
-		case onlyFiles:
-			info, err := os.Stat(fullPath)
-			if err != nil || !info.Mode().IsRegular() {
-				continue
-			}
+		if !matchesFileType(file, fullPath, onlyType) {
+			continue
 		}
 
 		// Determine display name (quote if contains spaces)
@@ -389,13 +452,67 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 			}
 		}
 
-		suggestions = append(suggestions, prompt.Suggest{
-			Text:        displayName,
-			Description: desc,
+		candidates = append(candidates, completionCandidate{
+			name: name,
+			suggestion: prompt.Suggest{
+				Text:        displayName,
+				Description: desc,
+			},
 		})
 	}
 
-	return suggestions
+	return candidates
+}
+
+// matchesFileType avoids Stat where ReadDir already supplied enough type data.
+func matchesFileType(file os.DirEntry, fullPath string, onlyType int) bool {
+	modeType := file.Type()
+	isSymlink := modeType&os.ModeSymlink != 0
+
+	switch onlyType {
+
+	case onlyDirs:
+		if !isSymlink {
+			return file.IsDir()
+		}
+
+		info, err := os.Stat(fullPath)
+		return err == nil && info.IsDir()
+
+	case onlyExec:
+		info, err := statForCompletion(file, fullPath)
+		return err == nil && !info.IsDir() && info.Mode().Perm()&0111 != 0
+
+	case onlyFiles:
+		if !isSymlink && modeType != 0 {
+			return false
+		}
+
+		info, err := statForCompletion(file, fullPath)
+		return err == nil && info.Mode().IsRegular()
+
+	case onlyFilesAndDirs:
+		if !isSymlink && file.IsDir() {
+			return true
+		}
+		if !isSymlink && modeType != 0 {
+			return false
+		}
+
+		info, err := statForCompletion(file, fullPath)
+		return err == nil && (info.Mode().IsRegular() || info.IsDir())
+	}
+
+	return true
+}
+
+// statForCompletion follows symlinks but uses DirEntry info for normal entries.
+func statForCompletion(file os.DirEntry, fullPath string) (os.FileInfo, error) {
+	if file.Type()&os.ModeSymlink != 0 {
+		return os.Stat(fullPath)
+	}
+
+	return file.Info()
 }
 
 // vim: set ts=4 sw=4 noet:

@@ -106,7 +106,7 @@ func (br *browseObj) printCurrentList() {
 	// Leave room for ellipsis (3 chars)
 	maxLen := br.dispWidth - 8
 
-	for i, name := range CurrentList {
+	for i, name := range br.currentList {
 		// Add brackets to the current file in the list
 		if i == 0 {
 			name = "[" + name + "]"
