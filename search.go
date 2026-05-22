@@ -89,6 +89,7 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 
 		// Display strategy: go to the page wherever the next match occurs
 		if br.lastMatch == SEARCH_RESET {
+			br.lastMatch = firstMatch
 			br.printPage(startOfPage)
 			return true
 		}
@@ -99,8 +100,10 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 		upOffset := downOffset * 5
 
 		if forward {
+			br.lastMatch = firstMatch
 			br.printPage(firstMatch - downOffset)
 		} else {
+			br.lastMatch = lastMatch
 			br.printPage(lastMatch - upOffset)
 		}
 
@@ -142,7 +145,7 @@ func (br *browseObj) pageIsMatch(startOfPage, endOfPage int) (int, int) {
 
 // lineIsMatch reports the number of matches on a line and returns its content.
 func (br *browseObj) lineIsMatch(lineno int) (int, []byte) {
-	if lineno <= 0 || lineno >= br.mapSiz {
+	if lineno < 0 || lineno >= br.mapSiz {
 		return 0, nil
 	}
 
@@ -226,6 +229,7 @@ func (br *browseObj) replaceMatch(lineno int, input []byte) string {
 	if leftMatch || rightMatch {
 		replaced = br.re.ReplaceAll(content, []byte(br.replace+_VID_GREEN_FG))
 		replaced = append([]byte(_VID_GREEN_FG), replaced...)
+		replaced = append(replaced, []byte(VIDOFF)...)
 	} else {
 		replaced = br.re.ReplaceAll(content, []byte(br.replace))
 	}
@@ -382,7 +386,7 @@ func (br *browseObj) undisplayedMatches(input []byte, sol int) (bool, bool) {
 		}
 
 		// Calculate right boundary with safety checks
-		rightBoundary := index[1] - br.shiftWidth + 2
+		rightBoundary := index[1] - sol + 2
 		if !rightMatch && rightBoundary > displayWidth {
 			// NB: off by two
 			rightMatch = true

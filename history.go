@@ -37,6 +37,9 @@ func loadHistory(historyFile string) []string {
 	for scanner.Scan() {
 		history = append(history, scanner.Text())
 	}
+	if err := scanner.Err(); err != nil {
+		return []string{}
+	}
 
 	// If history is too large, keep only the most recent entries
 	if len(history) > maxHistorySize {

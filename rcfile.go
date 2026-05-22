@@ -25,26 +25,33 @@ func (br *browseObj) writeRcFile() bool {
 	rcFileName := filepath.Join(os.Getenv("HOME"), RCDIRNAME, RCFILENAME)
 
 	// abs fileName
-	data.WriteString(br.absFileName + "\n")
+	data.WriteString(br.absFileName)
+	data.WriteByte('\n')
 
 	// firstRow
-	data.WriteString(strconv.Itoa(br.firstRow) + "\n")
+	data.WriteString(strconv.Itoa(br.firstRow))
+	data.WriteByte('\n')
 
 	// pattern
 	if br.ignoreCase {
-		data.WriteString("(?i)" + br.pattern + "\n")
+		data.WriteString("(?i)")
+		data.WriteString(br.pattern)
+		data.WriteByte('\n')
 	} else {
-		data.WriteString(br.pattern + "\n")
+		data.WriteString(br.pattern)
+		data.WriteByte('\n')
 	}
 
 	// marks
 	for mark := 1; mark <= 9; mark++ {
-		data.WriteString(strconv.Itoa(br.marks[mark]) + " ")
+		data.WriteString(strconv.Itoa(br.marks[mark]))
+		data.WriteByte(' ')
 	}
-	data.WriteString("\n")
+	data.WriteByte('\n')
 
 	// title
-	data.WriteString(br.title + "\n")
+	data.WriteString(br.title)
+	data.WriteByte('\n')
 
 	// save
 	err := os.WriteFile(rcFileName, []byte(data.String()), 0644)
@@ -67,8 +74,7 @@ func (br *browseObj) readRcFile() bool {
 
 	for i := range 5 {
 		if !scanner.Scan() {
-			// partial read ok
-			return true
+			break
 		}
 
 		line := strings.TrimRight(scanner.Text(), "\r\n")
@@ -76,6 +82,10 @@ func (br *browseObj) readRcFile() bool {
 		if !br.handleRcFileLine(i, line) {
 			return false
 		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return false
 	}
 
 	return true

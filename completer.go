@@ -153,7 +153,7 @@ func completer(d prompt.Document) []prompt.Suggest {
 		if hasPathSeparator(word) {
 			return fileCompleter(word)
 		}
-		return anyCompleter(".", originalWord, onlyFiles)
+		return anyCompleter(".", originalWord, onlyFilesAndDirs)
 
 	case searchPath:
 		if hasPathSeparator(word) {

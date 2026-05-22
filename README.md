@@ -2,7 +2,7 @@
 
 **browse**: a multi-file pager with recursive navigation
 
-**browse** is an interactive pager for navigating *sets of files*, not just
+**browse** is an interactive pager for navigating _sets of files_, not just
 viewing one file at a time.
 
 Unlike traditional pagers, **browse** lets you temporarily switch to a new set
@@ -57,6 +57,18 @@ related files without losing context.
 - Run `fmt -s` on the current file in a nested browse session.
 - Built-in help screen.
 
+## Continuous Scrolling and Following
+
+**browse** supports continuous scrolling and file following:
+
+- Continuous scroll moves up or down until you stop it. Use `d` to scroll
+  toward EOF and `u` to scroll toward SOF.
+- When continuous scroll reaches EOF, **browse** enters follow mode and displays
+  new lines as they are appended to the file.
+- The tail command jumps to EOF and follows new output from there.
+- The cursor shows whether follow mode is active. In follow mode, the cursor is
+  in the lower left corner. Otherwise, it is in the upper left corner.
+
 ## Usage
 
 Browse one or more files:
@@ -89,16 +101,16 @@ browse -p ERROR app.log
 browse [OPTIONS] [FILE] [FILE...]
 ```
 
-| Option                | Function                                          |
-| --------------------- | ------------------------------------------------- |
-| `-f`, `--follow`      | Follow file changes while still browsing          |
-| `-F`, `--tail`        | Follow file changes like `tail -f`                |
-| `-i`, `--ignore-case` | Search ignores case                               |
-| `-n`, `--numbers`     | Start with line numbers turned on                 |
-| `-p`, `--pattern`     | Initial search pattern                            |
-| `-t`, `--title`       | Page title, default filename, blank for stdin     |
-| `-v`, `--version`     | Print browse version number                       |
-| `-?`, `--help`        | Print browse command line options                 |
+| Option                | Function                                      |
+| --------------------- | --------------------------------------------- |
+| `-f`, `--follow`      | Follow file changes while still browsing      |
+| `-F`, `--tail`        | Follow file changes like `tail -f`            |
+| `-i`, `--ignore-case` | Search ignores case                           |
+| `-n`, `--numbers`     | Start with line numbers turned on             |
+| `-p`, `--pattern`     | Initial search pattern                        |
+| `-t`, `--title`       | Page title, default filename, blank for stdin |
+| `-v`, `--version`     | Print browse version number                   |
+| `-?`, `--help`        | Print browse command line options             |
 
 ## Keyboard Shortcuts
 
@@ -141,17 +153,17 @@ browse [OPTIONS] [FILE] [FILE...]
 
 ### Files, Lists, and Session Control
 
-| Key      | Function                                           |
-| -------- | -------------------------------------------------- |
-| `B`      | Browse another file or file set                    |
-| `R`      | Re-read the current file from disk                 |
-| `Ctrl+R` | Rewind the current browse list                     |
-| `a`      | Print filenames in the current browse list         |
-| `q`      | Quit current file, save session, continue list     |
-| `Q`      | Quit current file without saving, continue list    |
-| `x`      | Exit current list, save session                    |
-| `X`      | Exit current list without saving session           |
-| `Ctrl+X` | Exit from any nested list without saving session   |
+| Key      | Function                                         |
+| -------- | ------------------------------------------------ |
+| `B`      | Browse another file or file set                  |
+| `R`      | Re-read the current file from disk               |
+| `Ctrl+R` | Rewind the current browse list                   |
+| `a`      | Print filenames in the current browse list       |
+| `q`      | Quit current file, save session, continue list   |
+| `Q`      | Quit current file without saving, continue list  |
+| `x`      | Exit current list, save session                  |
+| `X`      | Exit current list without saving session         |
+| `Ctrl+X` | Exit from any nested list without saving session |
 
 ### Miscellaneous
 
@@ -222,12 +234,12 @@ current file. Directory completion includes entries from `CDPATH`.
 
 Special symbols are expanded in file and directory prompts, and shell commands:
 
-| Symbol | Expands To                                                         |
-| ------ | ------------------------------------------------------------------ |
-| `!`    | Last shell command                                                 |
-| `%`    | Current file name; parent directory of current file in `C` prompt  |
-| `&`    | Current search pattern                                             |
-| `~`    | Home directory                                                     |
+| Symbol | Expands To                                                        |
+| ------ | ----------------------------------------------------------------- |
+| `!`    | Last shell command                                                |
+| `%`    | Current file name; parent directory of current file in `C` prompt |
+| `&`    | Current search pattern                                            |
+| `~`    | Home directory                                                    |
 
 ## Configuration and History
 
@@ -250,6 +262,17 @@ It saves:
 - Search pattern.
 - Marks.
 - Page title.
+
+History files are maintained for common workflows, behaving like Bash history:
+
+- **Shell commands** (`!` key): Every shell command is remembered and can be
+  recalled, edited, and rerun.
+- **Directory history** (`C` key): Recently visited directories are recorded
+  for fast navigation across large projects.
+- **File history** (`B` prompt): Browsed files are saved as full pathnames and
+  are available in current and future sessions.
+- **Search patterns** (`/` and `?` prompts): Regex and text search patterns are
+  saved so you can repeat or revisit common queries without retyping them.
 
 History files:
 

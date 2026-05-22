@@ -99,6 +99,22 @@ Session saving and restoration.
 Run \f[V]fmt -s\f[R] on the current file in a nested browse session.
 .IP \[bu] 2
 Built-in help screen.
+.SS Continuous Scrolling and Following
+.PP
+\f[B]browse\f[R] supports continuous scrolling and file following:
+.IP \[bu] 2
+Continuous scroll moves up or down until you stop it.
+Use \f[V]d\f[R] to scroll toward EOF and \f[V]u\f[R] to scroll toward
+SOF.
+.IP \[bu] 2
+When continuous scroll reaches EOF, \f[B]browse\f[R] enters follow mode
+and displays new lines as they are appended to the file.
+.IP \[bu] 2
+The tail command jumps to EOF and follows new output from there.
+.IP \[bu] 2
+The cursor shows whether follow mode is active.
+In follow mode, the cursor is in the lower left corner.
+Otherwise, it is in the upper left corner.
 .SS Usage
 .PP
 Browse one or more files:
@@ -574,6 +590,22 @@ Search pattern.
 Marks.
 .IP \[bu] 2
 Page title.
+.PP
+History files are maintained for common workflows, behaving like Bash
+history:
+.IP \[bu] 2
+\f[B]Shell commands\f[R] (\f[V]!\f[R] key): Every shell command is
+remembered and can be recalled, edited, and rerun.
+.IP \[bu] 2
+\f[B]Directory history\f[R] (\f[V]C\f[R] key): Recently visited
+directories are recorded for fast navigation across large projects.
+.IP \[bu] 2
+\f[B]File history\f[R] (\f[V]B\f[R] prompt): Browsed files are saved as
+full pathnames and are available in current and future sessions.
+.IP \[bu] 2
+\f[B]Search patterns\f[R] (\f[V]/\f[R] and \f[V]?\f[R] prompts): Regex
+and text search patterns are saved so you can repeat or revisit common
+queries without retyping them.
 .PP
 History files:
 .IP \[bu] 2
