@@ -22,6 +22,23 @@ import (
 
 var tabSpaces = [TABWIDTH]byte{' ', ' ', ' ', ' '}
 
+var urlRe = regexp.MustCompile(`https?://[^\s\x1b<>"` + "`" + `()\[\]{}]+`)
+
+func oscWrap(text, url string) string {
+	const ST = "\033\\"
+	return "\033]8;;" + url + ST + text + "\033]8;;" + ST
+}
+
+func linkURLs(s string) string {
+	if !strings.Contains(s, "://") {
+		return s
+	}
+
+	return urlRe.ReplaceAllStringFunc(s, func(url string) string {
+		return oscWrap(url, url)
+	})
+}
+
 var tabBufPool = sync.Pool{
 	New: func() any {
 		return &bytes.Buffer{}

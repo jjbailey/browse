@@ -239,6 +239,8 @@ func (br *browseObj) replaceMatch(lineno int, input []byte) string {
 
 // formatLine formats a line with optional line numbers.
 func (br *browseObj) formatLine(lineno int, content string) string {
+	content = linkURLs(content)
+
 	if br.modeNumbers {
 		// dim attribute is optional in the ANSI spec
 		return fmt.Sprintf("%s%6d%s %s", _VID_DIM, lineno, _VID_OFF, content)
