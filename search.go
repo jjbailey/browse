@@ -307,35 +307,32 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 		return 0, fmt.Errorf("pattern too long (max %d characters)", MAX_PATTERN_LENGTH)
 	}
 
-	ignoreCase := br.ignoreCase
-	if strings.HasPrefix(pattern, "(?i)") {
-		ignoreCase = true
-		pattern = strings.TrimPrefix(pattern, "(?i)")
-	}
-
 	if pattern == "" {
 		return 0, nil
 	}
 
-	var cp string
-
-	if ignoreCase {
-		cp = "(?i)" + pattern
+	if br.ignoreCase {
+		if !strings.HasPrefix(pattern, "(?i)") {
+			pattern = "(?i)" + pattern
+		}
 	} else {
-		cp = pattern
+		pattern = strings.TrimPrefix(pattern, "(?i)")
+	}
+
+	if strings.TrimPrefix(pattern, "(?i)") == "" {
+		return 0, nil
 	}
 
 	// Additional validation: check combined length after flag prefix
-	if len(cp) > MAX_PATTERN_LENGTH {
+	if len(pattern) > MAX_PATTERN_LENGTH {
 		return 0, fmt.Errorf("pattern too long (max %d characters)", MAX_PATTERN_LENGTH)
 	}
 
-	re, err := regexp.Compile(cp)
+	re, err := regexp.Compile(pattern)
 	if err != nil {
 		return 0, err
 	}
 
-	br.ignoreCase = ignoreCase
 	br.pattern = pattern
 	br.re = re
 	br.replace = fmt.Sprintf("%s%s%s", MSG_GREEN, "$0", VIDOFF)

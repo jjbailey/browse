@@ -33,14 +33,8 @@ func (br *browseObj) writeRcFile() bool {
 	data.WriteByte('\n')
 
 	// pattern
-	if br.ignoreCase {
-		data.WriteString("(?i)")
-		data.WriteString(br.pattern)
-		data.WriteByte('\n')
-	} else {
-		data.WriteString(br.pattern)
-		data.WriteByte('\n')
-	}
+	data.WriteString(br.pattern)
+	data.WriteByte('\n')
 
 	// marks
 	for mark := 1; mark <= 9; mark++ {
@@ -109,6 +103,7 @@ func (br *browseObj) handleRcFileLine(i int, line string) bool {
 	case 2:
 		// pattern
 		br.pattern = line
+		br.ignoreCase = strings.HasPrefix(br.pattern, "(?i)")
 
 	case 3:
 		// marks
