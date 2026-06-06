@@ -262,6 +262,7 @@ It saves:
 - Search pattern.
 - Marks.
 - Page title.
+- Search case-sensitivity mode.
 
 History files are maintained for common workflows, behaving like Bash history:
 

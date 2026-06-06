@@ -311,24 +311,17 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 		return 0, nil
 	}
 
+	compilePattern := pattern
 	if br.ignoreCase {
-		if !strings.HasPrefix(pattern, "(?i)") {
-			pattern = "(?i)" + pattern
-		}
-	} else {
-		pattern = strings.TrimPrefix(pattern, "(?i)")
-	}
-
-	if strings.TrimPrefix(pattern, "(?i)") == "" {
-		return 0, nil
+		compilePattern = "(?i)" + compilePattern
 	}
 
 	// Additional validation: check combined length after flag prefix
-	if len(pattern) > MAX_PATTERN_LENGTH {
+	if len(compilePattern) > MAX_PATTERN_LENGTH {
 		return 0, fmt.Errorf("pattern too long (max %d characters)", MAX_PATTERN_LENGTH)
 	}
 
-	re, err := regexp.Compile(pattern)
+	re, err := regexp.Compile(compilePattern)
 	if err != nil {
 		return 0, err
 	}
