@@ -28,7 +28,7 @@ const (
 const (
 	MAXMARKS     = 10
 	READBUFSIZ   = 4096
-	SEARCH_RESET = 0
+	SEARCH_RESET = -1
 	TABWIDTH     = 4
 )
 

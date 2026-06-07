@@ -394,6 +394,7 @@ func commands(br *browseObj) {
 				br.printMessage(fmt.Sprintf("Regex compilation error: %v", err), MSG_ORANGE)
 				break
 			}
+			br.lastMatch = SEARCH_RESET
 			if br.ignoreCase {
 				br.printMessage("Search ignores case", MSG_GREEN)
 			} else {
