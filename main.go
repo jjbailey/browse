@@ -78,11 +78,14 @@ func main() {
 		br.modeScroll = MODE_SCROLL_TAIL
 	}
 
-	br.ignoreCase = *caseFlag
+	if getopt.IsSet('i') {
+		br.ignoreCase = *caseFlag
+	}
 	br.modeNumbers = *numberFlag
 
 	if len(*patternStr) > 0 {
 		br.pattern = *patternStr
+		updateHistory(br.pattern, searchHistory)
 	}
 
 	if len(*titleStr) > 0 {

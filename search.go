@@ -20,7 +20,7 @@ const (
 	// %6d + one space
 	NUMCOLWIDTH = 7
 
-	// Maximum regex pattern length to prevent ReDoS attacks
+	// Maximum regex pattern length to avoid accidental oversized searches.
 	MAX_PATTERN_LENGTH = 1000
 )
 
@@ -36,8 +36,10 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 		return false
 	}
 
+	freshPatternSearch := pattern != br.pattern
+
 	// Reset search state after a new or missing regexp compiles successfully.
-	if pattern != br.pattern || br.re == nil {
+	if freshPatternSearch || br.re == nil {
 		patternLen, err = br.reCompile(pattern)
 		if err != nil {
 			br.printMessage(fmt.Sprintf("Regex compilation error: %v", err), MSG_ORANGE)
@@ -53,62 +55,46 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 		next = false
 	}
 
-	dispRows := br.dispRows
-
-	// Determine start and end of page
-	var startOfPage, endOfPage int
-	var wrapped, warned bool
-
-	if br.lastMatch == SEARCH_RESET || !next {
-		// New search or not continuing - use current page
-		startOfPage = br.firstRow
-		endOfPage = startOfPage + dispRows
-	} else {
-		// Continuing search - get next page
-		startOfPage, endOfPage, wrapped = br.setNextPage(forward, br.firstRow)
+	matchLine, wrapped := br.findSearchMatch(forward, next)
+	if matchLine < 0 {
+		br.printMessage("Pattern not found", MSG_ORANGE)
+		moveCursor(2, 1, false)
+		return false
 	}
 
-	for {
-		firstMatch, lastMatch := br.pageIsMatch(startOfPage, endOfPage)
-
-		if wrapped && warned {
-			br.printMessage("Pattern not found", MSG_ORANGE)
-			moveCursor(2, 1, false)
-			return false
-		}
-
-		if wrapped && !warned {
-			br.displayWrapMessage(forward)
-			warned = true
-		}
-
-		if firstMatch < 0 {
-			startOfPage, endOfPage, wrapped = br.setNextPage(forward, startOfPage)
-			continue
-		}
-
-		// Display strategy: go to the page wherever the next match occurs
-		if br.lastMatch == SEARCH_RESET {
-			br.lastMatch = firstMatch
-			br.printPage(startOfPage)
-			return true
-		}
-
-		// Display strategy: reposition the page to provide match context
-		// 1/6 searching down, 5/6 searching up
-		downOffset := dispRows / 6
-		upOffset := downOffset * 5
-
-		if forward {
-			br.lastMatch = firstMatch
-			br.printPage(firstMatch - downOffset)
-		} else {
-			br.lastMatch = lastMatch
-			br.printPage(lastMatch - upOffset)
-		}
-
-		return true
+	if wrapped {
+		br.displayWrapMessage(forward)
 	}
+
+	br.lastMatch = matchLine
+	displayTop := br.searchDisplayTop(matchLine, forward)
+	if freshPatternSearch && !wrapped && br.lineOnCurrentPage(matchLine) {
+		displayTop = br.firstRow
+	}
+	br.printPage(displayTop)
+
+	return true
+}
+
+// lineOnCurrentPage reports whether a line is visible before search repositions.
+func (br *browseObj) lineOnCurrentPage(lineNum int) bool {
+	return lineNum >= br.firstRow && lineNum < br.firstRow+br.dispRows
+}
+
+// searchMapSize returns a stable snapshot of the currently mapped line count.
+func (br *browseObj) searchMapSize() int {
+	br.mutex.Lock()
+	defer br.mutex.Unlock()
+
+	return br.mapSiz
+}
+
+// lineInMap reports whether a line is currently mapped.
+func (br *browseObj) lineInMap(lineno int) bool {
+	br.mutex.Lock()
+	defer br.mutex.Unlock()
+
+	return lineno >= 0 && lineno < br.mapSiz
 }
 
 // displayWrapMessage informs the user when the search wraps.
@@ -120,32 +106,138 @@ func (br *browseObj) displayWrapMessage(forward bool) {
 	}
 }
 
-// pageIsMatch returns the first and last match lines on a page.
-func (br *browseObj) pageIsMatch(startOfPage, endOfPage int) (int, int) {
-	var (
-		firstMatchLine int = -1
-		lastMatchLine  int = -1
-	)
-
-	for lineNum := startOfPage; lineNum < endOfPage; lineNum++ {
-		matchCount, _ := br.lineIsMatch(lineNum)
-		if matchCount == 0 {
-			continue
-		}
-
-		if firstMatchLine == -1 {
-			firstMatchLine = lineNum
-		}
-
-		lastMatchLine = lineNum
+// findSearchMatch returns the next matching line without changing display state.
+func (br *browseObj) findSearchMatch(forward, next bool) (int, bool) {
+	mapSize := br.searchMapSize()
+	if mapSize <= 0 {
+		return -1, false
 	}
 
-	return firstMatchLine, lastMatchLine
+	startLine := br.searchStartLine(forward, next, mapSize)
+
+	if forward {
+		if matchLine := br.findForwardMatch(startLine, mapSize, mapSize); matchLine >= 0 {
+			return matchLine, false
+		}
+
+		if startLine > 0 {
+			if matchLine := br.findForwardMatch(0, minimum(startLine, mapSize), mapSize); matchLine >= 0 {
+				return matchLine, true
+			}
+		}
+
+		return -1, false
+	}
+
+	if matchLine := br.findReverseMatch(startLine, 0, mapSize); matchLine >= 0 {
+		return matchLine, false
+	}
+
+	if startLine < mapSize-1 {
+		if matchLine := br.findReverseMatch(mapSize-1, maximum(startLine+1, 0), mapSize); matchLine >= 0 {
+			return matchLine, true
+		}
+	}
+
+	return -1, false
 }
 
-// lineIsMatch reports the number of matches on a line and returns its content.
+// searchStartLine returns the first line to inspect for this search action.
+func (br *browseObj) searchStartLine(forward, next bool, mapSize int) int {
+	if !next {
+		return br.currentPageSearchStart(forward, mapSize)
+	}
+
+	if br.lastMatch == SEARCH_RESET && !br.currentPageHasMatch(mapSize) {
+		return br.currentPageSearchStart(forward, mapSize)
+	}
+
+	if forward {
+		return br.firstRow + br.dispRows
+	}
+
+	return br.firstRow - 1
+}
+
+// currentPageSearchStart returns the first current-page line to inspect.
+func (br *browseObj) currentPageSearchStart(forward bool, mapSize int) int {
+	if forward {
+		return br.firstRow
+	}
+
+	return minimum(br.firstRow+br.dispRows-1, mapSize-1)
+}
+
+// currentPageHasMatch reports whether the visible page already shows a match.
+func (br *browseObj) currentPageHasMatch(mapSize int) bool {
+	pageEnd := minimum(br.firstRow+br.dispRows, mapSize)
+
+	for lineNum := br.firstRow; lineNum < pageEnd; lineNum++ {
+		if matchCount, _ := br.lineIsMatch(lineNum); matchCount > 0 {
+			return true
+		}
+	}
+
+	return false
+}
+
+// findForwardMatch scans page-sized chunks from startLine up to endLine.
+func (br *browseObj) findForwardMatch(startLine, endLine, mapSize int) int {
+	startLine = maximum(startLine, 0)
+	endLine = minimum(endLine, mapSize)
+	if startLine >= endLine {
+		return -1
+	}
+
+	pageRows := maximum(br.dispRows, 1)
+
+	for pageStart := startLine; pageStart < endLine; pageStart += pageRows {
+		pageEnd := minimum(pageStart+pageRows, endLine)
+		for lineNum := pageStart; lineNum < pageEnd; lineNum++ {
+			if matchCount, _ := br.lineIsMatch(lineNum); matchCount > 0 {
+				return lineNum
+			}
+		}
+	}
+
+	return -1
+}
+
+// findReverseMatch scans page-sized chunks from startLine down to endLine.
+func (br *browseObj) findReverseMatch(startLine, endLine, mapSize int) int {
+	startLine = minimum(startLine, mapSize-1)
+	endLine = maximum(endLine, 0)
+	if startLine < endLine {
+		return -1
+	}
+
+	pageRows := maximum(br.dispRows, 1)
+
+	for pageEnd := startLine + 1; pageEnd > endLine; {
+		pageStart := maximum(pageEnd-pageRows, endLine)
+		for lineNum := pageEnd - 1; lineNum >= pageStart; lineNum-- {
+			if matchCount, _ := br.lineIsMatch(lineNum); matchCount > 0 {
+				return lineNum
+			}
+		}
+		pageEnd = pageStart
+	}
+
+	return -1
+}
+
+// searchDisplayTop positions the match with directional context.
+func (br *browseObj) searchDisplayTop(matchLine int, forward bool) int {
+	if forward {
+		return matchLine - br.dispRows/6
+	}
+
+	return matchLine - (br.dispRows*5)/6
+}
+
+// lineIsMatch reports whether a line matches and returns its content.
 func (br *browseObj) lineIsMatch(lineno int) (int, []byte) {
-	if lineno < 0 || lineno >= br.mapSiz {
+	if !br.lineInMap(lineno) {
 		return 0, nil
 	}
 
@@ -154,46 +246,11 @@ func (br *browseObj) lineIsMatch(lineno int) (int, []byte) {
 		return 0, lineContent
 	}
 
-	matchIndices := br.re.FindAllIndex(lineContent, -1)
-	return len(matchIndices), lineContent
-}
-
-// setNextPage calculates the next page boundaries for searching.
-func (br *browseObj) setNextPage(forward bool, startOfPage int) (int, int, bool) {
-	dispRows := br.dispRows
-	totalRows := br.mapSiz
-	wrapped := false
-
-	if totalRows <= 0 {
-		return 0, 0, false
+	if br.re.Match(lineContent) {
+		return 1, lineContent
 	}
 
-	var newStart, newEnd int
-
-	if forward {
-		newStart = startOfPage + dispRows
-		if newStart >= totalRows {
-			newStart = 0
-			wrapped = true
-		}
-		newEnd = minimum(newStart+dispRows, totalRows)
-	} else {
-		if startOfPage == 0 {
-			// At SOF, wrap to last page at EOF
-			newStart = maximum(totalRows-dispRows, 0)
-			newEnd = totalRows
-			wrapped = true
-		} else {
-			// Go up one page
-			newEnd = startOfPage
-			newStart = 0
-			if newEnd > dispRows {
-				newStart = newEnd - dispRows
-			}
-		}
-	}
-
-	return newStart, newEnd, wrapped
+	return 0, lineContent
 }
 
 // replaceMatch highlights matches in a line and formats it for display.
@@ -302,40 +359,24 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 		pattern = br.pattern
 	}
 
-	// Validate pattern length to prevent ReDoS attacks
 	if len(pattern) > MAX_PATTERN_LENGTH {
 		return 0, fmt.Errorf("pattern too long (max %d characters)", MAX_PATTERN_LENGTH)
-	}
-
-	ignoreCase := br.ignoreCase
-	if strings.HasPrefix(pattern, "(?i)") {
-		ignoreCase = true
-		pattern = strings.TrimPrefix(pattern, "(?i)")
 	}
 
 	if pattern == "" {
 		return 0, nil
 	}
 
-	var cp string
-
-	if ignoreCase {
-		cp = "(?i)" + pattern
-	} else {
-		cp = pattern
+	compilePattern := pattern
+	if br.ignoreCase {
+		compilePattern = "(?i)" + compilePattern
 	}
 
-	// Additional validation: check combined length after flag prefix
-	if len(cp) > MAX_PATTERN_LENGTH {
-		return 0, fmt.Errorf("pattern too long (max %d characters)", MAX_PATTERN_LENGTH)
-	}
-
-	re, err := regexp.Compile(cp)
+	re, err := regexp.Compile(compilePattern)
 	if err != nil {
 		return 0, err
 	}
 
-	br.ignoreCase = ignoreCase
 	br.pattern = pattern
 	br.re = re
 	br.replace = fmt.Sprintf("%s%s%s", MSG_GREEN, "$0", VIDOFF)

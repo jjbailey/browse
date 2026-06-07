@@ -1,11 +1,11 @@
 module internetguy.net/browse
 
-go 1.26.2
+go 1.26.4
 
 // Direct dependencies
 require (
 	github.com/creack/pty v1.1.24
-	github.com/jjbailey/go-prompt v0.2.6
+	github.com/jjbailey/go-prompt v0.2.7
 	github.com/pborman/getopt/v2 v2.1.0
 	golang.org/x/sys v0.45.0
 	golang.org/x/term v0.43.0
@@ -14,9 +14,9 @@ require (
 // Indirect dependencies
 require (
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
-	github.com/mattn/go-colorable v0.1.14 // indirect
+	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
-	github.com/mattn/go-runewidth v0.0.23 // indirect
+	github.com/mattn/go-runewidth v0.0.24 // indirect
 	github.com/mattn/go-tty v0.0.8 // indirect
 	github.com/pkg/term v1.2.0-beta.2 // indirect
 )

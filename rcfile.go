@@ -33,14 +33,8 @@ func (br *browseObj) writeRcFile() bool {
 	data.WriteByte('\n')
 
 	// pattern
-	if br.ignoreCase {
-		data.WriteString("(?i)")
-		data.WriteString(br.pattern)
-		data.WriteByte('\n')
-	} else {
-		data.WriteString(br.pattern)
-		data.WriteByte('\n')
-	}
+	data.WriteString(br.pattern)
+	data.WriteByte('\n')
 
 	// marks
 	for mark := 1; mark <= 9; mark++ {
@@ -51,6 +45,10 @@ func (br *browseObj) writeRcFile() bool {
 
 	// title
 	data.WriteString(br.title)
+	data.WriteByte('\n')
+
+	// ignoreCase
+	data.WriteString(strconv.FormatBool(br.ignoreCase))
 	data.WriteByte('\n')
 
 	// save
@@ -72,11 +70,13 @@ func (br *browseObj) readRcFile() bool {
 
 	scanner := bufio.NewScanner(fp)
 
-	for i := range 5 {
+	linesRead := 0
+	for i := range 6 {
 		if !scanner.Scan() {
 			break
 		}
 
+		linesRead++
 		line := strings.TrimRight(scanner.Text(), "\r\n")
 
 		if !br.handleRcFileLine(i, line) {
@@ -86,6 +86,11 @@ func (br *browseObj) readRcFile() bool {
 
 	if err := scanner.Err(); err != nil {
 		return false
+	}
+
+	if linesRead < 6 && strings.HasPrefix(br.pattern, "(?i)") {
+		br.pattern = strings.TrimPrefix(br.pattern, "(?i)")
+		br.ignoreCase = true
 	}
 
 	return true
@@ -117,6 +122,14 @@ func (br *browseObj) handleRcFileLine(i int, line string) bool {
 	case 4:
 		// title
 		br.title = line
+
+	case 5:
+		// ignoreCase
+		ignoreCase, err := strconv.ParseBool(line)
+		if err != nil {
+			return false
+		}
+		br.ignoreCase = ignoreCase
 	}
 
 	return true

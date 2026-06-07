@@ -46,11 +46,8 @@ func (br *browseObj) printLine(lineno int) {
 		return
 	}
 
-	// Get matches and content from map
-	matches, input := br.lineIsMatch(lineno)
-	if matches > 0 {
-		br.lastMatch = lineno
-	}
+	// Get content from map. Search owns br.lastMatch; rendering must not move it.
+	_, input := br.lineIsMatch(lineno)
 
 	output := br.replaceMatch(lineno, input)
 

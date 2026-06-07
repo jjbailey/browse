@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "1.2.3"
+	BR_VERSION = "1.2.4"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -28,7 +28,7 @@ const (
 const (
 	MAXMARKS     = 10
 	READBUFSIZ   = 4096
-	SEARCH_RESET = 0
+	SEARCH_RESET = -1
 	TABWIDTH     = 4
 )
 
