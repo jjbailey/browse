@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "1.2.4"
+	BR_VERSION = "1.2.5"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -168,11 +168,12 @@ type browseObj struct {
 	lastKey     byte
 
 	// Search and match
-	pattern    string
-	re         *regexp.Regexp
-	replace    string
-	ignoreCase bool
-	lastMatch  int
+	pattern     string
+	re          *regexp.Regexp
+	replace     string
+	ignoreCase  bool
+	searchFixed bool
+	lastMatch   int
 
 	// State flags
 	hitEOF      bool

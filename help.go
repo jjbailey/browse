@@ -42,7 +42,7 @@ func (br *browseObj) printHelp() {
 		"  1-9                               Jump to mark                         ",
 		"  / ?                               Regex search forward/reverse         ",
 		"  n N                               Repeat search forward/reverse        ",
-		"  i                                 Case-sensitive search                ",
+		"  i I                               Case-sensitive/Fixed-string search   ",
 		"  F                                 Run 'fmt -s' on the current file     ",
 		"  &                                 Run 'grep -nP' for pattern           ",
 		"  p P                               Print/Clear search pattern           ",

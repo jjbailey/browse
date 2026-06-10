@@ -51,6 +51,7 @@ const (
 	CMD_SEARCH_NEXT     = 'n'
 	CMD_SEARCH_NEXT_REV = 'N'
 	CMD_SEARCH_IGN_CASE = 'i'
+	CMD_SEARCH_FIXED    = 'I'
 	CMD_SEARCH_PRINT    = 'p'
 	CMD_SEARCH_CLEAR    = 'P'
 
@@ -387,18 +388,23 @@ func commands(br *browseObj) {
 			br.searchFile(br.pattern, !searchDir, true)
 
 		case CMD_SEARCH_IGN_CASE:
-			oldIgnoreCase := br.ignoreCase
 			br.ignoreCase = !br.ignoreCase
-			if _, err := br.reCompile(br.pattern); err != nil {
-				br.ignoreCase = oldIgnoreCase
-				br.printMessage(fmt.Sprintf("Regex compilation error: %v", err), MSG_ORANGE)
-				break
-			}
 			br.lastMatch = SEARCH_RESET
+			br.reCompile(br.pattern)
 			if br.ignoreCase {
 				br.printMessage("Search ignores case", MSG_GREEN)
 			} else {
 				br.printMessage("Search considers case", MSG_GREEN)
+			}
+
+		case CMD_SEARCH_FIXED:
+			br.searchFixed = !br.searchFixed
+			br.lastMatch = SEARCH_RESET
+			br.reCompile(br.pattern)
+			if br.searchFixed {
+				br.printMessage("Fixed-string search", MSG_GREEN)
+			} else {
+				br.printMessage("Regex search", MSG_GREEN)
 			}
 
 		case CMD_SEARCH_PRINT:
@@ -651,7 +657,7 @@ func fileCommand(br *browseObj) bool {
 	for _, tok := range tokens {
 		tok = expandHome(tok)
 
-		if tok == "-" {
+		if tok == "-" || tok == "#" {
 			history := loadHistory(fileHistory)
 
 			if len(history) < 2 {

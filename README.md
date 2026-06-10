@@ -33,7 +33,7 @@ related files without losing context.
 
 ### Search and Exploration
 
-- Forward and reverse regex search.
+- Forward and reverse regex and fixed-string search.
 - Case-sensitive and case-insensitive search.
 - Pattern highlighting.
 - Search pattern history.
@@ -147,6 +147,7 @@ browse [OPTIONS] [FILE] [FILE...]
 | `n` | Repeat search in current direction                                 |
 | `N` | Repeat search in opposite direction                                |
 | `i` | Toggle case-sensitive or case-insensitive search                   |
+| `I` | Toggle regex or fixed-string search                                |
 | `p` | Print current search pattern                                       |
 | `P` | Clear search pattern                                               |
 | `&` | Run `grep -nP` on current file for search pattern in a new session |
