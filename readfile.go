@@ -293,8 +293,13 @@ func readFile(br *browseObj, ch chan bool) {
 				if lineLen == 0 {
 					break
 				}
+				// Partial line at temporary EOF: leave readOffset at its start so
+				// the next iteration re-reads it once the file has grown.
+				if err == io.EOF && line[lineLen-1] != '\n' {
+					break
+				}
 				readLen := int64(lineLen)
-				if lineLen > 0 && line[lineLen-1] == '\n' {
+				if line[lineLen-1] == '\n' {
 					readLen--
 				}
 				cappedLen := min(readLen, READBUFSIZ)
