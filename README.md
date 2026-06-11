@@ -106,6 +106,7 @@ browse [OPTIONS] [FILE] [FILE...]
 | `-f`, `--follow`      | Follow file changes while still browsing      |
 | `-F`, `--tail`        | Follow file changes like `tail -f`            |
 | `-i`, `--ignore-case` | Search ignores case                           |
+| `-I`, `--fixed-case`  | Search fixed case                             |
 | `-n`, `--numbers`     | Start with line numbers turned on             |
 | `-p`, `--pattern`     | Initial search pattern                        |
 | `-t`, `--title`       | Page title, default filename, blank for stdin |
