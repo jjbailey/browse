@@ -154,17 +154,18 @@ browse [OPTIONS] [FILE] [FILE...]
 
 ### Files, Lists, and Session Control
 
-| Key      | Function                                         |
-| -------- | ------------------------------------------------ |
-| `B`      | Browse another file or file set                  |
-| `R`      | Re-read the current file from disk               |
-| `Ctrl+R` | Rewind the current browse list                   |
-| `a`      | Print filenames in the current browse list       |
-| `q`      | Quit current file, save session, continue list   |
-| `Q`      | Quit current file without saving, continue list  |
-| `x`      | Exit current list, save session                  |
-| `X`      | Exit current list without saving session         |
-| `Ctrl+X` | Exit from any nested list without saving session |
+| Key      | Function                                        |
+| -------- | ----------------------------------------------- |
+| `B`      | Browse another file or file set                 |
+| `R`      | Re-read the current file from disk              |
+| `Ctrl+R` | Rewind the current browse list                  |
+| `a`      | Print filenames in the current browse list      |
+| `q`      | Quit current file, save session, continue list  |
+| `Q`      | Quit current file without saving, continue list |
+| `x`      | Exit current list, save session                 |
+| `X`      | Exit current list without saving session        |
+| `Ctrl+X` | Exit nested list, save session                  |
+| `Ctrl+Y` | Exit nested list without saving session         |
 
 ### Miscellaneous
 

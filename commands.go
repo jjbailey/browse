@@ -65,16 +65,17 @@ const (
 	CMD_SHIFT_LONGEST = '$'
 
 	// File operations
-	CMD_PRINTDIR     = 'c'
-	CMD_NEWDIR       = 'C'
-	CMD_NEWFILE      = 'B'
-	CMD_REREAD       = 'R'
-	CMD_REWIND       = '\022'
-	CMD_QUIT         = 'q'
-	CMD_QUIT_NO_SAVE = 'Q'
-	CMD_EXIT         = 'x'
-	CMD_EXIT_NO_SAVE = 'X'
-	CMD_EXIT_ALL     = '\030'
+	CMD_PRINTDIR         = 'c'
+	CMD_NEWDIR           = 'C'
+	CMD_NEWFILE          = 'B'
+	CMD_REREAD           = 'R'
+	CMD_REWIND           = '\022'
+	CMD_QUIT             = 'q'
+	CMD_QUIT_NO_SAVE     = 'Q'
+	CMD_EXIT             = 'x'
+	CMD_EXIT_NO_SAVE     = 'X'
+	CMD_EXIT_ALL         = '\030'
+	CMD_EXIT_ALL_NO_SAVE = '\031'
 
 	// Other commands
 	CMD_ARGLIST   = 'a'
@@ -531,6 +532,12 @@ func commands(br *browseObj) {
 			return
 
 		case CMD_EXIT_ALL:
+			br.saveRC = true
+			br.exit = true
+			br.listAction = LIST_ACTION_EXIT_ALL
+			return
+
+		case CMD_EXIT_ALL_NO_SAVE:
 			br.saveRC = false
 			br.exit = true
 			br.listAction = LIST_ACTION_EXIT_ALL
