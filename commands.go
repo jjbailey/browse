@@ -651,8 +651,11 @@ func fileCommand(br *browseObj) bool {
 		return false
 	}
 
-	// remove quotes from filenames with spaces
-	tokens := fieldsQuoted(subCommandChars(newFile, "%", br.fileName))
+	// Split first so a substituted filename with spaces stays one token.
+	tokens := fieldsQuoted(newFile)
+	for i, tok := range tokens {
+		tokens[i] = subCommandChars(tok, "%", br.fileName)
+	}
 	if len(tokens) == 0 {
 		br.pageCurrent()
 		return false
