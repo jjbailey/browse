@@ -12,7 +12,6 @@ package main
 import (
 	"fmt"
 	"regexp"
-	"strings"
 )
 
 // Search formatting and limits.
@@ -321,6 +320,11 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 	prevPattern := br.pattern
 	if pattern == "" {
 		pattern = prevPattern
+
+		if pattern != "" {
+			moveCursor(br.dispRows, 2, true)
+			fmt.Print(pattern)
+		}
 	}
 
 	if pattern == "" {
@@ -329,23 +333,24 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 	}
 
 	// Substitute '&' with previous pattern for continued searches
-	if strings.Contains(pattern, "&") {
+	if prevPattern != "" {
 		pattern = subCommandChars(pattern, "&", prevPattern)
 	}
 
-	updateHistory(pattern, searchHistory)
-
 	if oldDir != newDir {
+		dir := "reverse"
 		if newDir {
-			br.timedMessage("Searching forward", MSG_GREEN)
-		} else {
-			br.timedMessage("Searching reverse", MSG_GREEN)
+			dir = "forward"
 		}
+		br.timedMessage("Searching "+dir, MSG_GREEN)
 		br.lastMatch = SEARCH_RESET
 	}
 
 	continueSearch := (oldDir == newDir && pattern == prevPattern)
-	br.searchFile(pattern, newDir, continueSearch)
+	if br.searchFile(pattern, newDir, continueSearch) {
+		updateHistory(pattern, searchHistory)
+	}
+
 	return newDir
 }
 
@@ -368,6 +373,11 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 	}
 
 	compilePattern := pattern
+
+	if br.searchFixed {
+		compilePattern = regexp.QuoteMeta(compilePattern)
+	}
+
 	if br.ignoreCase {
 		compilePattern = "(?i)" + compilePattern
 	}

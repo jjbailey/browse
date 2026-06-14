@@ -64,7 +64,7 @@ Mark pages and jump back to them.
 Follow and tail modes for changing files.
 .SS Search and Exploration
 .IP \[bu] 2
-Forward and reverse regex search.
+Forward and reverse regex and fixed-string search.
 .IP \[bu] 2
 Case-sensitive and case-insensitive search.
 .IP \[bu] 2
@@ -174,6 +174,11 @@ T{
 \f[V]-i\f[R], \f[V]--ignore-case\f[R]
 T}@T{
 Search ignores case
+T}
+T{
+\f[V]-I\f[R], \f[V]--fixed-case\f[R]
+T}@T{
+Search fixed case
 T}
 T{
 \f[V]-n\f[R], \f[V]--numbers\f[R]
@@ -346,6 +351,11 @@ T}@T{
 Toggle case-sensitive or case-insensitive search
 T}
 T{
+\f[V]I\f[R]
+T}@T{
+Toggle regex or fixed-string search
+T}
+T{
 \f[V]p\f[R]
 T}@T{
 Print current search pattern
@@ -416,7 +426,12 @@ T}
 T{
 \f[V]Ctrl+X\f[R]
 T}@T{
-Exit from any nested list without saving session
+Exit nested list, save session
+T}
+T{
+\f[V]Ctrl+Y\f[R]
+T}@T{
+Exit nested list without saving session
 T}
 .TE
 .SS Miscellaneous
@@ -592,6 +607,8 @@ Marks.
 Page title.
 .IP \[bu] 2
 Search case-sensitivity mode.
+.IP \[bu] 2
+Fixed-string search mode.
 .PP
 History files are maintained for common workflows, behaving like Bash
 history:

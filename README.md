@@ -33,7 +33,7 @@ related files without losing context.
 
 ### Search and Exploration
 
-- Forward and reverse regex search.
+- Forward and reverse regex and fixed-string search.
 - Case-sensitive and case-insensitive search.
 - Pattern highlighting.
 - Search pattern history.
@@ -106,6 +106,7 @@ browse [OPTIONS] [FILE] [FILE...]
 | `-f`, `--follow`      | Follow file changes while still browsing      |
 | `-F`, `--tail`        | Follow file changes like `tail -f`            |
 | `-i`, `--ignore-case` | Search ignores case                           |
+| `-I`, `--fixed-case`  | Search fixed case                             |
 | `-n`, `--numbers`     | Start with line numbers turned on             |
 | `-p`, `--pattern`     | Initial search pattern                        |
 | `-t`, `--title`       | Page title, default filename, blank for stdin |
@@ -147,23 +148,25 @@ browse [OPTIONS] [FILE] [FILE...]
 | `n` | Repeat search in current direction                                 |
 | `N` | Repeat search in opposite direction                                |
 | `i` | Toggle case-sensitive or case-insensitive search                   |
+| `I` | Toggle regex or fixed-string search                                |
 | `p` | Print current search pattern                                       |
 | `P` | Clear search pattern                                               |
 | `&` | Run `grep -nP` on current file for search pattern in a new session |
 
 ### Files, Lists, and Session Control
 
-| Key      | Function                                         |
-| -------- | ------------------------------------------------ |
-| `B`      | Browse another file or file set                  |
-| `R`      | Re-read the current file from disk               |
-| `Ctrl+R` | Rewind the current browse list                   |
-| `a`      | Print filenames in the current browse list       |
-| `q`      | Quit current file, save session, continue list   |
-| `Q`      | Quit current file without saving, continue list  |
-| `x`      | Exit current list, save session                  |
-| `X`      | Exit current list without saving session         |
-| `Ctrl+X` | Exit from any nested list without saving session |
+| Key      | Function                                        |
+| -------- | ----------------------------------------------- |
+| `B`      | Browse another file or file set                 |
+| `R`      | Re-read the current file from disk              |
+| `Ctrl+R` | Rewind the current browse list                  |
+| `a`      | Print filenames in the current browse list      |
+| `q`      | Quit current file, save session, continue list  |
+| `Q`      | Quit current file without saving, continue list |
+| `x`      | Exit current list, save session                 |
+| `X`      | Exit current list without saving session        |
+| `Ctrl+X` | Exit nested list, save session                  |
+| `Ctrl+Y` | Exit nested list without saving session         |
 
 ### Miscellaneous
 
@@ -263,6 +266,7 @@ It saves:
 - Marks.
 - Page title.
 - Search case-sensitivity mode.
+- Fixed-string search mode.
 
 History files are maintained for common workflows, behaving like Bash history:
 

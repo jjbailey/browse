@@ -51,6 +51,7 @@ const (
 	CMD_SEARCH_NEXT     = 'n'
 	CMD_SEARCH_NEXT_REV = 'N'
 	CMD_SEARCH_IGN_CASE = 'i'
+	CMD_SEARCH_FIXED    = 'I'
 	CMD_SEARCH_PRINT    = 'p'
 	CMD_SEARCH_CLEAR    = 'P'
 
@@ -64,16 +65,17 @@ const (
 	CMD_SHIFT_LONGEST = '$'
 
 	// File operations
-	CMD_PRINTDIR     = 'c'
-	CMD_NEWDIR       = 'C'
-	CMD_NEWFILE      = 'B'
-	CMD_REREAD       = 'R'
-	CMD_REWIND       = '\022'
-	CMD_QUIT         = 'q'
-	CMD_QUIT_NO_SAVE = 'Q'
-	CMD_EXIT         = 'x'
-	CMD_EXIT_NO_SAVE = 'X'
-	CMD_EXIT_ALL     = '\030'
+	CMD_PRINTDIR         = 'c'
+	CMD_NEWDIR           = 'C'
+	CMD_NEWFILE          = 'B'
+	CMD_REREAD           = 'R'
+	CMD_REWIND           = '\022'
+	CMD_QUIT             = 'q'
+	CMD_QUIT_NO_SAVE     = 'Q'
+	CMD_EXIT             = 'x'
+	CMD_EXIT_NO_SAVE     = 'X'
+	CMD_EXIT_ALL         = '\030'
+	CMD_EXIT_ALL_NO_SAVE = '\031'
 
 	// Other commands
 	CMD_ARGLIST   = 'a'
@@ -387,18 +389,23 @@ func commands(br *browseObj) {
 			br.searchFile(br.pattern, !searchDir, true)
 
 		case CMD_SEARCH_IGN_CASE:
-			oldIgnoreCase := br.ignoreCase
 			br.ignoreCase = !br.ignoreCase
-			if _, err := br.reCompile(br.pattern); err != nil {
-				br.ignoreCase = oldIgnoreCase
-				br.printMessage(fmt.Sprintf("Regex compilation error: %v", err), MSG_ORANGE)
-				break
-			}
 			br.lastMatch = SEARCH_RESET
+			br.reCompile(br.pattern)
 			if br.ignoreCase {
 				br.printMessage("Search ignores case", MSG_GREEN)
 			} else {
 				br.printMessage("Search considers case", MSG_GREEN)
+			}
+
+		case CMD_SEARCH_FIXED:
+			br.searchFixed = !br.searchFixed
+			br.lastMatch = SEARCH_RESET
+			br.reCompile(br.pattern)
+			if br.searchFixed {
+				br.printMessage("Fixed-string search", MSG_GREEN)
+			} else {
+				br.printMessage("Regex search", MSG_GREEN)
 			}
 
 		case CMD_SEARCH_PRINT:
@@ -525,6 +532,12 @@ func commands(br *browseObj) {
 			return
 
 		case CMD_EXIT_ALL:
+			br.saveRC = true
+			br.exit = true
+			br.listAction = LIST_ACTION_EXIT_ALL
+			return
+
+		case CMD_EXIT_ALL_NO_SAVE:
 			br.saveRC = false
 			br.exit = true
 			br.listAction = LIST_ACTION_EXIT_ALL
@@ -638,8 +651,11 @@ func fileCommand(br *browseObj) bool {
 		return false
 	}
 
-	// remove quotes from filenames with spaces
-	tokens := fieldsQuoted(subCommandChars(newFile, "%", br.fileName))
+	// Split first so a substituted filename with spaces stays one token.
+	tokens := fieldsQuoted(newFile)
+	for i, tok := range tokens {
+		tokens[i] = subCommandChars(tok, "%", br.fileName)
+	}
 	if len(tokens) == 0 {
 		br.pageCurrent()
 		return false
@@ -651,7 +667,7 @@ func fileCommand(br *browseObj) bool {
 	for _, tok := range tokens {
 		tok = expandHome(tok)
 
-		if tok == "-" {
+		if tok == "-" || tok == "#" {
 			history := loadHistory(fileHistory)
 
 			if len(history) < 2 {

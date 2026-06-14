@@ -12,6 +12,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 )
 
@@ -31,9 +32,9 @@ func (br *browseObj) manPage() {
 		return
 	}
 
-	brPath, err := exec.LookPath("browse")
+	brPath, err := os.Executable()
 	if err != nil || brPath == "" {
-		br.printMessage("Cannot find 'browse' in $PATH", MSG_ORANGE)
+		br.printMessage("Cannot determine browse executable", MSG_ORANGE)
 		return
 	}
 
