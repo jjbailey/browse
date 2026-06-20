@@ -43,7 +43,7 @@ func (br *browseObj) manPage() {
 
 	// Display command preview
 	moveCursor(br.dispHeight, 1, true)
-	fmt.Printf("---\n%s$ %s\n", LINEWRAPON, cmd)
+	fmt.Printf("---\n%s%s%s\n", LINEWRAPON, shellPrompt(), cmd)
 
 	// Run command in a PTY
 	resetScrRegion()

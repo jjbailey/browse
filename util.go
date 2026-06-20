@@ -278,4 +278,13 @@ func abbreviateFileName(dispName string, availableWidth int) string {
 	return abbrevName
 }
 
+// shellPrompt returns the conventional shell prompt for the current uid.
+func shellPrompt() string {
+	if os.Geteuid() == 0 {
+		return "# "
+	}
+
+	return "$ "
+}
+
 // vim: set ts=4 sw=4 noet:

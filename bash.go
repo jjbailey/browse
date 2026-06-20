@@ -1,5 +1,5 @@
 // bash.go
-// Run a command with bash
+// run a command with bash
 //
 // Copyright (c) 2024-2026 jjb
 // All rights reserved.
@@ -64,7 +64,7 @@ func (br *browseObj) bashCommand() {
 		updateHistory(cmdbuf, commHistory)
 
 		// Display command preview
-		fmt.Printf("%s\r%s$ %s\n", LINEWRAPON, CURUP, cmdbuf)
+		fmt.Printf("%s\r%s%s%s\n", LINEWRAPON, CURUP, shellPrompt(), cmdbuf)
 
 		// Run command in a PTY
 		resetScrRegion()

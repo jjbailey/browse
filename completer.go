@@ -68,7 +68,7 @@ func userFileComp() (string, bool) {
 // userBashComp prompts for a command with PATH-aware completion.
 func userBashComp() (string, bool) {
 	SearchType = searchPath
-	return runCompleter("$ ", commHistory)
+	return runCompleter(shellPrompt(), commHistory)
 }
 
 // userSearchComp prompts for a search pattern with completion.
