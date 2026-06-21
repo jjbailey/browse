@@ -347,7 +347,8 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 	}
 
 	continueSearch := (oldDir == newDir && pattern == prevPattern)
-	if br.searchFile(pattern, newDir, continueSearch) {
+	searchSucceeded := br.searchFile(pattern, newDir, continueSearch)
+	if searchSucceeded || pattern == br.pattern {
 		updateHistory(pattern, searchHistory)
 	}
 
