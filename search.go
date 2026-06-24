@@ -11,6 +11,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"regexp"
 )
 
@@ -86,14 +87,6 @@ func (br *browseObj) searchMapSize() int {
 	defer br.mutex.Unlock()
 
 	return br.mapSiz
-}
-
-// lineInMap reports whether a line is currently mapped.
-func (br *browseObj) lineInMap(lineno int) bool {
-	br.mutex.Lock()
-	defer br.mutex.Unlock()
-
-	return lineno >= 0 && lineno < br.mapSiz
 }
 
 // displayWrapMessage informs the user when the search wraps.
@@ -172,7 +165,7 @@ func (br *browseObj) currentPageHasMatch(mapSize int) bool {
 	pageEnd := minimum(br.firstRow+br.dispRows, mapSize)
 
 	for lineNum := br.firstRow; lineNum < pageEnd; lineNum++ {
-		if matchCount, _ := br.lineIsMatch(lineNum); matchCount > 0 {
+		if br.lineIsMatch(lineNum) {
 			return true
 		}
 	}
@@ -180,46 +173,29 @@ func (br *browseObj) currentPageHasMatch(mapSize int) bool {
 	return false
 }
 
-// findForwardMatch scans page-sized chunks from startLine up to endLine.
+// findForwardMatch scans from startLine up to endLine for the first match.
 func (br *browseObj) findForwardMatch(startLine, endLine, mapSize int) int {
 	startLine = maximum(startLine, 0)
 	endLine = minimum(endLine, mapSize)
-	if startLine >= endLine {
-		return -1
-	}
 
-	pageRows := maximum(br.dispRows, 1)
-
-	for pageStart := startLine; pageStart < endLine; pageStart += pageRows {
-		pageEnd := minimum(pageStart+pageRows, endLine)
-		for lineNum := pageStart; lineNum < pageEnd; lineNum++ {
-			if matchCount, _ := br.lineIsMatch(lineNum); matchCount > 0 {
-				return lineNum
-			}
+	for lineNum := startLine; lineNum < endLine; lineNum++ {
+		if br.lineIsMatch(lineNum) {
+			return lineNum
 		}
 	}
 
 	return -1
 }
 
-// findReverseMatch scans page-sized chunks from startLine down to endLine.
+// findReverseMatch scans from startLine down to endLine for the first match.
 func (br *browseObj) findReverseMatch(startLine, endLine, mapSize int) int {
 	startLine = minimum(startLine, mapSize-1)
 	endLine = maximum(endLine, 0)
-	if startLine < endLine {
-		return -1
-	}
 
-	pageRows := maximum(br.dispRows, 1)
-
-	for pageEnd := startLine + 1; pageEnd > endLine; {
-		pageStart := maximum(pageEnd-pageRows, endLine)
-		for lineNum := pageEnd - 1; lineNum >= pageStart; lineNum-- {
-			if matchCount, _ := br.lineIsMatch(lineNum); matchCount > 0 {
-				return lineNum
-			}
+	for lineNum := startLine; lineNum >= endLine; lineNum-- {
+		if br.lineIsMatch(lineNum) {
+			return lineNum
 		}
-		pageEnd = pageStart
 	}
 
 	return -1
@@ -234,22 +210,44 @@ func (br *browseObj) searchDisplayTop(matchLine int, forward bool) int {
 	return matchLine - (br.dispRows*5)/6
 }
 
-// lineIsMatch reports whether a line matches and returns its content.
-func (br *browseObj) lineIsMatch(lineno int) (int, []byte) {
-	if !br.lineInMap(lineno) {
-		return 0, nil
-	}
-
-	lineContent := br.readFromMap(lineno)
+// lineIsMatch reports whether a line matches the active pattern. It reuses a
+// per-session scratch buffer to avoid an allocation per scanned line; it is
+// only safe to call from the main goroutine (search/rendering), never the
+// reader. The buffer contents are valid only until the next call.
+func (br *browseObj) lineIsMatch(lineno int) bool {
 	if br.re == nil {
-		return 0, lineContent
+		return false
 	}
 
-	if br.re.Match(lineContent) {
-		return 1, lineContent
+	br.mutex.Lock()
+	if lineno >= br.mapSiz || br.fp == nil {
+		br.mutex.Unlock()
+		return false
 	}
 
-	return 0, lineContent
+	seek := br.seekMap[lineno]
+	size := br.sizeMap[lineno]
+
+	// Make sure size is reasonable to avoid panics (16MB)
+	if size < 0 || size > (16<<20) {
+		br.mutex.Unlock()
+		return false
+	}
+
+	if int64(cap(br.matchScratch)) < size {
+		br.matchScratch = make([]byte, size)
+	}
+	buf := br.matchScratch[:size]
+
+	n, err := br.fp.ReadAt(buf, seek)
+	br.mutex.Unlock()
+	if err != nil && err != io.EOF {
+		return false
+	}
+
+	// expandTabs returns buf[:n] unchanged when there are no tabs, so the
+	// common case stays allocation-free.
+	return br.re.Match(expandTabs(buf[:n]))
 }
 
 // replaceMatch highlights matches in a line and formats it for display.

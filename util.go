@@ -180,15 +180,25 @@ func isBinaryFile(filename string) bool {
 	return isBinaryFileFp(file)
 }
 
+// subCommandReCache memoizes the compiled regex per delimiter character, which
+// is drawn from a small fixed set (! % &) across all call sites.
+var subCommandReCache sync.Map
+
 // subCommandChars replaces unescaped occurrences of a character.
 // negative lookbehind not supported in golang RE2 engine
 // pattern := `(?<!\\)%`
 func subCommandChars(input, char, repl string) string {
-	pattern := `(^|[^\\])` + regexp.QuoteMeta(char)
+	var re *regexp.Regexp
 
-	re, err := regexp.Compile(pattern)
-	if err != nil {
-		return input
+	if cached, ok := subCommandReCache.Load(char); ok {
+		re = cached.(*regexp.Regexp)
+	} else {
+		compiled, err := regexp.Compile(`(^|[^\\])` + regexp.QuoteMeta(char))
+		if err != nil {
+			return input
+		}
+		subCommandReCache.Store(char, compiled)
+		re = compiled
 	}
 
 	return re.ReplaceAllStringFunc(input, func(match string) string {

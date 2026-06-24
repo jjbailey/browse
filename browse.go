@@ -26,9 +26,16 @@ func processPipeInput(br *browseObj) {
 	}
 	defer os.Remove(fpStdin.Name())
 
+	br.mutex.Lock()
+	br.stdinEOF = false
+	br.mutex.Unlock()
+
 	// Goroutine owns fpStdin and closes it when stdin is exhausted
 	go func() {
 		br.readStdin(os.Stdin, fpStdin)
+		br.mutex.Lock()
+		br.stdinEOF = true
+		br.mutex.Unlock()
 		fpStdin.Close()
 	}()
 

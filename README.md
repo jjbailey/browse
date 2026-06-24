@@ -165,8 +165,8 @@ browse [OPTIONS] [FILE] [FILE...]
 | `Q`      | Quit current file without saving, continue list |
 | `x`      | Exit current list, save session                 |
 | `X`      | Exit current list without saving session        |
-| `Ctrl+X` | Exit nested list, save session                  |
-| `Ctrl+Y` | Exit nested list without saving session         |
+| `Ctrl+X` | Exit all nested lists and quit, save session    |
+| `Ctrl+Y` | Exit all nested lists and quit, without saving  |
 
 ### Miscellaneous
 
@@ -235,14 +235,16 @@ current file. Directory completion includes entries from `CDPATH`.
 
 ## Symbol Expansions
 
-Special symbols are expanded in file and directory prompts, and shell commands:
+Special symbols are expanded in specific prompts; not every symbol is
+available everywhere:
 
-| Symbol | Expands To                                                        |
-| ------ | ----------------------------------------------------------------- |
-| `!`    | Last shell command                                                |
-| `%`    | Current file name; parent directory of current file in `C` prompt |
-| `&`    | Current search pattern                                            |
-| `~`    | Home directory                                                    |
+| Symbol | Expands To                                                |
+| ------ | --------------------------------------------------------- |
+| `!`    | Last shell command                                        |
+| `%`    | Current file name; parent directory of file in `C` prompt |
+| `&`    | Current search pattern                                    |
+| `~`    | Home directory                                            |
+| `-`    | Previous file or previous directory                       |
 
 ## Configuration and History
 
