@@ -23,15 +23,42 @@ var lineBufPool = sync.Pool{
 	},
 }
 
+func (br *browseObj) currentMapSize() int {
+	br.mutex.Lock()
+	defer br.mutex.Unlock()
+
+	return br.mapSiz
+}
+
+func (br *browseObj) setEOFState(hitEOF, shownEOF bool) {
+	br.mutex.Lock()
+	br.hitEOF = hitEOF
+	br.shownEOF = shownEOF
+	br.mutex.Unlock()
+}
+
+func (br *browseObj) hitEOFState() bool {
+	br.mutex.Lock()
+	defer br.mutex.Unlock()
+
+	return br.hitEOF
+}
+
+func (br *browseObj) shownEOFState() bool {
+	br.mutex.Lock()
+	defer br.mutex.Unlock()
+
+	return br.shownEOF
+}
+
 // printLine renders a single line by number, handling SOF/EOF markers.
 func (br *browseObj) printLine(lineno int) {
-	br.mutex.Lock()
-	mapSize := br.mapSiz
-	br.mutex.Unlock()
+	br.printLineWithMapSize(lineno, br.currentMapSize())
+}
 
+func (br *browseObj) printLineWithMapSize(lineno, mapSize int) {
 	isEOF := windowAtEOF(lineno, mapSize)
-	br.hitEOF = isEOF
-	br.shownEOF = isEOF
+	br.setEOFState(isEOF, isEOF)
 
 	// Handle SOF marker
 	if lineno == 0 {
@@ -47,7 +74,9 @@ func (br *browseObj) printLine(lineno int) {
 	}
 
 	// Get content from map. Search owns br.lastMatch; rendering must not move it.
-	_, input := br.lineIsMatch(lineno)
+	// Read directly: replaceMatch re-runs the regex itself, so a match here
+	// would be thrown away.
+	input := br.readFromMap(lineno)
 
 	output := br.replaceMatch(lineno, input)
 
@@ -62,22 +91,21 @@ func (br *browseObj) printLine(lineno int) {
 	os.Stdout.WriteString(lineBuf.String())
 	lineBufPool.Put(lineBuf)
 
-	if br.hitEOF {
+	if isEOF {
 		printSEOF("EOF")
 	}
-
-	// scrollDown needs this
-	br.shownEOF = br.hitEOF
 }
 
 // printPage renders a page starting at the provided top line.
 func (br *browseObj) printPage(lineno int) {
-	lineno = adjustLineNumber(lineno, br.dispRows, br.mapSiz)
+	mapSize := br.currentMapSize()
+
+	lineno = adjustLineNumber(lineno, br.dispRows, mapSize)
 	sop := lineno
 	// +1 for EOF
-	eop := minimum(sop+br.dispRows, br.mapSiz+1)
+	eop := minimum(sop+br.dispRows, mapSize+1)
 
-	if br.mapSiz > br.dispRows && br.tryScroll(sop) {
+	if mapSize > br.dispRows && br.tryScroll(sop) {
 		return
 	}
 
@@ -85,7 +113,7 @@ func (br *browseObj) printPage(lineno int) {
 	// printLine starts with \n
 	moveCursor(1, 1, false)
 	for i := sop; i < eop; i++ {
-		br.printLine(i)
+		br.printLineWithMapSize(i, mapSize)
 	}
 
 	// reset

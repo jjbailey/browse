@@ -426,12 +426,12 @@ T}
 T{
 \f[V]Ctrl+X\f[R]
 T}@T{
-Exit nested list, save session
+Exit all nested lists and quit, save session
 T}
 T{
 \f[V]Ctrl+Y\f[R]
 T}@T{
-Exit nested list without saving session
+Exit all nested lists and quit, without saving
 T}
 .TE
 .SS Miscellaneous
@@ -544,8 +544,8 @@ current file.
 Directory completion includes entries from \f[V]CDPATH\f[R].
 .SS Symbol Expansions
 .PP
-Special symbols are expanded in file and directory prompts, and shell
-commands:
+Special symbols are expanded in specific prompts; not every symbol is
+available everywhere:
 .PP
 .TS
 tab(@);
@@ -564,8 +564,7 @@ T}
 T{
 \f[V]%\f[R]
 T}@T{
-Current file name; parent directory of current file in \f[V]C\f[R]
-prompt
+Current file name; parent directory of file in \f[V]C\f[R] prompt
 T}
 T{
 \f[V]&\f[R]
@@ -576,6 +575,11 @@ T{
 \f[V]\[ti]\f[R]
 T}@T{
 Home directory
+T}
+T{
+\f[V]-\f[R]
+T}@T{
+Previous file or previous directory
 T}
 .TE
 .SS Configuration and History

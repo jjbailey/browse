@@ -29,6 +29,9 @@ func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin boo
 	br.fileName = fileName
 	br.fp = fp
 	br.fromStdin = fromStdin
+	if !fromStdin {
+		br.stdinEOF = false
+	}
 	br.lastMatch = SEARCH_RESET
 	br.fileSeq++
 	br.mutex.Unlock()

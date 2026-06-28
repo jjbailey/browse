@@ -94,7 +94,7 @@ func (br *browseObj) pageHeader() {
 
 // pageLast jumps to the end of the file.
 func (br *browseObj) pageLast() {
-	br.printPage(br.mapSiz)
+	br.printPage(br.currentMapSize())
 }
 
 // pageMarked jumps to a previously marked line.

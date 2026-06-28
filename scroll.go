@@ -17,21 +17,19 @@ import (
 func (br *browseObj) scrollDown(count int) {
 	br.restoreLast()
 
-	br.mutex.Lock()
-	mapSize := br.mapSiz
-	br.mutex.Unlock()
+	mapSize := br.currentMapSize()
 
-	if br.lastRow > mapSize || br.hitEOF {
+	if br.lastRow > mapSize || br.hitEOFState() {
 		// nothing more to show
 		return
 	}
 
-	for i := 0; i < count && !br.hitEOF; i++ {
+	for i := 0; i < count && !br.hitEOFState(); i++ {
 		// printLine finds EOF, sets hitEOF
 		// add line -- +1 for header
 		moveCursor(minimum(br.lastRow+1, br.dispHeight), 1, false)
 
-		if br.shownEOF {
+		if br.shownEOFState() {
 			// print previous line before printing the current line
 			fmt.Print(CURRESTORE + CURUP)
 			br.printLine(br.lastRow - 1)
@@ -112,7 +110,7 @@ func (br *browseObj) toggleMode(mode int) {
 		needsScrollCancel = br.modeScroll == mode
 
 	case MODE_SCROLL_DN, MODE_SCROLL_TAIL, MODE_SCROLL_FOLLOW:
-		needsScrollCancel = br.inFollow() && (mode == MODE_SCROLL_DN || br.shownEOF)
+		needsScrollCancel = br.inFollow() && (mode == MODE_SCROLL_DN || br.shownEOFState())
 	}
 
 	if needsScrollCancel {

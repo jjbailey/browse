@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "1.2.5"
+	BR_VERSION = "1.2.6"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -168,12 +168,13 @@ type browseObj struct {
 	lastKey     byte
 
 	// Search and match
-	pattern     string
-	re          *regexp.Regexp
-	replace     string
-	ignoreCase  bool
-	searchFixed bool
-	lastMatch   int
+	pattern      string
+	re           *regexp.Regexp
+	replace      string
+	ignoreCase   bool
+	searchFixed  bool
+	lastMatch    int
+	matchScratch []byte
 
 	// State flags
 	hitEOF      bool
@@ -202,6 +203,7 @@ type browseObj struct {
 	mutex         sync.Mutex
 	rereadPending bool
 	rereadReady   bool
+	stdinEOF      bool
 }
 
 // browseResumeState preserves the visible position when a nested list returns.

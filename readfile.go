@@ -239,6 +239,7 @@ func readFile(br *browseObj, ch chan bool) {
 		// Store the file info we just retrieved
 		br.newFileSiz = newFileSiz
 		br.newInode = newInode
+		stdinFinalPending := br.fromStdin && br.stdinEOF && bytesRead < br.newFileSiz
 
 		handleFileReset := func(msg string) {
 			if msg != "" {
@@ -258,7 +259,7 @@ func readFile(br *browseObj, ch chan bool) {
 			br.rereadReady = true
 			handleFileReset("File truncated")
 		} else {
-			shouldRead = initialRead || br.savFileSiz < br.newFileSiz
+			shouldRead = initialRead || br.savFileSiz < br.newFileSiz || stdinFinalPending
 		}
 
 		br.mutex.Unlock()
@@ -289,19 +290,30 @@ func readFile(br *browseObj, ch chan bool) {
 						return
 					}
 				}
+
 				lineLen := len(line)
 				if lineLen == 0 {
 					break
 				}
+
 				// Partial line at temporary EOF: leave readOffset at its start so
-				// the next iteration re-reads it once the file has grown.
+				// the next iteration re-reads it once the file has grown. For
+				// stdin, publish the final unterminated line after the copy ends.
+
 				if err == io.EOF && line[lineLen-1] != '\n' {
-					break
+					br.mutex.Lock()
+					stdinDone := br.fromStdin && br.stdinEOF
+					br.mutex.Unlock()
+					if !stdinDone {
+						break
+					}
 				}
+
 				readLen := int64(lineLen)
 				if line[lineLen-1] == '\n' {
 					readLen--
 				}
+
 				cappedLen := min(readLen, READBUFSIZ)
 				pendingLines = append(pendingLines, lineMeta{offset: readOffset, length: cappedLen})
 				readOffset += int64(lineLen)
