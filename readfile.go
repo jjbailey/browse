@@ -144,6 +144,9 @@ func readFile(br *browseObj, ch chan bool) {
 		br.mutex.Lock()
 		pendingReread := br.rereadPending
 		targetReread := br.absFileName
+		if targetReread == "" {
+			targetReread = br.fileName
+		}
 		br.mutex.Unlock()
 
 		if pendingReread && targetReread != "" {
@@ -250,6 +253,7 @@ func readFile(br *browseObj, ch chan bool) {
 			br.shownMsg = true
 			shouldRead = true
 			initialRead = true
+			postRereadRefresh = true
 		}
 
 		if br.savInode > 0 && br.newInode != br.savInode {
@@ -375,12 +379,7 @@ func (br *browseObj) readStdin(fin, fout *os.File) bool {
 	const copyBufSize = 64 * 1024
 
 	buf := make([]byte, copyBufSize)
-	bytesWritten, err := io.CopyBuffer(fout, fin, buf)
-
-	if err != nil {
-		return bytesWritten == 0
-	}
-
+	bytesWritten, _ := io.CopyBuffer(fout, fin, buf)
 	return bytesWritten == 0
 }
 
@@ -392,18 +391,16 @@ func (br *browseObj) readFromMap(lineno int) []byte {
 		return nil
 	}
 
-	seek := br.seekMap[lineno]
-	size := br.sizeMap[lineno]
+	seek, size, fp := br.seekMap[lineno], br.sizeMap[lineno], br.fp
+	br.mutex.Unlock()
 
 	// Make sure size is reasonable to avoid panics (16MB)
 	if size < 0 || size > (16<<20) {
-		br.mutex.Unlock()
 		return nil
 	}
 
 	data := make([]byte, int(size))
-	n, err := br.fp.ReadAt(data, seek)
-	br.mutex.Unlock()
+	n, err := fp.ReadAt(data, seek)
 	if err != nil && err != io.EOF {
 		return nil
 	}
