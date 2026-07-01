@@ -489,7 +489,7 @@ func commands(br *browseObj) {
 
 		case CMD_REREAD:
 			br.mutex.Lock()
-			if !br.fromStdin && br.absFileName != "" {
+			if !br.fromStdin {
 				br.rereadPending = true
 			}
 			br.mutex.Unlock()
@@ -591,7 +591,10 @@ func dirCommand(br *browseObj) bool {
 
 	// on %, substitute the current file's parent
 	if strings.Contains(dirInput, "%") {
-		newDir = subCommandChars(newDir, "%", filepath.Dir(br.fileName))
+		br.mutex.Lock()
+		curFile := br.fileName
+		br.mutex.Unlock()
+		newDir = subCommandChars(newDir, "%", filepath.Dir(curFile))
 	}
 
 	// Handle "cd -"
@@ -784,7 +787,11 @@ func waitForInput(br *browseObj) {
 			break
 		}
 
-		info, err := os.Stat(br.fileName)
+		br.mutex.Lock()
+		statName := br.fileName
+		br.mutex.Unlock()
+
+		info, err := os.Stat(statName)
 		if err == nil && time.Since(info.ModTime()) > modTimeThreshold {
 			// don't wait for unchanged files
 			break

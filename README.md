@@ -54,6 +54,7 @@ related files without losing context.
 - Shell escape with command completion.
 - Persistent file, directory, search, and shell histories.
 - Session saving and restoration.
+- Browse compressed files transparently.
 - Run `fmt -s` on the current file in a nested browse session.
 - Built-in help screen.
 
@@ -226,6 +227,36 @@ hatch: it reopens the original path and rebuilds the browse state from disk.
 Press `Ctrl+R` to rewind the active browse list. This returns to the first file
 in the current list, including a nested list opened with `B`, without rewinding
 any parent list.
+
+### Browsing Compressed Files
+
+**browse** detects compressed files by their magic bytes and decompresses them
+transparently. No extra steps are needed: open a compressed file the same way
+you would any other file, from the command line or with `B` inside a running
+session.
+
+Supported formats:
+
+| Format   | Requires     |
+| -------- | ------------ |
+| gzip     | `gzip`       |
+| bzip2    | `bzip2`      |
+| xz       | `xz`         |
+| zstd     | `zstd`       |
+| zip      | `funzip`     |
+| lz4      | `lz4`        |
+| 7z       | `7z`         |
+| compress | `uncompress` |
+
+If the required decompressor is not installed, **browse** displays an error and
+skips the file rather than attempting to display raw binary content.
+
+The original compressed filename is recorded in the file history and session
+file, so you can reopen it later from the `B` prompt or on the next launch.
+
+**Limitation:** `Ctrl+R` (rewind list) does not work while browsing a
+compressed file. The content is decompressed once into a temporary stream;
+rewinding is not supported for that session.
 
 ### Changing Directory
 

@@ -12,6 +12,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"syscall"
@@ -53,6 +54,60 @@ func processPipeInput(br *browseObj) {
 	browseFile(br, fp, fpStdin.Name(), "          ", true)
 }
 
+// processCompressedFile decompresses a file into a temp file and browses it as a
+// growing stream, using the same pattern as processPipeInput.
+func processCompressedFile(br *browseObj, format, absPath, title string) {
+	prog, args, err := decompressCommand(format, absPath)
+	if err != nil {
+		return
+	}
+
+	tmp, err := os.CreateTemp("", "browse")
+	if err != nil {
+		br.userAnyKey(fmt.Sprintf("%s %s: cannot create temp file ... [press any key] %s",
+			MSG_RED, lastNChars(absPath, br.dispWidth), VIDOFF))
+		return
+	}
+	defer os.Remove(tmp.Name())
+
+	cmd := exec.Command(prog, args...)
+	cmd.Stdout = tmp
+
+	if err := cmd.Start(); err != nil {
+		tmp.Close()
+		br.userAnyKey(fmt.Sprintf("%s %s: cannot run decompressor: %v ... [press any key] %s",
+			MSG_RED, lastNChars(absPath, br.dispWidth), err, VIDOFF))
+		return
+	}
+
+	br.mutex.Lock()
+	br.stdinEOF = false
+	br.mutex.Unlock()
+
+	go func() {
+		cmd.Wait()
+		br.mutex.Lock()
+		br.stdinEOF = true
+		br.mutex.Unlock()
+		tmp.Close()
+	}()
+
+	fp, err := os.Open(tmp.Name())
+	if err != nil {
+		br.userAnyKey(fmt.Sprintf("%s %s: cannot open temp file ... [press any key] %s",
+			MSG_RED, lastNChars(absPath, br.dispWidth), VIDOFF))
+		return
+	}
+	defer fp.Close()
+
+	updateHistory(absPath, fileHistory)
+	browseFile(br, fp, tmp.Name(), title, true)
+
+	if br.saveRC {
+		br.writeRcFile()
+	}
+}
+
 // processFileList iterates through a list of files and opens them for browsing.
 func processFileList(br *browseObj, args []string, toplevel bool) bool {
 	if len(args) == 0 {
@@ -70,8 +125,19 @@ func processFileList(br *browseObj, args []string, toplevel bool) bool {
 			br.currentList = []string{abs}
 			br.listAtStart = true
 			br.absFileName = abs
-			browseFile(br, fp, br.absFileName, setTitle(br.title, abs), false)
-			fp.Close()
+
+			if format, _ := detectComp(abs); format != "" {
+				fp.Close()
+				if _, ok := decompressCommands[format]; !ok {
+					br.userAnyKey(fmt.Sprintf("%s %s: no decompressor for %s ... [press any key] %s",
+						MSG_RED, lastNChars(abs, br.dispWidth), format, VIDOFF))
+					return false
+				}
+				processCompressedFile(br, format, abs, setTitle(br.title, abs))
+			} else {
+				browseFile(br, fp, br.absFileName, setTitle(br.title, abs), false)
+				fp.Close()
+			}
 
 			switch br.listAction {
 			case LIST_ACTION_REWIND:
@@ -132,8 +198,19 @@ func processFileList(br *browseObj, args []string, toplevel bool) bool {
 		br.currentList = args[i:]
 		br.listAtStart = i == 0
 		openedAny = true
-		browseFile(br, fp, absArgs[i], fileName, false)
-		fp.Close()
+
+		if format, _ := detectComp(absArgs[i]); format != "" {
+			fp.Close()
+			if _, ok := decompressCommands[format]; !ok {
+				br.userAnyKey(fmt.Sprintf("%s %s: no decompressor for %s ... [press any key] %s",
+					MSG_RED, lastNChars(absArgs[i], br.dispWidth), format, VIDOFF))
+			} else {
+				processCompressedFile(br, format, absArgs[i], fileName)
+			}
+		} else {
+			browseFile(br, fp, absArgs[i], fileName, false)
+			fp.Close()
+		}
 
 		if br.listAction == LIST_ACTION_REWIND {
 			br.listAction = LIST_ACTION_NONE

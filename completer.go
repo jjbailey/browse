@@ -53,6 +53,13 @@ type pathCompletionCache struct {
 
 var pathCache pathCompletionCache
 
+// fileDescCache memoizes compressed/binary/regular classification per file
+// path for the lifetime of one completer session. Typing a filename
+// re-invokes the completer on every keystroke against a largely overlapping
+// set of directory entries, so without this cache each keystroke would redo
+// the open+read work (detectComp, isBinaryFile) for every matching file.
+var fileDescCache map[string]string
+
 // userDirComp prompts for a directory with completion.
 func userDirComp() (string, bool) {
 	SearchType = searchDirs
@@ -86,6 +93,7 @@ func userSearchComp(searchDir bool) (string, bool) {
 func runCompleter(promptStr, historyFile string) (string, bool) {
 	history := loadHistory(historyFile)
 	pathCache = pathCompletionCache{}
+	fileDescCache = make(map[string]string)
 
 	// reset go-prompt BackedOut flag
 	prompt.BackedOut = false
@@ -444,11 +452,7 @@ func matchFileCandidates(files []os.DirEntry, dir, prefix string,
 
 		default:
 			if SearchType == searchFiles {
-				if isBinaryFile(fullPath) {
-					desc = "binary file"
-				} else {
-					desc = "regular file"
-				}
+				desc = fileTypeDesc(fullPath)
 			}
 		}
 
@@ -504,6 +508,31 @@ func matchesFileType(file os.DirEntry, fullPath string, onlyType int) bool {
 	}
 
 	return true
+}
+
+// fileTypeDesc classifies a regular file for the completion description,
+// caching the result per fullPath for the current completer session.
+func fileTypeDesc(fullPath string) string {
+	if fileDescCache == nil {
+		fileDescCache = make(map[string]string)
+	}
+
+	if desc, ok := fileDescCache[fullPath]; ok {
+		return desc
+	}
+
+	var desc string
+
+	if comp, err := detectComp(fullPath); err == nil && comp != "" {
+		desc = comp + " compressed"
+	} else if isBinaryFile(fullPath) {
+		desc = "binary file"
+	} else {
+		desc = "regular file"
+	}
+
+	fileDescCache[fullPath] = desc
+	return desc
 }
 
 // statForCompletion follows symlinks but uses DirEntry info for normal entries.
