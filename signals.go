@@ -57,7 +57,8 @@ func (br *browseObj) catchSignals() {
 
 	sigChan = make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGWINCH)
-	signal.Ignore(syscall.SIGALRM, syscall.SIGCHLD, syscall.SIGURG)
+	signal.Reset(syscall.SIGCHLD)
+	signal.Ignore(syscall.SIGALRM, syscall.SIGURG)
 
 	go func() {
 		for sig := range sigChan {
