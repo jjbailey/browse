@@ -267,7 +267,14 @@ func (br *browseObj) replaceMatch(lineno int, input []byte) string {
 		return br.formatLine(lineno, string(content))
 	}
 
-	leftMatch, rightMatch := br.undisplayedMatches(input, sol)
+	leftMatch, rightMatch := false, false
+	displayWidth := br.dispWidth
+	if br.modeNumbers {
+		displayWidth -= NUMCOLWIDTH
+	}
+	if sol > 0 || len(input) > displayWidth {
+		leftMatch, rightMatch = br.undisplayedMatches(input, sol)
+	}
 
 	if len(content) == 0 {
 		if leftMatch {
