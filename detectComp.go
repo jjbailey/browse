@@ -108,3 +108,5 @@ func decompressCommand(format, filename string) (prog string, args []string, err
 	args = append(cmd[1:], filename)
 	return cmd[0], args, nil
 }
+
+// vim: set ts=4 sw=4 noet:
