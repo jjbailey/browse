@@ -75,6 +75,8 @@ func readFile(br *browseObj, ch chan bool) {
 	pendingLines := make([]lineMeta, 0, 1024)
 	var postRereadRefresh bool
 	var rereadDetected bool
+	var partialLinePublished bool
+	var partialLineOffset int64
 
 	reopenReader := func(target string) error {
 		newFp, err := os.Open(target)
@@ -125,6 +127,8 @@ func readFile(br *browseObj, ch chan bool) {
 		initialRead = true
 		savFileName = target
 		rereadDetected = false
+		partialLinePublished = false
+		partialLineOffset = 0
 		return nil
 	}
 
@@ -254,6 +258,8 @@ func readFile(br *browseObj, ch chan bool) {
 			shouldRead = true
 			initialRead = true
 			postRereadRefresh = true
+			partialLinePublished = false
+			partialLineOffset = 0
 		}
 
 		if br.savInode > 0 && br.newInode != br.savInode {
@@ -269,8 +275,14 @@ func readFile(br *browseObj, ch chan bool) {
 		br.mutex.Unlock()
 
 		if shouldRead {
-			// Seek to the last known end of file (or beginning if truncated)
-			if _, err := readerFp.Seek(bytesRead, io.SeekStart); err != nil {
+			// Seek to the last known end of file (or beginning if truncated).
+			readStart := bytesRead
+			replacePartialLine := partialLinePublished
+			if replacePartialLine {
+				readStart = partialLineOffset
+			}
+
+			if _, err := readerFp.Seek(readStart, io.SeekStart); err != nil {
 				select {
 				case ch <- false:
 				default:
@@ -278,9 +290,11 @@ func readFile(br *browseObj, ch chan bool) {
 				return
 			}
 
-			readOffset := bytesRead
+			readOffset := readStart
 			bufReader.Reset(readerFp)
 			pendingLines = pendingLines[:0]
+			nextPartialPublished := false
+			nextPartialOffset := int64(0)
 
 			for {
 				line, err := bufReader.ReadString('\n')
@@ -300,17 +314,19 @@ func readFile(br *browseObj, ch chan bool) {
 					break
 				}
 
-				// Partial line at temporary EOF: leave readOffset at its start so
-				// the next iteration re-reads it once the file has grown. For
-				// stdin, publish the final unterminated line after the copy ends.
+				// Publish unterminated lines, but remember their offset so later
+				// growth can replace the provisional entry instead of splitting it.
 
 				if err == io.EOF && line[lineLen-1] != '\n' {
 					br.mutex.Lock()
-					stdinDone := br.fromStdin && br.stdinEOF
+					fromStdin := br.fromStdin
+					stdinDone := fromStdin && br.stdinEOF
 					br.mutex.Unlock()
-					if !stdinDone {
+					if fromStdin && !stdinDone {
 						break
 					}
+					nextPartialPublished = true
+					nextPartialOffset = readOffset
 				}
 
 				readLen := int64(lineLen)
@@ -332,6 +348,11 @@ func readFile(br *browseObj, ch chan bool) {
 				br.mutex.Unlock()
 				return
 			}
+			if replacePartialLine && br.mapSiz > 1 && br.seekMap[br.mapSiz-1] == partialLineOffset {
+				br.seekMap = br.seekMap[:br.mapSiz-1]
+				br.sizeMap = br.sizeMap[:br.mapSiz-1]
+				br.mapSiz--
+			}
 			for _, info := range pendingLines {
 				br.seekMap = append(br.seekMap, info.offset)
 				br.sizeMap = append(br.sizeMap, info.length)
@@ -345,6 +366,8 @@ func readFile(br *browseObj, ch chan bool) {
 			br.mutex.Unlock()
 			bytesRead = readOffset
 			initialRead = false
+			partialLinePublished = nextPartialPublished
+			partialLineOffset = nextPartialOffset
 
 			select {
 			case ch <- true:
@@ -391,16 +414,17 @@ func (br *browseObj) readFromMap(lineno int) []byte {
 		return nil
 	}
 
-	seek, size, fp := br.seekMap[lineno], br.sizeMap[lineno], br.fp
-	br.mutex.Unlock()
+	seek, size := br.seekMap[lineno], br.sizeMap[lineno]
 
 	// Make sure size is reasonable to avoid panics (16MB)
 	if size < 0 || size > (16<<20) {
+		br.mutex.Unlock()
 		return nil
 	}
 
 	data := make([]byte, int(size))
-	n, err := fp.ReadAt(data, seek)
+	n, err := br.fp.ReadAt(data, seek)
+	br.mutex.Unlock()
 	if err != nil && err != io.EOF {
 		return nil
 	}
