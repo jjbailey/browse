@@ -85,7 +85,10 @@ func processCompressedFile(br *browseObj, format, absPath, title string) {
 	br.mutex.Unlock()
 
 	go func() {
-		cmd.Wait()
+		if err := cmd.Wait(); err != nil {
+			br.printMessage(fmt.Sprintf("%s: decompressor failed: %v",
+				lastNChars(absPath, br.dispWidth), err), MSG_ORANGE)
+		}
 		br.mutex.Lock()
 		br.stdinEOF = true
 		br.mutex.Unlock()
