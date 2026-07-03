@@ -198,7 +198,7 @@ func readFile(br *browseObj, ch chan bool) {
 			}
 
 			if !rescueWasSet {
-				msg := fmt.Sprintf("File removed: reading from %s", fdLink)
+				msg := fmt.Sprintf("File removed: recover from %s", fdLink)
 				br.printMessage(msg, MSG_ORANGE)
 				br.mutex.Lock()
 				br.fileName = fdLink
@@ -231,6 +231,7 @@ func readFile(br *browseObj, ch chan bool) {
 					br.rereadReady = true
 					br.mutex.Unlock()
 					rereadDetected = true
+					br.printMessage("File removed: press R to re-read", MSG_ORANGE)
 				}
 			}
 		}

@@ -219,8 +219,14 @@ mv log log.old
 app > log
 ```
 
-If the screen stops matching the file you expect, `R` is the manual escape
-hatch: it reopens the original path and rebuilds the browse state from disk.
+When the current file is moved away or removed, **browse** keeps reading from
+the already-open file descriptor and reports the rescue path it is using. If a
+new file appears at the original path, press `R` to switch back to that path and
+rebuild the browse state from disk. If the original path is replaced by a
+different file, **browse** notices the inode change and reopens the path
+automatically. If the file is truncated, **browse** clears the old offsets,
+prints `File truncated`, and starts reading the shortened file from the
+beginning.
 
 ### Rewinding Lists
 

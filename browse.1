@@ -529,9 +529,16 @@ app > log
 \f[R]
 .fi
 .PP
-If the screen stops matching the file you expect, \f[V]R\f[R] is the
-manual escape hatch: it reopens the original path and rebuilds the
-browse state from disk.
+When the current file is moved away or removed, \f[B]browse\f[R] keeps
+reading from the already-open file descriptor and reports the rescue
+path it is using.
+If a new file appears at the original path, press \f[V]R\f[R] to switch
+back to that path and rebuild the browse state from disk.
+If the original path is replaced by a different file, \f[B]browse\f[R]
+notices the inode change and reopens the path automatically.
+If the file is truncated, \f[B]browse\f[R] clears the old offsets,
+prints \f[V]File truncated\f[R], and starts reading the shortened file
+from the beginning.
 .SS Rewinding Lists
 .PP
 Press \f[V]Ctrl+R\f[R] to rewind the active browse list.
