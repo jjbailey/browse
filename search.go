@@ -220,7 +220,7 @@ func (br *browseObj) lineIsMatch(lineno int) bool {
 	}
 
 	br.mutex.Lock()
-	if lineno >= br.mapSiz || br.fp == nil {
+	if lineno < 0 || lineno >= br.mapSiz || br.fp == nil {
 		br.mutex.Unlock()
 		return false
 	}

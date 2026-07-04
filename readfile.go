@@ -403,14 +403,18 @@ func (br *browseObj) readStdin(fin, fout *os.File) bool {
 	const copyBufSize = 64 * 1024
 
 	buf := make([]byte, copyBufSize)
-	bytesWritten, _ := io.CopyBuffer(fout, fin, buf)
+	bytesWritten, err := io.CopyBuffer(fout, fin, buf)
+	if err != nil {
+		// Surface a truncated stream rather than presenting it as complete.
+		br.printMessage("Error reading standard input: "+err.Error(), MSG_RED)
+	}
 	return bytesWritten == 0
 }
 
 // readFromMap reads a line by index using the seek and size maps.
 func (br *browseObj) readFromMap(lineno int) []byte {
 	br.mutex.Lock()
-	if lineno >= br.mapSiz || br.fp == nil {
+	if lineno < 0 || lineno >= br.mapSiz || br.fp == nil {
 		br.mutex.Unlock()
 		return nil
 	}
