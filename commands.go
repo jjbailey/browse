@@ -468,7 +468,7 @@ func commands(br *browseObj) {
 
 		case CMD_NEWFILE:
 			resume := browseResumeState{
-				fileName:    br.fileName,
+				fileName:    br.currentFileName(),
 				absFileName: br.absFileName,
 				title:       br.title,
 				fromStdin:   br.fromStdin,
@@ -883,7 +883,7 @@ func filePosition(br *browseObj) {
 		t = float32(br.firstRow) / float32(lineCount) * 100.0
 	}
 
-	dispName := abbreviateFileName(br.fileName, br.dispWidth>>1)
+	dispName := abbreviateFileName(br.currentFileName(), br.dispWidth>>1)
 
 	br.printMessage(fmt.Sprintf("\"%s\" %d lines --%1.1f%%--",
 		dispName, lineCount, t), MSG_GREEN)

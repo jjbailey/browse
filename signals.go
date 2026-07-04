@@ -38,7 +38,7 @@ func (br *browseObj) saneExit() {
 	moveCursor(br.dispHeight, 1, true)
 
 	if br.fromStdin {
-		os.Remove(br.fileName)
+		os.Remove(br.currentFileName())
 	}
 
 	if !br.fromStdin && br.saveRC {
