@@ -18,8 +18,11 @@ import (
 
 // runFormat pipes the current search pattern to fmt and opens the results.
 func (br *browseObj) runFormat() {
+	// Snapshot fileName under the lock; the reader goroutine may rotate it.
+	fileName := br.currentFileName()
+
 	// Check if file exists before attempting to format
-	_, err := os.Stat(br.fileName)
+	_, err := os.Stat(fileName)
 	if os.IsNotExist(err) {
 		br.printMessage("File does not exist", MSG_ORANGE)
 		return
@@ -40,14 +43,14 @@ func (br *browseObj) runFormat() {
 	title := "fmt -s"
 	if !br.fromStdin {
 		// aesthetical
-		if br.title == filepath.Base(br.fileName) {
-			title += " " + filepath.Base(br.fileName)
+		if br.title == filepath.Base(fileName) {
+			title += " " + filepath.Base(fileName)
 		} else {
-			title += " " + abbreviateFileName(br.fileName, br.dispWidth>>1)
+			title += " " + abbreviateFileName(fileName, br.dispWidth>>1)
 		}
 	}
 	titleArg := shellEscapeSingle(title)
-	fileNameArg := shellEscapeSingle(br.fileName)
+	fileNameArg := shellEscapeSingle(fileName)
 	formatPathArg := shellEscapeSingle(formatPath)
 	brPathArg := shellEscapeSingle(brPath)
 

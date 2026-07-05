@@ -54,6 +54,7 @@ related files without losing context.
 - Shell escape with command completion.
 - Persistent file, directory, search, and shell histories.
 - Session saving and restoration.
+- Browse compressed files transparently.
 - Run `fmt -s` on the current file in a nested browse session.
 - Built-in help screen.
 
@@ -218,14 +219,50 @@ mv log log.old
 app > log
 ```
 
-If the screen stops matching the file you expect, `R` is the manual escape
-hatch: it reopens the original path and rebuilds the browse state from disk.
+When the current file is moved away or removed, **browse** keeps reading from
+the already-open file descriptor and reports the rescue path it is using. If a
+new file appears at the original path, press `R` to switch back to that path and
+rebuild the browse state from disk. If the original path is replaced by a
+different file, **browse** notices the inode change and reopens the path
+automatically. If the file is truncated, **browse** clears the old offsets,
+prints `File truncated`, and starts reading the shortened file from the
+beginning.
 
 ### Rewinding Lists
 
 Press `Ctrl+R` to rewind the active browse list. This returns to the first file
 in the current list, including a nested list opened with `B`, without rewinding
 any parent list.
+
+### Browsing Compressed Files
+
+**browse** detects compressed files by their magic bytes and decompresses them
+transparently. No extra steps are needed: open a compressed file the same way
+you would any other file, from the command line or with `B` inside a running
+session.
+
+Supported formats:
+
+| Format   | Requires     |
+| -------- | ------------ |
+| gzip     | `gzip`       |
+| bzip2    | `bzip2`      |
+| xz       | `xz`         |
+| zstd     | `zstd`       |
+| zip      | `funzip`     |
+| lz4      | `lz4`        |
+| 7z       | `7z`         |
+| compress | `uncompress` |
+
+If the required decompressor is not installed, **browse** displays an error and
+skips the file rather than attempting to display raw binary content.
+
+The original compressed filename is recorded in the file history and session
+file, so you can reopen it later from the `B` prompt or on the next launch.
+
+**Limitation:** `Ctrl+R` (rewind list) does not work while browsing a
+compressed file. The content is decompressed once into a temporary stream;
+rewinding is not supported for that session.
 
 ### Changing Directory
 

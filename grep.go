@@ -30,8 +30,11 @@ func (br *browseObj) runGrep() {
 		return
 	}
 
+	// Snapshot fileName under the lock; the reader goroutine may rotate it.
+	fileName := br.currentFileName()
+
 	// Check if file exists before attempting to grep
-	_, err := os.Stat(br.fileName)
+	_, err := os.Stat(fileName)
 	if err != nil {
 		br.printMessage("File does not exist", MSG_ORANGE)
 		return
@@ -59,11 +62,11 @@ func (br *browseObj) runGrep() {
 
 	title := fmt.Sprintf("grep %s -e \"%s\"", grepOpts, br.pattern)
 	if !br.fromStdin {
-		title += " " + filepath.Base(br.fileName)
+		title += " " + filepath.Base(fileName)
 	}
 	patternArg := shellEscapeSingle(br.pattern)
 	titleArg := shellEscapeSingle(title)
-	fileNameArg := shellEscapeSingle(br.fileName)
+	fileNameArg := shellEscapeSingle(fileName)
 	grepPathArg := shellEscapeSingle(grepPath)
 	brPathArg := shellEscapeSingle(brPath)
 

@@ -30,6 +30,16 @@ func (br *browseObj) currentMapSize() int {
 	return br.mapSiz
 }
 
+// currentFileName returns a stable snapshot of br.fileName. The reader
+// goroutine mutates fileName under the mutex during file rotation/rescue,
+// so command handlers on the main goroutine must read it under the lock.
+func (br *browseObj) currentFileName() string {
+	br.mutex.Lock()
+	defer br.mutex.Unlock()
+
+	return br.fileName
+}
+
 func (br *browseObj) setEOFState(hitEOF, shownEOF bool) {
 	br.mutex.Lock()
 	br.hitEOF = hitEOF

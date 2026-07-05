@@ -96,6 +96,8 @@ Persistent file, directory, search, and shell histories.
 .IP \[bu] 2
 Session saving and restoration.
 .IP \[bu] 2
+Browse compressed files transparently.
+.IP \[bu] 2
 Run \f[V]fmt -s\f[R] on the current file in a nested browse session.
 .IP \[bu] 2
 Built-in help screen.
@@ -151,6 +153,7 @@ browse [OPTIONS] [FILE] [FILE...]
 \f[R]
 .fi
 .PP
+.ne 12v
 .TS
 tab(@);
 lw(24.0n) lx.
@@ -209,6 +212,7 @@ T}
 .SS Keyboard Shortcuts
 .SS Navigation Keys
 .PP
+.ne 12v
 .TS
 tab(@);
 lw(24.0n) lx.
@@ -316,6 +320,7 @@ T}
 .TE
 .SS Search
 .PP
+.ne 12v
 .TS
 tab(@);
 lw(24.0n) lx.
@@ -374,6 +379,7 @@ T}
 .TE
 .SS Files, Lists, and Session Control
 .PP
+.ne 12v
 .TS
 tab(@);
 lw(24.0n) lx.
@@ -436,6 +442,7 @@ T}
 .TE
 .SS Miscellaneous
 .PP
+.ne 12v
 .TS
 tab(@);
 lw(24.0n) lx.
@@ -527,14 +534,95 @@ app > log
 \f[R]
 .fi
 .PP
-If the screen stops matching the file you expect, \f[V]R\f[R] is the
-manual escape hatch: it reopens the original path and rebuilds the
-browse state from disk.
+When the current file is moved away or removed, \f[B]browse\f[R] keeps
+reading from the already-open file descriptor and reports the rescue
+path it is using.
+If a new file appears at the original path, press \f[V]R\f[R] to switch
+back to that path and rebuild the browse state from disk.
+If the original path is replaced by a different file, \f[B]browse\f[R]
+notices the inode change and reopens the path automatically.
+If the file is truncated, \f[B]browse\f[R] clears the old offsets,
+prints \f[V]File truncated\f[R], and starts reading the shortened file
+from the beginning.
 .SS Rewinding Lists
 .PP
 Press \f[V]Ctrl+R\f[R] to rewind the active browse list.
 This returns to the first file in the current list, including a nested
 list opened with \f[V]B\f[R], without rewinding any parent list.
+.SS Browsing Compressed Files
+.PP
+\f[B]browse\f[R] detects compressed files by their magic bytes and
+decompresses them transparently.
+No extra steps are needed: open a compressed file the same way you would
+any other file, from the command line or with \f[V]B\f[R] inside a
+running session.
+.PP
+Supported formats:
+.PP
+.ne 12v
+.TS
+tab(@);
+lw(24.0n) lx.
+T{
+Format
+T}@T{
+Requires
+T}
+_
+T{
+gzip
+T}@T{
+\f[V]gzip\f[R]
+T}
+T{
+bzip2
+T}@T{
+\f[V]bzip2\f[R]
+T}
+T{
+xz
+T}@T{
+\f[V]xz\f[R]
+T}
+T{
+zstd
+T}@T{
+\f[V]zstd\f[R]
+T}
+T{
+zip
+T}@T{
+\f[V]funzip\f[R]
+T}
+T{
+lz4
+T}@T{
+\f[V]lz4\f[R]
+T}
+T{
+7z
+T}@T{
+\f[V]7z\f[R]
+T}
+T{
+compress
+T}@T{
+\f[V]uncompress\f[R]
+T}
+.TE
+.PP
+If the required decompressor is not installed, \f[B]browse\f[R] displays
+an error and skips the file rather than attempting to display raw binary
+content.
+.PP
+The original compressed filename is recorded in the file history and
+session file, so you can reopen it later from the \f[V]B\f[R] prompt or
+on the next launch.
+.PP
+\f[B]Limitation:\f[R] \f[V]Ctrl+R\f[R] (rewind list) does not work while
+browsing a compressed file.
+The content is decompressed once into a temporary stream; rewinding is
+not supported for that session.
 .SS Changing Directory
 .PP
 Press \f[V]C\f[R] to change the current working directory.
@@ -547,6 +635,7 @@ Directory completion includes entries from \f[V]CDPATH\f[R].
 Special symbols are expanded in specific prompts; not every symbol is
 available everywhere:
 .PP
+.ne 12v
 .TS
 tab(@);
 lw(24.0n) lx.
