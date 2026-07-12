@@ -46,7 +46,7 @@ Browse command output from pipelines as if it were a file.
 .IP \[bu] 2
 Use keyboard-driven navigation, search, shell commands, and history.
 .IP \[bu] 2
-Keep your context while investigating logs, source, or generated
+Keep your context while investigating logs, sources, or generated
 results.
 .SS Features
 .SS Navigation Features
@@ -86,6 +86,8 @@ Return from nested file sets with \f[V]x\f[R] or \f[V]X\f[R].
 Rewind the active file list with \f[V]Ctrl+R\f[R].
 .IP \[bu] 2
 Show the current remaining file list with \f[V]a\f[R].
+.IP \[bu] 2
+Show the suspended browse stack with \f[V]A\f[R].
 .SS Convenience
 .IP \[bu] 2
 File and directory completion.
@@ -548,13 +550,13 @@ app > log
 When the current file is moved away or removed, \f[B]browse\f[R] keeps
 reading from the already-open file descriptor and reports the rescue
 path it is using.
-If a new file appears at the original path, press \f[V]R\f[R] to switch
-back to that path and rebuild the browse state from disk.
-If the original path is replaced by a different file, \f[B]browse\f[R]
-notices the inode change and reopens the path automatically.
+If a new file appears at the original path, press R to switch back to
+that path and rebuild the browse state from disk.
+If the original path is replaced with a different file, \f[B]browse\f[R]
+notices the inode change and automatically reopens the path.
 If the file is truncated, \f[B]browse\f[R] clears the old offsets,
-prints \f[V]File truncated\f[R], and starts reading the shortened file
-from the beginning.
+prints File truncated, and starts reading the shortened file from the
+beginning.
 .SS Rewinding Lists
 .PP
 Press \f[V]Ctrl+R\f[R] to rewind the active browse list.

@@ -18,7 +18,7 @@ related files without losing context.
 - Drill into a new file set and return to your previous place.
 - Browse command output from pipelines as if it were a file.
 - Use keyboard-driven navigation, search, shell commands, and history.
-- Keep your context while investigating logs, source, or generated results.
+- Keep your context while investigating logs, sources, or generated results.
 
 ## Features
 
@@ -47,6 +47,7 @@ related files without losing context.
 - Return from nested file sets with `x` or `X`.
 - Rewind the active file list with `Ctrl+R`.
 - Show the current remaining file list with `a`.
+- Show the suspended browse stack with `A`.
 
 ### Convenience
 
@@ -227,13 +228,12 @@ app > log
 ```
 
 When the current file is moved away or removed, **browse** keeps reading from
-the already-open file descriptor and reports the rescue path it is using. If a
-new file appears at the original path, press `R` to switch back to that path and
-rebuild the browse state from disk. If the original path is replaced by a
-different file, **browse** notices the inode change and reopens the path
-automatically. If the file is truncated, **browse** clears the old offsets,
-prints `File truncated`, and starts reading the shortened file from the
-beginning.
+the already-open file descriptor and reports the rescue path it is using. If
+a new file appears at the original path, press R to switch back to that path
+and rebuild the browse state from disk. If the original path is replaced with a
+different file, **browse** notices the inode change and automatically reopens
+the path. If the file is truncated, **browse** clears the old offsets, prints
+File truncated, and starts reading the shortened file from the beginning.
 
 ### Rewinding Lists
 
