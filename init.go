@@ -34,6 +34,11 @@ func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin boo
 	}
 	br.lastMatch = SEARCH_RESET
 	br.fileSeq++
+	// drop display work posted for the previous file
+	br.pendingMsg = ""
+	br.pendingMsgTransient = false
+	br.refreshPending = false
+	br.scrollCancelPending = false
 	br.mutex.Unlock()
 
 	if rescueFd > 0 {

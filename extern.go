@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "1.3.0"
+	BR_VERSION = "1.3.1"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -185,6 +185,7 @@ type browseObj struct {
 	listAction  int
 	listAtStart bool
 	resume      browseResumeState
+	browseStack []browseResumeState
 
 	// File size tracking
 	newFileSiz int64
@@ -204,6 +205,15 @@ type browseObj struct {
 	rereadPending bool
 	rereadReady   bool
 	stdinEOF      bool
+
+	// Display work posted by non-display goroutines (file reader,
+	// decompressor waiter) and applied by the main goroutine each
+	// commands-loop tick. Guarded by mutex; only main draws.
+	pendingMsg          string
+	pendingMsgColor     string
+	pendingMsgTransient bool
+	refreshPending      bool
+	scrollCancelPending bool
 }
 
 // browseResumeState preserves the visible position when a nested list returns.

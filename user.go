@@ -24,6 +24,9 @@ func (br *browseObj) userAnyKey(promptStr string) {
 	const timeout = 500 * time.Millisecond
 
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
+	// Ignore/Reset also undo catchSignals' Notify registrations,
+	// so re-arm them on the way out
+	defer br.catchSignals()
 	defer signal.Reset(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
 
 	// reset tty
@@ -73,6 +76,9 @@ func (br *browseObj) userInput(promptStr string) (string, bool) {
 	)
 
 	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
+	// Ignore/Reset also undo catchSignals' Notify registrations,
+	// so re-arm them on the way out, after the deferred Reset
+	defer br.catchSignals()
 	defer signal.Reset(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGWINCH)
 
 	// promptStr
@@ -187,9 +193,6 @@ func (br *browseObj) userInput(promptStr string) (string, bool) {
 			break
 		}
 	}
-
-	// reset signals
-	br.catchSignals()
 
 	// reset tty
 	ttyBrowser()
