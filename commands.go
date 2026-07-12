@@ -79,6 +79,7 @@ const (
 
 	// Other commands
 	CMD_ARGLIST   = 'a'
+	CMD_STACK     = 'A'
 	CMD_BASH      = '!'
 	CMD_FORMAT    = 'F'
 	CMD_GREP      = '&'
@@ -168,6 +169,9 @@ func commands(br *browseObj) {
 			b[i] = 0
 		}
 		n, err := br.tty.Read(b)
+
+		// apply display work posted by the reader goroutine
+		br.drainDisplayEvents()
 
 		// continuous modes
 
@@ -476,7 +480,10 @@ func commands(br *browseObj) {
 				lastRow:     br.lastRow,
 				shiftWidth:  br.shiftWidth,
 			}
-			if fileCommand(br) {
+			br.browseStack = append(br.browseStack, resume)
+			opened := fileCommand(br)
+			br.browseStack = br.browseStack[:len(br.browseStack)-1]
+			if opened {
 				if br.listAction == LIST_ACTION_EXIT_ALL {
 					return
 				}
@@ -507,6 +514,9 @@ func commands(br *browseObj) {
 			br.exit = false
 			br.listAction = LIST_ACTION_REWIND
 			return
+
+		case CMD_STACK:
+			br.printBrowseStack()
 
 		case CMD_ARGLIST:
 			br.printCurrentList()

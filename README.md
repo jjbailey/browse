@@ -162,6 +162,7 @@ browse [OPTIONS] [FILE] [FILE...]
 | `R`      | Re-read the current file from disk              |
 | `Ctrl+R` | Rewind the current browse list                  |
 | `a`      | Print filenames in the current browse list      |
+| `A`      | Print the suspended browse stack                |
 | `q`      | Quit current file, save session, continue list  |
 | `Q`      | Quit current file without saving, continue list |
 | `x`      | Exit current list, save session                 |
@@ -205,6 +206,12 @@ browse file1 file2 file3
 ```
 
 and are currently viewing `file2`, pressing `a` shows `file2` and `file3`.
+
+### Showing the Browse Stack
+
+Press `A` to show the current file and suspended parent files. The immediately
+resumable parent is listed first; for example, while viewing `file3` after
+opening `file2` from `file1`, browse shows `[file3] file2 file1`.
 
 ### Re-Reading Files
 

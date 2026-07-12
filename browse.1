@@ -410,6 +410,11 @@ T}@T{
 Print filenames in the current browse list
 T}
 T{
+\f[V]A\f[R]
+T}@T{
+Print the suspended browse stack
+T}
+T{
 \f[V]q\f[R]
 T}@T{
 Quit current file, save session, continue list
@@ -519,6 +524,12 @@ browse file1 file2 file3
 .PP
 and are currently viewing \f[V]file2\f[R], pressing \f[V]a\f[R] shows
 \f[V]file2\f[R] and \f[V]file3\f[R].
+.SS Showing the Browse Stack
+.PP
+Press \f[V]A\f[R] to show the current file and suspended parent files.
+The immediately resumable parent is listed first; for example, while
+viewing \f[V]file3\f[R] after opening \f[V]file2\f[R] from
+\f[V]file1\f[R], browse shows \f[V][file3] file2 file1\f[R].
 .SS Re-Reading Files
 .PP
 Press \f[V]R\f[R] to re-read the current file from disk.
