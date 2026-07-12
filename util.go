@@ -255,7 +255,7 @@ func prevDirectory() string {
 
 // unQuote removes surrounding single quotes from a string.
 func unQuote(s string) string {
-	if strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") {
+	if len(s) >= 2 && strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") {
 		s = s[1 : len(s)-1]
 	}
 
