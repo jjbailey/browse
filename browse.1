@@ -46,7 +46,7 @@ Browse command output from pipelines as if it were a file.
 .IP \[bu] 2
 Use keyboard-driven navigation, search, shell commands, and history.
 .IP \[bu] 2
-Keep your context while investigating logs, source, or generated
+Keep your context while investigating logs, sources, or generated
 results.
 .SS Features
 .SS Navigation Features
@@ -86,6 +86,8 @@ Return from nested file sets with \f[V]x\f[R] or \f[V]X\f[R].
 Rewind the active file list with \f[V]Ctrl+R\f[R].
 .IP \[bu] 2
 Show the current remaining file list with \f[V]a\f[R].
+.IP \[bu] 2
+Show the suspended browse stack with \f[V]A\f[R].
 .SS Convenience
 .IP \[bu] 2
 File and directory completion.
@@ -410,6 +412,11 @@ T}@T{
 Print filenames in the current browse list
 T}
 T{
+\f[V]A\f[R]
+T}@T{
+Print the suspended browse stack
+T}
+T{
 \f[V]q\f[R]
 T}@T{
 Quit current file, save session, continue list
@@ -519,6 +526,12 @@ browse file1 file2 file3
 .PP
 and are currently viewing \f[V]file2\f[R], pressing \f[V]a\f[R] shows
 \f[V]file2\f[R] and \f[V]file3\f[R].
+.SS Showing the Browse Stack
+.PP
+Press \f[V]A\f[R] to show the current file and suspended parent files.
+The immediately resumable parent is listed first; for example, while
+viewing \f[V]file3\f[R] after opening \f[V]file2\f[R] from
+\f[V]file1\f[R], browse shows \f[V][file3] file2 file1\f[R].
 .SS Re-Reading Files
 .PP
 Press \f[V]R\f[R] to re-read the current file from disk.
@@ -537,13 +550,13 @@ app > log
 When the current file is moved away or removed, \f[B]browse\f[R] keeps
 reading from the already-open file descriptor and reports the rescue
 path it is using.
-If a new file appears at the original path, press \f[V]R\f[R] to switch
-back to that path and rebuild the browse state from disk.
-If the original path is replaced by a different file, \f[B]browse\f[R]
-notices the inode change and reopens the path automatically.
+If a new file appears at the original path, press R to switch back to
+that path and rebuild the browse state from disk.
+If the original path is replaced with a different file, \f[B]browse\f[R]
+notices the inode change and automatically reopens the path.
 If the file is truncated, \f[B]browse\f[R] clears the old offsets,
-prints \f[V]File truncated\f[R], and starts reading the shortened file
-from the beginning.
+prints File truncated, and starts reading the shortened file from the
+beginning.
 .SS Rewinding Lists
 .PP
 Press \f[V]Ctrl+R\f[R] to rewind the active browse list.

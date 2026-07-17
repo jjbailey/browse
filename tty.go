@@ -42,7 +42,8 @@ func ttyBrowser() {
 
 	// Save a copy of the original termios for ttyRestore
 	if savedTermios == nil {
-		savedTermios = termios
+		saved := *termios
+		savedTermios = &saved
 	}
 
 	// Map NL to CR without clobbering unrelated input flags.

@@ -70,7 +70,9 @@ func readFile(br *browseObj, ch chan bool) {
 	savFileSeq := br.fileSeq
 	br.mutex.Unlock()
 
-	bufReader := bufio.NewReader(readerFp)
+	// Keep the reader buffer bounded: readLineLength consumes long lines in
+	// fixed-size fragments instead of allocating a string as large as the line.
+	bufReader := bufio.NewReaderSize(readerFp, READBUFSIZ)
 	type lineMeta struct{ offset, length int64 }
 	pendingLines := make([]lineMeta, 0, 1024)
 	var postRereadRefresh bool
@@ -157,8 +159,9 @@ func readFile(br *browseObj, ch chan bool) {
 			if err := reopenReader(targetReread); err != nil {
 				br.mutex.Lock()
 				br.rereadPending = false
+				br.pendingMsg = "Cannot re-open: " + err.Error()
+				br.pendingMsgColor = MSG_RED
 				br.mutex.Unlock()
-				br.printMessage("Cannot re-open: "+err.Error(), MSG_RED)
 				continue
 			}
 
@@ -171,7 +174,7 @@ func readFile(br *browseObj, ch chan bool) {
 		newFileSiz, newInode, err := getFileInodeSize(currentFileName)
 		if err != nil {
 			br.mutex.Lock()
-			br.modeScroll = MODE_SCROLL_NONE
+			br.scrollCancelPending = true
 			rescueWasSet := br.rescueFd > 0
 			if !rescueWasSet {
 				rescueFd, dupErr := unix.Dup(fd)
@@ -189,7 +192,7 @@ func readFile(br *browseObj, ch chan bool) {
 			}
 
 			if err != nil {
-				br.printMessage("Rescue fd link no longer accessible", MSG_RED)
+				br.postMessage("Rescue fd link no longer accessible", MSG_RED)
 				select {
 				case ch <- false:
 				default:
@@ -198,8 +201,7 @@ func readFile(br *browseObj, ch chan bool) {
 			}
 
 			if !rescueWasSet {
-				msg := fmt.Sprintf("File removed: recover from %s", fdLink)
-				br.printMessage(msg, MSG_ORANGE)
+				br.postMessage(fmt.Sprintf("File removed: recover from %s", fdLink), MSG_ORANGE)
 				br.mutex.Lock()
 				br.fileName = fdLink
 				br.mutex.Unlock()
@@ -231,7 +233,7 @@ func readFile(br *browseObj, ch chan bool) {
 					br.rereadReady = true
 					br.mutex.Unlock()
 					rereadDetected = true
-					br.printMessage("File removed: press R to re-read", MSG_ORANGE)
+					br.postMessage("File removed: press R to re-read", MSG_ORANGE)
 				}
 			}
 		}
@@ -249,13 +251,15 @@ func readFile(br *browseObj, ch chan bool) {
 		br.newInode = newInode
 		stdinFinalPending := br.fromStdin && br.stdinEOF && bytesRead < br.newFileSiz
 
+		// handleFileReset runs with br.mutex held, so it posts
+		// display work by writing the pending fields directly
 		handleFileReset := func(msg string) {
 			if msg != "" {
-				br.printMessage(msg, MSG_RED)
+				br.pendingMsg = msg
+				br.pendingMsgColor = MSG_RED
 			}
 			readInit(br, &bytesRead)
-			br.modeScroll = MODE_SCROLL_NONE
-			br.shownMsg = true
+			br.scrollCancelPending = true
 			shouldRead = true
 			initialRead = true
 			postRereadRefresh = true
@@ -298,7 +302,7 @@ func readFile(br *browseObj, ch chan bool) {
 			nextPartialOffset := int64(0)
 
 			for {
-				line, err := bufReader.ReadString('\n')
+				lineLen, hasNewline, err := readLineLength(bufReader)
 				if err != nil {
 					if err != io.EOF {
 						// Report and exit for unexpected error
@@ -310,7 +314,6 @@ func readFile(br *browseObj, ch chan bool) {
 					}
 				}
 
-				lineLen := len(line)
 				if lineLen == 0 {
 					break
 				}
@@ -318,7 +321,7 @@ func readFile(br *browseObj, ch chan bool) {
 				// Publish unterminated lines, but remember their offset so later
 				// growth can replace the provisional entry instead of splitting it.
 
-				if err == io.EOF && line[lineLen-1] != '\n' {
+				if err == io.EOF && !hasNewline {
 					br.mutex.Lock()
 					fromStdin := br.fromStdin
 					stdinDone := fromStdin && br.stdinEOF
@@ -330,14 +333,14 @@ func readFile(br *browseObj, ch chan bool) {
 					nextPartialOffset = readOffset
 				}
 
-				readLen := int64(lineLen)
-				if line[lineLen-1] == '\n' {
+				readLen := lineLen
+				if hasNewline {
 					readLen--
 				}
 
 				cappedLen := min(readLen, READBUFSIZ)
 				pendingLines = append(pendingLines, lineMeta{offset: readOffset, length: cappedLen})
-				readOffset += int64(lineLen)
+				readOffset += lineLen
 
 				if err == io.EOF {
 					break
@@ -378,11 +381,39 @@ func readFile(br *browseObj, ch chan bool) {
 
 		if postRereadRefresh {
 			postRereadRefresh = false
-			br.timedMessage("Re-reading file", MSG_GREEN)
-			br.pageCurrent()
+			br.mutex.Lock()
+			// don't clobber a queued message, e.g. "File truncated"
+			if br.pendingMsg == "" {
+				br.pendingMsg = "Re-reading file"
+				br.pendingMsgColor = MSG_GREEN
+				br.pendingMsgTransient = true
+			}
+			br.refreshPending = true
+			br.mutex.Unlock()
 		}
 
 		time.Sleep(time.Second)
+	}
+}
+
+// readLineLength consumes one line without retaining its contents. Long lines
+// are read in bufio-sized fragments, keeping memory use bounded by the reader
+// buffer rather than by the line length.
+func readLineLength(reader *bufio.Reader) (length int64, hasNewline bool, err error) {
+	for {
+		fragment, readErr := reader.ReadSlice('\n')
+		length += int64(len(fragment))
+
+		switch readErr {
+		case nil:
+			return length, true, nil
+		case bufio.ErrBufferFull:
+			continue
+		case io.EOF:
+			return length, false, io.EOF
+		default:
+			return length, false, readErr
+		}
 	}
 }
 
@@ -406,7 +437,7 @@ func (br *browseObj) readStdin(fin, fout *os.File) bool {
 	bytesWritten, err := io.CopyBuffer(fout, fin, buf)
 	if err != nil {
 		// Surface a truncated stream rather than presenting it as complete.
-		br.printMessage("Error reading standard input: "+err.Error(), MSG_RED)
+		br.postMessage("Error reading standard input: "+err.Error(), MSG_RED)
 	}
 	return bytesWritten == 0
 }

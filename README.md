@@ -18,7 +18,7 @@ related files without losing context.
 - Drill into a new file set and return to your previous place.
 - Browse command output from pipelines as if it were a file.
 - Use keyboard-driven navigation, search, shell commands, and history.
-- Keep your context while investigating logs, source, or generated results.
+- Keep your context while investigating logs, sources, or generated results.
 
 ## Features
 
@@ -47,6 +47,7 @@ related files without losing context.
 - Return from nested file sets with `x` or `X`.
 - Rewind the active file list with `Ctrl+R`.
 - Show the current remaining file list with `a`.
+- Show the suspended browse stack with `A`.
 
 ### Convenience
 
@@ -162,6 +163,7 @@ browse [OPTIONS] [FILE] [FILE...]
 | `R`      | Re-read the current file from disk              |
 | `Ctrl+R` | Rewind the current browse list                  |
 | `a`      | Print filenames in the current browse list      |
+| `A`      | Print the suspended browse stack                |
 | `q`      | Quit current file, save session, continue list  |
 | `Q`      | Quit current file without saving, continue list |
 | `x`      | Exit current list, save session                 |
@@ -206,6 +208,12 @@ browse file1 file2 file3
 
 and are currently viewing `file2`, pressing `a` shows `file2` and `file3`.
 
+### Showing the Browse Stack
+
+Press `A` to show the current file and suspended parent files. The immediately
+resumable parent is listed first; for example, while viewing `file3` after
+opening `file2` from `file1`, browse shows `[file3] file2 file1`.
+
 ### Re-Reading Files
 
 Press `R` to re-read the current file from disk. This is useful when a file is
@@ -220,13 +228,12 @@ app > log
 ```
 
 When the current file is moved away or removed, **browse** keeps reading from
-the already-open file descriptor and reports the rescue path it is using. If a
-new file appears at the original path, press `R` to switch back to that path and
-rebuild the browse state from disk. If the original path is replaced by a
-different file, **browse** notices the inode change and reopens the path
-automatically. If the file is truncated, **browse** clears the old offsets,
-prints `File truncated`, and starts reading the shortened file from the
-beginning.
+the already-open file descriptor and reports the rescue path it is using. If
+a new file appears at the original path, press R to switch back to that path
+and rebuild the browse state from disk. If the original path is replaced with a
+different file, **browse** notices the inode change and automatically reopens
+the path. If the file is truncated, **browse** clears the old offsets, prints
+File truncated, and starts reading the shortened file from the beginning.
 
 ### Rewinding Lists
 

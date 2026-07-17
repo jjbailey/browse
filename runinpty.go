@@ -21,6 +21,7 @@ import (
 	"syscall"
 
 	"github.com/creack/pty"
+	"golang.org/x/sys/unix"
 	"golang.org/x/term"
 )
 
@@ -72,18 +73,48 @@ func (br *browseObj) runInPty(cmdbuf string) {
 	// parent signals - pass ptmx to signal handler
 	br.ptySignals(WAITSIGS, ptmx)
 
-	execOK := make(chan bool, 1)
+	inputStop := make(chan struct{})
 	var wg sync.WaitGroup
 
 	// Goroutine to copy from tty to ptmx
 	wg.Go(func() {
-		// Custom copy that captures the last key press
+		// Poll makes the forwarding loop cancellable. A blocking Read cannot be
+		// interrupted reliably without closing br.tty, which the browser still
+		// needs after the command exits.
+		pollFds := []unix.PollFd{{
+			Fd:     int32(br.tty.Fd()),
+			Events: unix.POLLIN,
+		}}
 		buf := make([]byte, 1)
 
 		for {
+			select {
+			case <-inputStop:
+				return
+			default:
+			}
+
+			pollFds[0].Revents = 0
+			ready, err := unix.Poll(pollFds, 100)
+			if err != nil {
+				if errors.Is(err, syscall.EINTR) {
+					continue
+				}
+				return
+			}
+			if ready == 0 {
+				continue
+			}
+
+			select {
+			case <-inputStop:
+				return
+			default:
+			}
+
 			n, err := br.tty.Read(buf)
 			if err != nil || n == 0 {
-				break
+				return
 			}
 
 			// Store the last pressed key
@@ -91,13 +122,10 @@ func (br *browseObj) runInPty(cmdbuf string) {
 
 			// Write to ptmx
 			if _, err := ptmx.Write(buf[:n]); err != nil {
-				// ptmx may be closed, break out of loop
-				break
+				// ptmx may be closed, stop forwarding input
+				return
 			}
 		}
-
-		// Send completion signal - channel is buffered so won't block
-		execOK <- true
 	})
 
 	// Copy from ptmx to stdout
@@ -106,21 +134,49 @@ func (br *browseObj) runInPty(cmdbuf string) {
 	// Wait for command to finish
 	cmd.Wait()
 
+	// Stop the PTY input forwarder before changing terminal modes. This keeps
+	// its completion separate from the continuation key read below.
+	close(inputStop)
+	wg.Wait()
+
 	// Restore terminal and reset window size BEFORE waiting for input
 	term.Restore(int(os.Stdout.Fd()), ptySave)
 	pty.InheritSize(os.Stdout, ptmx)
 	br.dispHeight, br.dispWidth, _ = pty.Getsize(ptmx)
 	br.dispRows = br.dispHeight - 1
 
-	// Wait for the input goroutine to finish
+	// Discard input queued while the command was shutting down, then wait for
+	// a key read that belongs only to the continuation prompt.
+	_ = unix.IoctlSetInt(int(br.tty.Fd()), unix.TCFLSH, unix.TCIFLUSH)
 	moveCursor(br.dispHeight, 1, true)
 	fmt.Printf(MSG_GREEN + " Press any key to continue... " + VIDOFF)
 
-	// Wait for user input or goroutine completion
-	<-execOK
+	waitFds := []unix.PollFd{{
+		Fd:     int32(br.tty.Fd()),
+		Events: unix.POLLIN,
+	}}
+	buf := make([]byte, 1)
+	for {
+		waitFds[0].Revents = 0
+		_, err := unix.Poll(waitFds, -1)
+		if errors.Is(err, syscall.EINTR) {
+			continue
+		}
+		if err != nil || waitFds[0].Revents&unix.POLLIN == 0 {
+			break
+		}
 
-	// Ensure goroutine completes
-	wg.Wait()
+		n, err := br.tty.Read(buf)
+		if n > 0 {
+			br.lastKey = buf[0]
+			break
+		}
+		if err == nil || errors.Is(err, io.EOF) ||
+			errors.Is(err, syscall.EAGAIN) || errors.Is(err, syscall.EINTR) {
+			continue
+		}
+		break
+	}
 
 	br.catchSignals()
 }

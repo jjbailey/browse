@@ -106,6 +106,55 @@ func (br *browseObj) printLineWithMapSize(lineno, mapSize int) {
 	}
 }
 
+// postMessage queues a status-line message for the main goroutine to
+// display. Only the main goroutine draws; other goroutines (the file
+// reader, the decompressor waiter) post display work under the mutex
+// and the commands loop applies it on its next tick.
+func (br *browseObj) postMessage(msg, color string) {
+	br.mutex.Lock()
+	br.pendingMsg = msg
+	br.pendingMsgColor = color
+	br.mutex.Unlock()
+}
+
+// drainDisplayEvents applies display work posted by other goroutines.
+// Call only from the main goroutine.
+func (br *browseObj) drainDisplayEvents() {
+	br.mutex.Lock()
+	msg, color := br.pendingMsg, br.pendingMsgColor
+	transient := br.pendingMsgTransient
+	refresh := br.refreshPending
+	cancelScroll := br.scrollCancelPending
+	br.pendingMsg = ""
+	br.pendingMsgTransient = false
+	br.refreshPending = false
+	br.scrollCancelPending = false
+	br.mutex.Unlock()
+
+	if cancelScroll {
+		br.modeScroll = MODE_SCROLL_NONE
+	}
+
+	// Transient notices (e.g. "Re-reading file") print first and get a
+	// moment on screen, then the refresh below naturally overwrites the
+	// same status row with the real last line of the page.
+	if msg != "" && transient {
+		br.printMessage(msg, color)
+		if refresh {
+			time.Sleep(1500 * time.Millisecond)
+		}
+	}
+
+	if refresh {
+		br.pageCurrent()
+	}
+
+	// non-transient messages print last so they survive the refresh
+	if msg != "" && !transient {
+		br.printMessage(msg, color)
+	}
+}
+
 // printPage renders a page starting at the provided top line.
 func (br *browseObj) printPage(lineno int) {
 	mapSize := br.currentMapSize()
@@ -158,6 +207,38 @@ func (br *browseObj) printCurrentList() {
 	}
 
 	br.printMessage(sb.String(), MSG_GREEN)
+}
+
+// printBrowseStack shows the current file followed by suspended parent files.
+func (br *browseObj) printBrowseStack() {
+	br.printMessage(br.browseStackText(), MSG_GREEN)
+}
+
+// browseStackText returns the current file followed by suspended, resumable
+// parent files, with the immediately resumable parent shown first. Its
+// formatting matches the current-list display used by the a command.
+func (br *browseObj) browseStackText() string {
+	var sb strings.Builder
+
+	// Match printCurrentList: reserve room for an ellipsis when needed.
+	maxLen := br.dispWidth - 8
+	sb.WriteString("[")
+	sb.WriteString(br.currentFileName())
+	sb.WriteString("]")
+
+	for i := len(br.browseStack) - 1; i >= 0; i-- {
+		if br.browseStack[i].fromStdin {
+			continue
+		}
+		name := " " + br.browseStack[i].fileName
+		if sb.Len()+len(name) > maxLen {
+			sb.WriteString(" ...")
+			break
+		}
+		sb.WriteString(name)
+	}
+
+	return sb.String()
 }
 
 // adjustLineNumber clamps a requested top line into a valid range.
