@@ -1,34 +1,35 @@
 # browse
 
-**browse**: a multi-file pager with recursive navigation
+**browse** is an interactive pager for navigating collections of files rather
+than only a single file at a time.
 
-**browse** is an interactive pager for navigating _sets of files_, not just
-viewing one file at a time.
+In contrast to conventional pagers, **browse** allows the current file set to
+be suspended temporarily while a different set of files is examined, and then
+restored at the prior location. This recursive model supports investigation of
+logs, search results, source trees, and related materials without discarding
+context.
 
-Unlike traditional pagers, **browse** lets you temporarily switch to a new set
-of files and then return exactly where you left off. This recursive browsing
-model makes it natural to explore logs, search results, source trees, and
-related files without losing context.
+Conceptually, the program may be understood as combining the behavior of
+`less` with a stack-based file navigation model similar to `pushd`/`popd`.
 
-**Think:** `less` + `pushd/popd` for files.
+## Overview
 
-## Why Use Browse?
-
-- Explore multiple files as one workflow.
-- Drill into a new file set and return to your previous place.
-- Browse command output from pipelines as if it were a file.
-- Use keyboard-driven navigation, search, shell commands, and history.
-- Keep your context while investigating logs, sources, or generated results.
+- Supports examination of multiple files within a single workflow.
+- Allows temporary transition to a new file set and later return to the prior
+  position.
+- Accepts command output from pipelines as browsable input.
+- Provides keyboard-driven navigation, search, shell access, and history.
+- Preserves context during analysis of logs, source code, and generated output.
 
 ## Features
 
-### Navigation Features
+### Navigation
 
 - Forward and reverse paging.
 - Continuous scrolling in both directions.
 - Horizontal scrolling for wide lines.
 - Jump to line numbers.
-- Mark pages and jump back to them.
+- Mark pages and return to them.
 - Follow and tail modes for changing files.
 
 ### Search and Exploration
@@ -39,7 +40,7 @@ related files without losing context.
 - Search pattern history.
 - Run `grep` on the current file in a nested browse session.
 
-### Multi-File Workflow
+### Multi-File Operation
 
 - Browse multiple files from the command line.
 - Browse standard input as a temporary file.
@@ -49,13 +50,13 @@ related files without losing context.
 - Show the current remaining file list with `a`.
 - Show the suspended browse stack with `A`.
 
-### Convenience
+### Additional Facilities
 
 - File and directory completion.
 - Shell escape with command completion.
 - Persistent file, directory, search, and shell histories.
 - Session saving and restoration.
-- Browse compressed files transparently.
+- Transparent browsing of compressed files.
 - Run `fmt -s` on the current file in a nested browse session.
 - Built-in help screen.
 
@@ -63,13 +64,14 @@ related files without losing context.
 
 **browse** supports continuous scrolling and file following:
 
-- Continuous scroll moves up or down until you stop it. Use `d` to scroll
-  toward EOF and `u` to scroll toward SOF.
-- When continuous scroll reaches EOF, **browse** enters follow mode and displays
-  new lines as they are appended to the file.
-- The tail command jumps to EOF and follows new output from there.
-- The cursor shows whether follow mode is active. In follow mode, the cursor is
-  in the lower left corner. Otherwise, it is in the upper left corner.
+- Continuous scrolling moves upward or downward until interrupted. Use `d` to
+  scroll toward EOF and `u` to scroll toward SOF.
+- When continuous scrolling reaches EOF, **browse** enters follow mode and
+  displays lines appended to the file.
+- The tail command jumps to EOF and follows subsequent output from that point.
+- The cursor indicates whether follow mode is active. In follow mode, the
+  cursor is in the lower-left corner; otherwise, it is in the upper-left
+  corner.
 
 ## Usage
 
@@ -191,34 +193,34 @@ browse [OPTIONS] [FILE] [FILE...]
 Press `B` to open a new file or file set. The prompt accepts one or more file
 names, shell globs such as `*.go`, quoted filenames containing spaces, and
 history entries. It also expands special symbols such as `%` for the current
-file and `~` for your home directory.
+file and `~` for the home directory.
 
-When you open a file set with `B`, **browse** temporarily leaves the current
-list. When the nested list is finished, **browse** automatically resumes the
-previous list where you left off.
+When a file set is opened with `B`, **browse** temporarily suspends the current
+list. After the nested list is finished, **browse** resumes the previous list
+at the prior location.
 
 ### Showing the Current List
 
-Press `a` to show the current file and any remaining files in the active list.
-If you started with:
+Press `a` to display the current file and any remaining files in the active
+list. For example, if the session began with:
 
 ```bash
 browse file1 file2 file3
 ```
 
-and are currently viewing `file2`, pressing `a` shows `file2` and `file3`.
+and `file2` is currently displayed, pressing `a` shows `file2` and `file3`.
 
 ### Showing the Browse Stack
 
-Press `A` to show the current file and suspended parent files. The immediately
-resumable parent is listed first; for example, while viewing `file3` after
-opening `file2` from `file1`, browse shows `[file3] file2 file1`.
+Press `A` to display the current file together with suspended parent files. The
+most immediately resumable parent is listed first; for example, while viewing
+`file3` after opening `file2` from `file1`, browse shows `[file3] file2 file1`.
 
 ### Re-Reading Files
 
 Press `R` to re-read the current file from disk. This is useful when a file is
-rewritten in place, replaced, truncated, or otherwise changed in a way that the
-automatic file tracking did not fully capture.
+rewritten in place, replaced, truncated, or otherwise modified in a way not
+fully captured by automatic file tracking.
 
 For example:
 
@@ -227,26 +229,55 @@ mv log log.old
 app > log
 ```
 
-When the current file is moved away or removed, **browse** keeps reading from
-the already-open file descriptor and reports the rescue path it is using. If
-a new file appears at the original path, press R to switch back to that path
-and rebuild the browse state from disk. If the original path is replaced with a
-different file, **browse** notices the inode change and automatically reopens
+When the current file is moved away or removed, **browse** continues reading
+from the already open file descriptor and reports the rescue path in use. If a
+new file appears at the original path, press `R` to return to that path and
+rebuild the browse state from disk. If the original path is replaced with a
+different file, **browse** detects the inode change and automatically reopens
 the path. If the file is truncated, **browse** clears the old offsets, prints
-File truncated, and starts reading the shortened file from the beginning.
+`File truncated`, and begins reading the shortened file from the beginning.
+
+### Recovering a Deleted File
+
+Removing a file does not immediately destroy its contents while a process still
+holds it open. When the file being browsed is removed, **browse** duplicates
+its open descriptor and continues reading, so the file remains readable and can
+still be followed.
+
+**browse** reports the descriptor from which the file was rescued:
+
+```text
+File removed: recover from /proc/6620/fd/7
+```
+
+That path belongs to the **browse** process itself rather than to the invoking
+shell, so it remains valid for shell escapes started with `!`. The displayed
+filename also becomes the rescue path, which means `%` expands to it and the
+contents can be written back to disk:
+
+```bash
+!cp % ~/recovered.log
+```
+
+Recovery must occur while the file is still open. **browse** closes the rescued
+descriptor when you move to another file or leave the session, and the contents
+are no longer recoverable after that.
+
+If a new file later appears at the original path, **browse** reports
+`File removed: press R to re-read`, leaving the timing of the switch to the
+user.
 
 ### Rewinding Lists
 
 Press `Ctrl+R` to rewind the active browse list. This returns to the first file
-in the current list, including a nested list opened with `B`, without rewinding
-any parent list.
+in the current list, including a nested list opened with `B`, without
+rewinding any parent list.
 
 ### Browsing Compressed Files
 
 **browse** detects compressed files by their magic bytes and decompresses them
-transparently. No extra steps are needed: open a compressed file the same way
-you would any other file, from the command line or with `B` inside a running
-session.
+transparently. A compressed file may be opened in the same manner as any other
+file, either from the command line or with `B` inside an existing session.
 
 Supported formats:
 
@@ -262,14 +293,15 @@ Supported formats:
 | compress | `uncompress` |
 
 If the required decompressor is not installed, **browse** displays an error and
-skips the file rather than attempting to display raw binary content.
+skips the file rather than attempting to render raw binary data.
 
 The original compressed filename is recorded in the file history and session
-file, so you can reopen it later from the `B` prompt or on the next launch.
+file, so it can be reopened later from the `B` prompt or during a subsequent
+launch.
 
 **Limitation:** `Ctrl+R` (rewind list) does not work while browsing a
 compressed file. The content is decompressed once into a temporary stream;
-rewinding is not supported for that session.
+rewinding is not supported in that session.
 
 ### Changing Directory
 
@@ -279,8 +311,8 @@ current file. Directory completion includes entries from `CDPATH`.
 
 ## Symbol Expansions
 
-Special symbols are expanded in specific prompts; not every symbol is
-available everywhere:
+Special symbols are expanded in specific prompts; not every symbol is available
+in every context:
 
 | Symbol | Expands To                                                |
 | ------ | --------------------------------------------------------- |
@@ -304,7 +336,7 @@ The session file is:
 ~/.browse/browserc
 ```
 
-It saves:
+Stored session data includes:
 
 - Current file name.
 - First line on the page.
@@ -314,16 +346,17 @@ It saves:
 - Search case-sensitivity mode.
 - Fixed-string search mode.
 
-History files are maintained for common workflows, behaving like Bash history:
+History files are maintained for common workflows, with behavior similar to
+Bash history:
 
-- **Shell commands** (`!` key): Every shell command is remembered and can be
+- **Shell commands** (`!` key): Every shell command is recorded and can be
   recalled, edited, and rerun.
 - **Directory history** (`C` key): Recently visited directories are recorded
-  for fast navigation across large projects.
+  for efficient navigation across large projects.
 - **File history** (`B` prompt): Browsed files are saved as full pathnames and
-  are available in current and future sessions.
+  remain available in current and future sessions.
 - **Search patterns** (`/` and `?` prompts): Regex and text search patterns are
-  saved so you can repeat or revisit common queries without retyping them.
+  saved so they can be repeated or revisited without retyping them.
 
 History files:
 
