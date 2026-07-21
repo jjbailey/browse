@@ -495,11 +495,19 @@ func commands(br *browseObj) {
 			}
 
 		case CMD_REREAD:
+			var relaunchReader bool
 			br.mutex.Lock()
 			if !br.fromStdin {
 				br.rereadPending = true
+				if !br.readerAlive {
+					br.readerAlive = true
+					relaunchReader = true
+				}
 			}
 			br.mutex.Unlock()
+			if relaunchReader {
+				go readFile(br, make(chan bool, 1))
+			}
 
 		case CMD_REWIND:
 			if br.fromStdin {
@@ -893,7 +901,7 @@ func filePosition(br *browseObj) {
 		t = float32(br.firstRow) / float32(lineCount) * 100.0
 	}
 
-	dispName := abbreviateFileName(br.currentFileName(), br.dispWidth>>1)
+	dispName := abbreviateFileName(br.currentFileName(), br.dispWidth*3/4)
 
 	br.printMessage(fmt.Sprintf("\"%s\" %d lines --%1.1f%%--",
 		dispName, lineCount, t), MSG_GREEN)

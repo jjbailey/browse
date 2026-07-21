@@ -46,7 +46,7 @@ func (br *browseObj) runFormat() {
 		if br.title == filepath.Base(fileName) {
 			title += " " + filepath.Base(fileName)
 		} else {
-			title += " " + abbreviateFileName(fileName, br.dispWidth>>1)
+			title += " " + abbreviateFileName(fileName, br.dispWidth*3/4)
 		}
 	}
 	titleArg := shellEscapeSingle(title)

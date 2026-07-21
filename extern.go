@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "1.3.1"
+	BR_VERSION = "1.3.2"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -203,7 +203,7 @@ type browseObj struct {
 	// Synchronization
 	mutex         sync.Mutex
 	rereadPending bool
-	rereadReady   bool
+	readerAlive   bool
 	stdinEOF      bool
 
 	// Display work posted by non-display goroutines (file reader,
