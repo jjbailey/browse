@@ -37,6 +37,32 @@ func readFile(br *browseObj, ch chan bool) {
 	var err error
 	initialRead := true
 
+	// entered is set once the main loop begins. The reader honors a pending
+	// R (rereadPending) as the first thing in every loop iteration, so once
+	// entered is true a fresh reader is guaranteed to consume the request.
+	var entered bool
+
+	br.mutex.Lock()
+	br.readerAlive = true
+	br.mutex.Unlock()
+
+	// Guarantee R is never dropped: if this reader exits (I/O error, lost
+	// rescue fd, ...) while an R is still pending, hand off to a successor
+	// so the re-read always happens. Gated on entered to avoid a tight
+	// relaunch loop on pre-loop init failures, which surface their own error.
+	defer func() {
+		br.mutex.Lock()
+		br.readerAlive = false
+		relaunch := entered && br.rereadPending && !br.fromStdin
+		if relaunch {
+			br.readerAlive = true
+		}
+		br.mutex.Unlock()
+		if relaunch {
+			go readFile(br, make(chan bool, 1))
+		}
+	}()
+
 	readInit(br, &bytesRead)
 
 	dupFd, err := unix.Dup(int(br.fp.Fd()))
@@ -80,7 +106,9 @@ func readFile(br *browseObj, ch chan bool) {
 	var partialLinePublished bool
 	var partialLineOffset int64
 
-	reopenReader := func(target string) error {
+	entered = true
+
+	reopenReader := func(target string, manual bool) error {
 		newFp, err := os.Open(target)
 		if err != nil {
 			return err
@@ -112,8 +140,12 @@ func readFile(br *browseObj, ch chan bool) {
 		br.fp = newFp
 		br.fileName = target
 		readInit(br, &bytesRead)
-		br.rereadPending = false
-		br.rereadReady = false
+		// Only an explicit R (manual) owns rereadPending; an automatic
+		// reopen (e.g. inode change) must not clear a user's pending
+		// request, or the R would be treated as already satisfied.
+		if manual {
+			br.rereadPending = false
+		}
 		if br.rescueFd > 0 {
 			unix.Close(br.rescueFd)
 			br.rescueFd = 0
@@ -156,7 +188,7 @@ func readFile(br *browseObj, ch chan bool) {
 		br.mutex.Unlock()
 
 		if pendingReread && targetReread != "" {
-			if err := reopenReader(targetReread); err != nil {
+			if err := reopenReader(targetReread, true); err != nil {
 				br.mutex.Lock()
 				br.rereadPending = false
 				br.pendingMsg = "Cannot re-open: " + err.Error()
@@ -214,7 +246,7 @@ func readFile(br *browseObj, ch chan bool) {
 		br.mutex.Unlock()
 
 		if reopenForNewInode {
-			if err := reopenReader(currentFileName); err == nil {
+			if err := reopenReader(currentFileName, false); err == nil {
 				postRereadRefresh = true
 				continue
 			}
@@ -229,9 +261,6 @@ func readFile(br *browseObj, ch chan bool) {
 
 			if rescueActive && absFile != "" {
 				if _, _, absErr := getFileInodeSize(absFile); absErr == nil {
-					br.mutex.Lock()
-					br.rereadReady = true
-					br.mutex.Unlock()
 					rereadDetected = true
 					br.postMessage("File removed: press R to re-read", MSG_ORANGE)
 				}
@@ -268,10 +297,8 @@ func readFile(br *browseObj, ch chan bool) {
 		}
 
 		if br.savInode > 0 && br.newInode != br.savInode {
-			br.rereadReady = true
 			handleFileReset("")
 		} else if br.newFileSiz < br.savFileSiz {
-			br.rereadReady = true
 			handleFileReset("File truncated")
 		} else {
 			shouldRead = initialRead || br.savFileSiz < br.newFileSiz || stdinFinalPending

@@ -27,29 +27,30 @@ browse [-fFinv] [-p pattern] [-t title] [filename\&...]
 .PP
 Browse and search text files, follow changes.
 .PP
-\f[B]browse\f[R] is an interactive pager for navigating \f[I]sets of
-files\f[R], not just viewing one file at a time.
+In contrast to conventional pagers, \f[B]browse\f[R] allows the current
+file set to be suspended temporarily while a different set of files is
+examined, and then restored at the prior location.
+This recursive model supports investigation of logs, search results,
+source trees, and related materials without discarding context.
 .PP
-Unlike traditional pagers, \f[B]browse\f[R] lets you temporarily switch
-to a new set of files and then return exactly where you left off.
-This recursive browsing model makes it natural to explore logs, search
-results, source trees, and related files without losing context.
-.PP
-\f[B]Think:\f[R] \f[V]less\f[R] + \f[V]pushd/popd\f[R] for files.
-.SS Why Use Browse?
+Conceptually, the program may be understood as combining the behavior of
+\f[V]less\f[R] with a stack-based file navigation model similar to
+\f[V]pushd\f[R]/\f[V]popd\f[R].
+.SS Overview
 .IP \[bu] 2
-Explore multiple files as one workflow.
+Supports examination of multiple files within a single workflow.
 .IP \[bu] 2
-Drill into a new file set and return to your previous place.
+Allows temporary transition to a new file set and later return to the
+prior position.
 .IP \[bu] 2
-Browse command output from pipelines as if it were a file.
+Accepts command output from pipelines as browsable input.
 .IP \[bu] 2
-Use keyboard-driven navigation, search, shell commands, and history.
+Provides keyboard-driven navigation, search, shell access, and history.
 .IP \[bu] 2
-Keep your context while investigating logs, sources, or generated
-results.
+Preserves context during analysis of logs, source code, and generated
+output.
 .SS Features
-.SS Navigation Features
+.SS Navigation
 .IP \[bu] 2
 Forward and reverse paging.
 .IP \[bu] 2
@@ -59,7 +60,7 @@ Horizontal scrolling for wide lines.
 .IP \[bu] 2
 Jump to line numbers.
 .IP \[bu] 2
-Mark pages and jump back to them.
+Mark pages and return to them.
 .IP \[bu] 2
 Follow and tail modes for changing files.
 .SS Search and Exploration
@@ -73,7 +74,7 @@ Pattern highlighting.
 Search pattern history.
 .IP \[bu] 2
 Run \f[V]grep\f[R] on the current file in a nested browse session.
-.SS Multi-File Workflow
+.SS Multi-File Operation
 .IP \[bu] 2
 Browse multiple files from the command line.
 .IP \[bu] 2
@@ -88,7 +89,7 @@ Rewind the active file list with \f[V]Ctrl+R\f[R].
 Show the current remaining file list with \f[V]a\f[R].
 .IP \[bu] 2
 Show the suspended browse stack with \f[V]A\f[R].
-.SS Convenience
+.SS Additional Facilities
 .IP \[bu] 2
 File and directory completion.
 .IP \[bu] 2
@@ -98,7 +99,7 @@ Persistent file, directory, search, and shell histories.
 .IP \[bu] 2
 Session saving and restoration.
 .IP \[bu] 2
-Browse compressed files transparently.
+Transparent browsing of compressed files.
 .IP \[bu] 2
 Run \f[V]fmt -s\f[R] on the current file in a nested browse session.
 .IP \[bu] 2
@@ -107,18 +108,19 @@ Built-in help screen.
 .PP
 \f[B]browse\f[R] supports continuous scrolling and file following:
 .IP \[bu] 2
-Continuous scroll moves up or down until you stop it.
+Continuous scrolling moves upward or downward until interrupted.
 Use \f[V]d\f[R] to scroll toward EOF and \f[V]u\f[R] to scroll toward
 SOF.
 .IP \[bu] 2
-When continuous scroll reaches EOF, \f[B]browse\f[R] enters follow mode
-and displays new lines as they are appended to the file.
+When continuous scrolling reaches EOF, \f[B]browse\f[R] enters follow
+mode and displays lines appended to the file.
 .IP \[bu] 2
-The tail command jumps to EOF and follows new output from there.
+The tail command jumps to EOF and follows subsequent output from that
+point.
 .IP \[bu] 2
-The cursor shows whether follow mode is active.
-In follow mode, the cursor is in the lower left corner.
-Otherwise, it is in the upper left corner.
+The cursor indicates whether follow mode is active.
+In follow mode, the cursor is in the lower-left corner; otherwise, it is
+in the upper-left corner.
 .SS Usage
 .PP
 Browse one or more files:
@@ -139,6 +141,13 @@ Browse results from a pipeline:
 .nf
 
 grep -rl timeout /var/log | browse
+\f[R]
+.fi
+.PP
+Restore the last saved session:
+.nf
+
+browse
 \f[R]
 .fi
 .PP
@@ -379,6 +388,9 @@ Run \f[V]grep -nP\f[R] on current file for search pattern in a new
 session
 T}
 .TE
+.PP
+When ignore-case search is enabled, \f[V]&\f[R] uses \f[V]grep -inP\f[R]
+instead.
 .SS Files, Lists, and Session Control
 .PP
 .ne 12v
@@ -507,37 +519,48 @@ Press \f[V]B\f[R] to open a new file or file set.
 The prompt accepts one or more file names, shell globs such as
 \f[V]*.go\f[R], quoted filenames containing spaces, and history entries.
 It also expands special symbols such as \f[V]%\f[R] for the current file
-and \f[V]\[ti]\f[R] for your home directory.
+and \f[V]\[ti]\f[R] for the home directory.
 .PP
-When you open a file set with \f[V]B\f[R], \f[B]browse\f[R] temporarily
-leaves the current list.
-When the nested list is finished, \f[B]browse\f[R] automatically resumes
-the previous list where you left off.
+When a file set is opened with \f[V]B\f[R], \f[B]browse\f[R] temporarily
+suspends the current list.
+After the nested list is finished, \f[B]browse\f[R] resumes the previous
+list at the prior location.
+.PP
+Entering \f[V]-\f[R] or \f[V]#\f[R] at the \f[V]B\f[R] prompt reopens
+the previous file from file history.
+.SS Search Wraparound
+.PP
+Searches wrap automatically.
+If \f[V]/\f[R] reaches EOF without a match, \f[B]browse\f[R] continues
+from SOF and reports \f[V]Resuming search from SOF\f[R].
+If \f[V]?\f[R] reaches SOF without a match, it continues from EOF and
+reports \f[V]Resuming search from EOF\f[R].
 .SS Showing the Current List
 .PP
-Press \f[V]a\f[R] to show the current file and any remaining files in
+Press \f[V]a\f[R] to display the current file and any remaining files in
 the active list.
-If you started with:
+For example, if the session began with:
 .nf
 
 browse file1 file2 file3
 \f[R]
 .fi
 .PP
-and are currently viewing \f[V]file2\f[R], pressing \f[V]a\f[R] shows
+and \f[V]file2\f[R] is currently displayed, pressing \f[V]a\f[R] shows
 \f[V]file2\f[R] and \f[V]file3\f[R].
 .SS Showing the Browse Stack
 .PP
-Press \f[V]A\f[R] to show the current file and suspended parent files.
-The immediately resumable parent is listed first; for example, while
-viewing \f[V]file3\f[R] after opening \f[V]file2\f[R] from
+Press \f[V]A\f[R] to display the current file together with suspended
+parent files.
+The most immediately resumable parent is listed first; for example,
+while viewing \f[V]file3\f[R] after opening \f[V]file2\f[R] from
 \f[V]file1\f[R], browse shows \f[V][file3] file2 file1\f[R].
 .SS Re-Reading Files
 .PP
 Press \f[V]R\f[R] to re-read the current file from disk.
 This is useful when a file is rewritten in place, replaced, truncated,
-or otherwise changed in a way that the automatic file tracking did not
-fully capture.
+or otherwise modified in a way not fully captured by automatic file
+tracking.
 .PP
 For example:
 .nf
@@ -547,16 +570,50 @@ app > log
 \f[R]
 .fi
 .PP
-When the current file is moved away or removed, \f[B]browse\f[R] keeps
-reading from the already-open file descriptor and reports the rescue
-path it is using.
-If a new file appears at the original path, press R to switch back to
-that path and rebuild the browse state from disk.
+When the current file is moved away or removed, \f[B]browse\f[R]
+continues reading from the already open file descriptor and reports the
+rescue path in use.
+If a new file appears at the original path, press \f[V]R\f[R] to return
+to that path and rebuild the browse state from disk.
 If the original path is replaced with a different file, \f[B]browse\f[R]
-notices the inode change and automatically reopens the path.
+detects the inode change and automatically reopens the path.
 If the file is truncated, \f[B]browse\f[R] clears the old offsets,
-prints File truncated, and starts reading the shortened file from the
-beginning.
+prints \f[V]File truncated\f[R], and begins reading the shortened file
+from the beginning.
+.SS Recovering a Deleted File
+.PP
+Removing a file does not immediately destroy its contents while a
+process still holds it open.
+When the file being browsed is removed, \f[B]browse\f[R] duplicates its
+open descriptor and continues reading, so the file remains readable and
+can still be followed.
+.PP
+\f[B]browse\f[R] reports the descriptor from which the file was rescued:
+.nf
+
+File removed: recover from /proc/6620/fd/7
+\f[R]
+.fi
+.PP
+That path belongs to the \f[B]browse\f[R] process itself rather than to
+the invoking shell, so it remains valid for shell escapes started with
+\f[V]!\f[R].
+The displayed filename also becomes the rescue path, which means
+\f[V]%\f[R] expands to it and the contents can be written back to disk:
+.nf
+
+!cp % \[ti]/recovered.log
+\f[R]
+.fi
+.PP
+Recovery must occur while the file is still open.
+\f[B]browse\f[R] closes the rescued descriptor when you move to another
+file or leave the session, and the contents are no longer recoverable
+after that.
+.PP
+If a new file later appears at the original path, \f[B]browse\f[R]
+reports \f[V]File removed: press R to re-read\f[R], leaving the timing
+of the switch to the user.
 .SS Rewinding Lists
 .PP
 Press \f[V]Ctrl+R\f[R] to rewind the active browse list.
@@ -566,9 +623,9 @@ list opened with \f[V]B\f[R], without rewinding any parent list.
 .PP
 \f[B]browse\f[R] detects compressed files by their magic bytes and
 decompresses them transparently.
-No extra steps are needed: open a compressed file the same way you would
-any other file, from the command line or with \f[V]B\f[R] inside a
-running session.
+A compressed file may be opened in the same manner as any other file,
+either from the command line or with \f[V]B\f[R] inside an existing
+session.
 .PP
 Supported formats:
 .PP
@@ -625,17 +682,17 @@ T}
 .TE
 .PP
 If the required decompressor is not installed, \f[B]browse\f[R] displays
-an error and skips the file rather than attempting to display raw binary
-content.
+an error and skips the file rather than attempting to render raw binary
+data.
 .PP
 The original compressed filename is recorded in the file history and
-session file, so you can reopen it later from the \f[V]B\f[R] prompt or
-on the next launch.
+session file, so it can be reopened later from the \f[V]B\f[R] prompt or
+during a subsequent launch.
 .PP
 \f[B]Limitation:\f[R] \f[V]Ctrl+R\f[R] (rewind list) does not work while
 browsing a compressed file.
 The content is decompressed once into a temporary stream; rewinding is
-not supported for that session.
+not supported in that session.
 .SS Changing Directory
 .PP
 Press \f[V]C\f[R] to change the current working directory.
@@ -646,7 +703,7 @@ Directory completion includes entries from \f[V]CDPATH\f[R].
 .SS Symbol Expansions
 .PP
 Special symbols are expanded in specific prompts; not every symbol is
-available everywhere:
+available in every context:
 .PP
 .ne 12v
 .TS
@@ -700,7 +757,12 @@ The session file is:
 \f[R]
 .fi
 .PP
-It saves:
+Launching \f[V]browse\f[R] with no filenames attempts to restore that
+saved session.
+If no saved session is available, \f[B]browse\f[R] prints the usage
+message and exits.
+.PP
+Stored session data includes:
 .IP \[bu] 2
 Current file name.
 .IP \[bu] 2
@@ -716,21 +778,21 @@ Search case-sensitivity mode.
 .IP \[bu] 2
 Fixed-string search mode.
 .PP
-History files are maintained for common workflows, behaving like Bash
-history:
+History files are maintained for common workflows, with behavior similar
+to Bash history:
 .IP \[bu] 2
 \f[B]Shell commands\f[R] (\f[V]!\f[R] key): Every shell command is
-remembered and can be recalled, edited, and rerun.
+recorded and can be recalled, edited, and rerun.
 .IP \[bu] 2
 \f[B]Directory history\f[R] (\f[V]C\f[R] key): Recently visited
-directories are recorded for fast navigation across large projects.
+directories are recorded for efficient navigation across large projects.
 .IP \[bu] 2
 \f[B]File history\f[R] (\f[V]B\f[R] prompt): Browsed files are saved as
-full pathnames and are available in current and future sessions.
+full pathnames and remain available in current and future sessions.
 .IP \[bu] 2
 \f[B]Search patterns\f[R] (\f[V]/\f[R] and \f[V]?\f[R] prompts): Regex
-and text search patterns are saved so you can repeat or revisit common
-queries without retyping them.
+and text search patterns are saved so they can be repeated or revisited
+without retyping them.
 .PP
 History files:
 .IP \[bu] 2
