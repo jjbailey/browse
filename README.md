@@ -93,6 +93,12 @@ Browse results from a pipeline:
 grep -rl timeout /var/log | browse
 ```
 
+Restore the last saved session:
+
+```bash
+browse
+```
+
 Start with an initial search pattern:
 
 ```bash
@@ -157,6 +163,8 @@ browse [OPTIONS] [FILE] [FILE...]
 | `P` | Clear search pattern                                               |
 | `&` | Run `grep -nP` on current file for search pattern in a new session |
 
+When ignore-case search is enabled, `&` uses `grep -inP` instead.
+
 ### Files, Lists, and Session Control
 
 | Key      | Function                                        |
@@ -198,6 +206,15 @@ file and `~` for the home directory.
 When a file set is opened with `B`, **browse** temporarily suspends the current
 list. After the nested list is finished, **browse** resumes the previous list
 at the prior location.
+
+Entering `-` or `#` at the `B` prompt reopens the previous file from file
+history.
+
+### Search Wraparound
+
+Searches wrap automatically. If `/` reaches EOF without a match, **browse**
+continues from SOF and reports `Resuming search from SOF`. If `?` reaches SOF
+without a match, it continues from EOF and reports `Resuming search from EOF`.
 
 ### Showing the Current List
 
@@ -335,6 +352,9 @@ The session file is:
 ```text
 ~/.browse/browserc
 ```
+
+Launching `browse` with no filenames attempts to restore that saved session. If
+no saved session is available, **browse** prints the usage message and exits.
 
 Stored session data includes:
 

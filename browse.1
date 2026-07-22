@@ -144,6 +144,13 @@ grep -rl timeout /var/log | browse
 \f[R]
 .fi
 .PP
+Restore the last saved session:
+.nf
+
+browse
+\f[R]
+.fi
+.PP
 Start with an initial search pattern:
 .nf
 
@@ -381,6 +388,9 @@ Run \f[V]grep -nP\f[R] on current file for search pattern in a new
 session
 T}
 .TE
+.PP
+When ignore-case search is enabled, \f[V]&\f[R] uses \f[V]grep -inP\f[R]
+instead.
 .SS Files, Lists, and Session Control
 .PP
 .ne 12v
@@ -515,6 +525,16 @@ When a file set is opened with \f[V]B\f[R], \f[B]browse\f[R] temporarily
 suspends the current list.
 After the nested list is finished, \f[B]browse\f[R] resumes the previous
 list at the prior location.
+.PP
+Entering \f[V]-\f[R] or \f[V]#\f[R] at the \f[V]B\f[R] prompt reopens
+the previous file from file history.
+.SS Search Wraparound
+.PP
+Searches wrap automatically.
+If \f[V]/\f[R] reaches EOF without a match, \f[B]browse\f[R] continues
+from SOF and reports \f[V]Resuming search from SOF\f[R].
+If \f[V]?\f[R] reaches SOF without a match, it continues from EOF and
+reports \f[V]Resuming search from EOF\f[R].
 .SS Showing the Current List
 .PP
 Press \f[V]a\f[R] to display the current file and any remaining files in
@@ -736,6 +756,11 @@ The session file is:
 \[ti]/.browse/browserc
 \f[R]
 .fi
+.PP
+Launching \f[V]browse\f[R] with no filenames attempts to restore that
+saved session.
+If no saved session is available, \f[B]browse\f[R] prints the usage
+message and exits.
 .PP
 Stored session data includes:
 .IP \[bu] 2
