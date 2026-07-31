@@ -469,7 +469,10 @@ func (br *browseObj) readStdin(fin, fout *os.File) bool {
 	return bytesWritten == 0
 }
 
-// readFromMap reads a line by index using the seek and size maps.
+// readFromMap reads a line by index using the seek and size maps. Like
+// lineIsMatch it reuses per-session scratch buffers rather than allocating
+// per line, so it is only safe to call from the main goroutine and the
+// returned bytes are valid only until the next call.
 func (br *browseObj) readFromMap(lineno int) []byte {
 	br.mutex.Lock()
 	if lineno < 0 || lineno >= br.mapSiz || br.fp == nil {
@@ -485,14 +488,20 @@ func (br *browseObj) readFromMap(lineno int) []byte {
 		return nil
 	}
 
-	data := make([]byte, int(size))
+	if int64(cap(br.readScratch)) < size {
+		br.readScratch = make([]byte, size)
+	}
+	data := br.readScratch[:size]
+
 	n, err := br.fp.ReadAt(data, seek)
 	br.mutex.Unlock()
 	if err != nil && err != io.EOF {
 		return nil
 	}
 
-	return expandTabs(data[:n])
+	expanded, scratch := expandTabs(data[:n], br.readTabScratch)
+	br.readTabScratch = scratch
+	return expanded
 }
 
 // vim: set ts=4 sw=4 noet:

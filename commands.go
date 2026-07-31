@@ -129,8 +129,7 @@ func commands(br *browseObj) {
 	if _, err := br.reCompile(br.pattern); err != nil {
 		searchCompileErr = err
 		br.pattern = ""
-		br.re = nil
-		br.replace = ""
+		br.clearSearchRegex()
 	}
 
 	// wait for a full page
@@ -422,7 +421,7 @@ func commands(br *browseObj) {
 
 		case CMD_SEARCH_CLEAR:
 			// clear the search pattern
-			br.re = nil
+			br.clearSearchRegex()
 			br.pattern = ""
 			br.printMessage("Search pattern cleared", MSG_GREEN)
 

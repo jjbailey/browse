@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "1.3.2"
+	BR_VERSION = "1.3.3"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -104,6 +104,13 @@ const (
 	MSG_NO_COMPLETION = _VID_BOLD + _VID_ORANGE_FG + _VID_BLACK_BG
 )
 
+// Byte forms of the sequences applied per rendered line, so the render path
+// does not re-convert them from strings on every line.
+var (
+	vidGreenFG = []byte(_VID_GREEN_FG)
+	vidOff     = []byte(VIDOFF)
+)
+
 // ─── Scrolling Modes ────────────────────────────────────────────────
 
 // Scroll mode constants.
@@ -168,13 +175,21 @@ type browseObj struct {
 	lastKey     byte
 
 	// Search and match
-	pattern      string
-	re           *regexp.Regexp
-	replace      string
-	ignoreCase   bool
-	searchFixed  bool
-	lastMatch    int
-	matchScratch []byte
+	pattern          string
+	re               *regexp.Regexp
+	replace          string
+	replaceBytes     []byte
+	replaceWrapBytes []byte
+	ignoreCase       bool
+	searchFixed      bool
+	lastMatch        int
+	matchScratch     []byte
+
+	// Per-session scratch buffers for the main goroutine's render and
+	// search paths. See readFromMap and lineIsMatch.
+	readScratch     []byte
+	readTabScratch  []byte
+	matchTabScratch []byte
 
 	// State flags
 	hitEOF      bool

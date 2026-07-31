@@ -10,7 +10,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"os"
 )
 
 // scrollDown advances the display by a number of lines toward EOF.
@@ -63,18 +65,26 @@ func (br *browseObj) scrollUp(count int) {
 
 	rowsToScroll := minimum(count, br.firstRow)
 	scrollRevCmd := fmt.Sprintf(CURPOS+SCROLLREV, 2, 1)
+	mapSize := br.currentMapSize()
+
+	// Batch the whole scroll into one write instead of three per row.
+	scrollBuf := lineBufPool.Get().(*bytes.Buffer)
+	scrollBuf.Reset()
 
 	for range rowsToScroll {
 		br.firstRow--
 		br.lastRow--
 
 		// add line
-		fmt.Print(scrollRevCmd)
+		scrollBuf.WriteString(scrollRevCmd)
 
-		// printLine starts with \n
-		moveCursor(1, 1, false)
-		br.printLine(br.firstRow)
+		// appendLine starts with \n
+		writeCursorPos(scrollBuf, 1, 1)
+		br.appendLine(scrollBuf, br.firstRow, mapSize)
 	}
+
+	os.Stdout.Write(scrollBuf.Bytes())
+	lineBufPool.Put(scrollBuf)
 
 	if !br.inMotion() {
 		moveCursor(2, 1, false)

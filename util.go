@@ -39,43 +39,38 @@ func linkURLs(s string) string {
 	})
 }
 
-var tabBufPool = sync.Pool{
-	New: func() any {
-		return &bytes.Buffer{}
-	},
-}
-
 // expandTabs replaces tabs, carriage returns, and form feeds with spaces.
-func expandTabs(data []byte) []byte {
+// dst is a caller-owned scratch slice that is grown and reused across calls;
+// the returned slice aliases either data (no expansion needed) or dst, and is
+// valid only until the caller's next expandTabs call with the same dst.
+func expandTabs(data, dst []byte) ([]byte, []byte) {
 	if !bytes.ContainsAny(data, "\t\r\f") {
-		return data
+		return data, dst
 	}
 
-	buf := tabBufPool.Get().(*bytes.Buffer)
-	buf.Reset()
-
 	tabCount := bytes.Count(data, []byte{'\t'})
-	buf.Grow(len(data) + tabCount*(TABWIDTH-1))
+	need := len(data) + tabCount*(TABWIDTH-1)
+	if cap(dst) < need {
+		dst = make([]byte, 0, need)
+	}
+	out := dst[:0]
 
 	for _, b := range data {
 		switch b {
 
 		case '\r', '\f':
-			buf.WriteByte(' ')
+			out = append(out, ' ')
 
 		case '\t':
-			spaces := TABWIDTH - (buf.Len() % TABWIDTH)
-			buf.Write(tabSpaces[:spaces])
+			spaces := TABWIDTH - (len(out) % TABWIDTH)
+			out = append(out, tabSpaces[:spaces]...)
 
 		default:
-			buf.WriteByte(b)
+			out = append(out, b)
 		}
 	}
 
-	result := make([]byte, buf.Len())
-	copy(result, buf.Bytes())
-	tabBufPool.Put(buf)
-	return result
+	return out, out[:0]
 }
 
 // moveCursor positions the cursor and optionally clears the line.
@@ -88,15 +83,19 @@ func moveCursor(row, col int, clrflag bool) {
 	fmt.Printf(CURPOS, row, col)
 }
 
-// printSEOF prints SOF/EOF markers on the display.
-func printSEOF(what string) {
+// appendSEOF appends SOF/EOF markers to the pending output buffer.
+func appendSEOF(buf *bytes.Buffer, what string) {
 	if what == "EOF" {
 		// save for modeScroll
-		fmt.Printf("\r%s%s %s%s%s\r", CLEARSCREEN, CURSAVE, VIDBLINK, what, VIDOFF)
+		buf.WriteString("\r" + CLEARSCREEN + CURSAVE + " " + VIDBLINK)
+		buf.WriteString(what)
+		buf.WriteString(VIDOFF + "\r")
 		return
 	}
 
-	fmt.Printf("\r %s%s%s\r", VIDBLINK, what, VIDOFF)
+	buf.WriteString("\r " + VIDBLINK)
+	buf.WriteString(what)
+	buf.WriteString(VIDOFF + "\r")
 }
 
 // windowAtEOF reports whether a line index is at EOF.
