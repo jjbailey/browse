@@ -334,8 +334,9 @@ func dirCompleter(word string) []prompt.Suggest {
 
 		if len(suggestions) > maxSuggestions {
 			suggestions = suggestions[:maxSuggestions]
-			return suggestions
 		}
+
+		return suggestions
 	}
 
 	// Handle other paths
