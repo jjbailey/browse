@@ -303,7 +303,7 @@ func pathHasRelativeEntry(path string) bool {
 		return false
 	}
 
-	for _, dir := range strings.Split(path, ":") {
+	for dir := range strings.SplitSeq(path, ":") {
 		if dir == "" || !filepath.IsAbs(dir) {
 			return true
 		}
