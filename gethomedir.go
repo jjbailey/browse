@@ -52,6 +52,17 @@ func getHomeDir(username string) (string, error) {
 
 // expandHome expands ~ and ~user prefixes in paths when possible.
 func expandHome(path string) string {
+	expanded := expandHomePrefix(path)
+
+	if strings.HasSuffix(path, "/") && !strings.HasSuffix(expanded, "/") {
+		expanded += "/"
+	}
+
+	return expanded
+}
+
+// expandHomePrefix performs the ~ and ~user substitution.
+func expandHomePrefix(path string) string {
 	if path == "~" {
 		if home, err := os.UserHomeDir(); err == nil {
 			return home
