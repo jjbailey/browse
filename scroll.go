@@ -26,19 +26,23 @@ func (br *browseObj) scrollDown(count int) {
 		return
 	}
 
+	// Keep the terminal update atomic from the user's perspective. In
+	// continuous and tail modes this avoids several small writes per row.
+	scrollBuf := lineBufPool.Get().(*bytes.Buffer)
+	scrollBuf.Reset()
 	for i := 0; i < count && !br.hitEOFState(); i++ {
 		// printLine finds EOF, sets hitEOF
 		// add line -- +1 for header
-		moveCursor(minimum(br.lastRow+1, br.dispHeight), 1, false)
+		writeCursorPos(scrollBuf, minimum(br.lastRow+1, br.dispHeight), 1)
 
 		if br.shownEOFState() {
 			// print previous line before printing the current line
-			fmt.Print(CURRESTORE + CURUP)
-			br.printLine(br.lastRow - 1)
-			fmt.Print(CURSAVE)
+			scrollBuf.WriteString(CURRESTORE + CURUP)
+			br.appendLine(scrollBuf, br.lastRow-1, mapSize)
+			scrollBuf.WriteString(CURSAVE)
 		}
 
-		br.printLine(br.lastRow)
+		br.appendLine(scrollBuf, br.lastRow, mapSize)
 
 		if br.lastRow >= br.dispRows {
 			br.firstRow++
@@ -48,10 +52,13 @@ func (br *browseObj) scrollDown(count int) {
 	}
 
 	if br.inMotion() {
-		fmt.Print(CURRESTORE)
+		scrollBuf.WriteString(CURRESTORE)
 	} else {
-		moveCursor(2, 1, false)
+		writeCursorPos(scrollBuf, 2, 1)
 	}
+
+	os.Stdout.Write(scrollBuf.Bytes())
+	lineBufPool.Put(scrollBuf)
 }
 
 // scrollUp moves the display up by a number of lines toward SOF.
