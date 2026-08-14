@@ -15,6 +15,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 // Search formatting and limits.
@@ -346,7 +347,7 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 
 		if pattern != "" {
 			moveCursor(br.dispRows, 2, true)
-			fmt.Print(pattern)
+			fmt.Print(pattern + "\n")
 		}
 	}
 
@@ -441,12 +442,6 @@ func (br *browseObj) undisplayedMatches(input []byte, sol int) (bool, bool) {
 		sol = 0
 	}
 
-	// Use FindAllIndex for efficiency
-	matches := br.re.FindAllIndex(input, -1)
-	if len(matches) == 0 {
-		return false, false
-	}
-
 	displayWidth := br.dispWidth
 	if br.modeNumbers {
 		displayWidth -= NUMCOLWIDTH
@@ -457,36 +452,44 @@ func (br *browseObj) undisplayedMatches(input []byte, sol int) (bool, bool) {
 		return false, false
 	}
 
-	leftMatch, rightMatch := false, false
-
-	for _, index := range matches {
-		// Ensure index has at least 2 elements (start and end positions)
-		if len(index) < 2 {
-			continue
-		}
-
-		// Validate index bounds
-		if index[0] < 0 || index[0] >= len(input) {
-			continue
-		}
-
-		if !leftMatch && index[0] < sol {
-			leftMatch = true
-		}
-
-		// Calculate right boundary with safety checks
-		rightBoundary := index[1] - sol + 2
-		if !rightMatch && rightBoundary > displayWidth {
-			// NB: off by two
-			rightMatch = true
-		}
-
-		if leftMatch && rightMatch {
+	// Find one match at a time. FindAllIndex retains an index pair for every
+	// match, which is wasteful on long lines with dense matches. Matches are
+	// returned in left-to-right order, so the first one determines the left
+	// marker and the scan can stop as soon as the right marker is known.
+	leftMatch := false
+	rightLimit := sol + displayWidth - 2
+	for offset := 0; offset <= len(input); {
+		index := br.re.FindIndex(input[offset:])
+		if index == nil {
 			break
 		}
+
+		start, end := offset+index[0], offset+index[1]
+		if start >= len(input) {
+			break
+		}
+		if start < sol {
+			leftMatch = true
+		}
+		if end > rightLimit {
+			return leftMatch, true
+		}
+
+		if end > start {
+			offset = end
+			continue
+		}
+
+		// Advance over one UTF-8 rune after an empty match to guarantee
+		// progress without beginning the next regexp search mid-rune.
+		if end == len(input) {
+			break
+		}
+		_, width := utf8.DecodeRune(input[end:])
+		offset = end + width
 	}
 
-	return leftMatch, rightMatch
+	return leftMatch, false
 }
 
 // vim: set ts=4 sw=4 noet:
