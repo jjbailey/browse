@@ -280,6 +280,9 @@ func pathCompleterCandidates() []completionCandidate {
 		paths = []string{"/usr/local/bin", "/usr/bin", "/usr/sbin"}
 	}
 
+	// A command may be present in several PATH directories. Retain the first
+	// one, matching shell lookup order, and avoid duplicate suggestions.
+	seenNames := make(map[string]struct{})
 	for _, dir := range paths {
 		if dir == "" {
 			dir = "."
@@ -290,8 +293,13 @@ func pathCompleterCandidates() []completionCandidate {
 			continue
 		}
 
-		pathCache.candidates = append(pathCache.candidates,
-			matchFileCandidates(files, dir, "", false, onlyExec, 0)...)
+		for _, candidate := range matchFileCandidates(files, dir, "", false, onlyExec, 0) {
+			if _, seen := seenNames[candidate.name]; seen {
+				continue
+			}
+			seenNames[candidate.name] = struct{}{}
+			pathCache.candidates = append(pathCache.candidates, candidate)
+		}
 	}
 
 	return pathCache.candidates
