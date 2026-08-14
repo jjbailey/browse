@@ -139,11 +139,7 @@ func (br *browseObj) findSearchMatch(forward, next bool) (int, bool) {
 
 // searchStartLine returns the first line to inspect for this search action.
 func (br *browseObj) searchStartLine(forward, next bool, mapSize int) int {
-	if !next {
-		return br.currentPageSearchStart(forward, mapSize)
-	}
-
-	if br.lastMatch == SEARCH_RESET && !br.currentPageHasMatch(mapSize) {
+	if !next || br.lastMatch == SEARCH_RESET {
 		return br.currentPageSearchStart(forward, mapSize)
 	}
 
@@ -161,19 +157,6 @@ func (br *browseObj) currentPageSearchStart(forward bool, mapSize int) int {
 	}
 
 	return minimum(br.firstRow+br.dispRows-1, mapSize-1)
-}
-
-// currentPageHasMatch reports whether the visible page already shows a match.
-func (br *browseObj) currentPageHasMatch(mapSize int) bool {
-	pageEnd := minimum(br.firstRow+br.dispRows, mapSize)
-
-	for lineNum := br.firstRow; lineNum < pageEnd; lineNum++ {
-		if br.lineIsMatch(lineNum) {
-			return true
-		}
-	}
-
-	return false
 }
 
 // findForwardMatch scans from startLine up to endLine for the first match.
