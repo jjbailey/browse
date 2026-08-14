@@ -1,11 +1,11 @@
 module internetguy.net/browse
 
-go 1.26.4
+go 1.26.6
 
 // Direct dependencies
 require (
 	github.com/creack/pty v1.1.24
-	github.com/jjbailey/go-prompt v0.2.8
+	github.com/jjbailey/go-prompt v0.2.9
 	github.com/pborman/getopt/v2 v2.1.0
 	golang.org/x/sys v0.47.0
 	golang.org/x/term v0.45.0
