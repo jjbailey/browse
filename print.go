@@ -10,17 +10,30 @@
 package main
 
 import (
-	"fmt"
+	"bytes"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
 
+// lineBufPool holds output-assembly buffers. bytes.Buffer rather than
+// strings.Builder so the assembled bytes can be handed to Write without
+// the copy a Builder's String would make.
 var lineBufPool = sync.Pool{
 	New: func() any {
-		return new(strings.Builder)
+		return new(bytes.Buffer)
 	},
+}
+
+// writeCursorPos appends a CURPOS escape without going through fmt.
+func writeCursorPos(buf *bytes.Buffer, row, col int) {
+	buf.WriteString("\033[")
+	buf.WriteString(strconv.Itoa(row))
+	buf.WriteByte(';')
+	buf.WriteString(strconv.Itoa(col))
+	buf.WriteByte('H')
 }
 
 func (br *browseObj) currentMapSize() int {
@@ -67,19 +80,31 @@ func (br *browseObj) printLine(lineno int) {
 }
 
 func (br *browseObj) printLineWithMapSize(lineno, mapSize int) {
+	lineBuf := lineBufPool.Get().(*bytes.Buffer)
+	lineBuf.Reset()
+	br.appendLine(lineBuf, lineno, mapSize)
+	os.Stdout.Write(lineBuf.Bytes())
+	lineBufPool.Put(lineBuf)
+}
+
+// appendLine renders one line into buf instead of writing it directly, so
+// callers that emit many lines at once (printPage, scrollUp) can issue a
+// single write for the whole batch.
+func (br *browseObj) appendLine(buf *bytes.Buffer, lineno, mapSize int) {
 	isEOF := windowAtEOF(lineno, mapSize)
 	br.setEOFState(isEOF, isEOF)
 
 	// Handle SOF marker
 	if lineno == 0 {
-		moveCursor(2, 1, true)
-		printSEOF("SOF")
+		writeCursorPos(buf, 2, 1)
+		buf.WriteString(CLEARLINE)
+		appendSEOF(buf, "SOF")
 		return
 	}
 
 	// Do not proceed if we're beyond known lines
 	if lineno > mapSize {
-		os.Stdout.WriteString(CLEARLINE)
+		buf.WriteString(CLEARLINE)
 		return
 	}
 
@@ -90,19 +115,14 @@ func (br *browseObj) printLineWithMapSize(lineno, mapSize int) {
 
 	output := br.replaceMatch(lineno, input)
 
-	// Use a pooled Builder for line output, reducing allocations and Print calls
-	lineBuf := lineBufPool.Get().(*strings.Builder)
-	lineBuf.Reset()
-	lineBuf.Grow(len(output) + 32)
-	lineBuf.WriteByte('\n')
-	lineBuf.WriteString(output)
-	lineBuf.WriteString(VIDOFF)
-	lineBuf.WriteString(CLEARLINE)
-	os.Stdout.WriteString(lineBuf.String())
-	lineBufPool.Put(lineBuf)
+	buf.Grow(len(output) + 32)
+	buf.WriteByte('\n')
+	buf.WriteString(output)
+	buf.WriteString(VIDOFF)
+	buf.WriteString(CLEARLINE)
 
 	if isEOF {
-		printSEOF("EOF")
+		appendSEOF(buf, "EOF")
 	}
 }
 
@@ -168,19 +188,26 @@ func (br *browseObj) printPage(lineno int) {
 		return
 	}
 
+	// Assemble the whole page in one buffer and emit it with a single
+	// write; the terminal sees the identical byte stream either way.
+	pageBuf := lineBufPool.Get().(*bytes.Buffer)
+	pageBuf.Reset()
+
 	// Only one cursor move here for all lines
-	// printLine starts with \n
-	moveCursor(1, 1, false)
+	// appendLine starts with \n
+	writeCursorPos(pageBuf, 1, 1)
 	for i := sop; i < eop; i++ {
-		br.printLineWithMapSize(i, mapSize)
+		br.appendLine(pageBuf, i, mapSize)
 	}
 
 	// reset
-	fmt.Print(SGR0)
+	pageBuf.WriteString(SGR0)
+	writeCursorPos(pageBuf, 2, 1)
+	os.Stdout.Write(pageBuf.Bytes())
+	lineBufPool.Put(pageBuf)
 
 	// reset these
 	br.firstRow, br.lastRow = sop, eop
-	moveCursor(2, 1, false)
 }
 
 // printCurrentList shows the current browsing file list.

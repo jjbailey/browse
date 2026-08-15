@@ -13,6 +13,9 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"strconv"
+	"strings"
+	"unicode/utf8"
 )
 
 // Search formatting and limits.
@@ -136,11 +139,7 @@ func (br *browseObj) findSearchMatch(forward, next bool) (int, bool) {
 
 // searchStartLine returns the first line to inspect for this search action.
 func (br *browseObj) searchStartLine(forward, next bool, mapSize int) int {
-	if !next {
-		return br.currentPageSearchStart(forward, mapSize)
-	}
-
-	if br.lastMatch == SEARCH_RESET && !br.currentPageHasMatch(mapSize) {
+	if !next || br.lastMatch == SEARCH_RESET {
 		return br.currentPageSearchStart(forward, mapSize)
 	}
 
@@ -158,19 +157,6 @@ func (br *browseObj) currentPageSearchStart(forward bool, mapSize int) int {
 	}
 
 	return minimum(br.firstRow+br.dispRows-1, mapSize-1)
-}
-
-// currentPageHasMatch reports whether the visible page already shows a match.
-func (br *browseObj) currentPageHasMatch(mapSize int) bool {
-	pageEnd := minimum(br.firstRow+br.dispRows, mapSize)
-
-	for lineNum := br.firstRow; lineNum < pageEnd; lineNum++ {
-		if br.lineIsMatch(lineNum) {
-			return true
-		}
-	}
-
-	return false
 }
 
 // findForwardMatch scans from startLine up to endLine for the first match.
@@ -247,7 +233,9 @@ func (br *browseObj) lineIsMatch(lineno int) bool {
 
 	// expandTabs returns buf[:n] unchanged when there are no tabs, so the
 	// common case stays allocation-free.
-	return br.re.Match(expandTabs(buf[:n]))
+	expanded, scratch := expandTabs(buf[:n], br.matchTabScratch)
+	br.matchTabScratch = scratch
+	return br.re.Match(expanded)
 }
 
 // replaceMatch highlights matches in a line and formats it for display.
@@ -288,11 +276,13 @@ func (br *browseObj) replaceMatch(lineno int, input []byte) string {
 	var replaced []byte
 
 	if leftMatch || rightMatch {
-		replaced = br.re.ReplaceAll(content, []byte(br.replace+_VID_GREEN_FG))
-		replaced = append([]byte(_VID_GREEN_FG), replaced...)
-		replaced = append(replaced, []byte(VIDOFF)...)
+		inner := br.re.ReplaceAll(content, br.replaceWrapBytes)
+		replaced = make([]byte, 0, len(vidGreenFG)+len(inner)+len(vidOff))
+		replaced = append(replaced, vidGreenFG...)
+		replaced = append(replaced, inner...)
+		replaced = append(replaced, vidOff...)
 	} else {
-		replaced = br.re.ReplaceAll(content, []byte(br.replace))
+		replaced = br.re.ReplaceAll(content, br.replaceBytes)
 	}
 
 	return br.formatLine(lineno, string(replaced))
@@ -304,7 +294,19 @@ func (br *browseObj) formatLine(lineno int, content string) string {
 
 	if br.modeNumbers {
 		// dim attribute is optional in the ANSI spec
-		return fmt.Sprintf("%s%6d%s %s", _VID_DIM, lineno, _VID_OFF, content)
+		num := strconv.Itoa(lineno)
+
+		var sb strings.Builder
+		sb.Grow(len(_VID_DIM) + len(_VID_OFF) + NUMCOLWIDTH + len(content))
+		sb.WriteString(_VID_DIM)
+		for i := len(num); i < NUMCOLWIDTH-1; i++ {
+			sb.WriteByte(' ')
+		}
+		sb.WriteString(num)
+		sb.WriteString(_VID_OFF)
+		sb.WriteByte(' ')
+		sb.WriteString(content)
+		return sb.String()
 	}
 
 	return content
@@ -328,7 +330,7 @@ func (br *browseObj) doSearch(oldDir, newDir bool) bool {
 
 		if pattern != "" {
 			moveCursor(br.dispRows, 2, true)
-			fmt.Print(pattern)
+			fmt.Print(pattern + "\n")
 		}
 	}
 
@@ -395,9 +397,21 @@ func (br *browseObj) reCompile(pattern string) (int, error) {
 
 	br.pattern = pattern
 	br.re = re
-	br.replace = fmt.Sprintf("%s%s%s", MSG_GREEN, "$0", VIDOFF)
+	br.replace = MSG_GREEN + "$0" + VIDOFF
+
+	// Precompute the []byte forms used once per rendered line.
+	br.replaceBytes = []byte(br.replace)
+	br.replaceWrapBytes = []byte(br.replace + _VID_GREEN_FG)
 
 	return len(pattern), nil
+}
+
+// clearSearchRegex drops the compiled pattern and everything derived from it.
+func (br *browseObj) clearSearchRegex() {
+	br.re = nil
+	br.replace = ""
+	br.replaceBytes = nil
+	br.replaceWrapBytes = nil
 }
 
 // undisplayedMatches reports whether matches exist outside the visible slice.
@@ -411,12 +425,6 @@ func (br *browseObj) undisplayedMatches(input []byte, sol int) (bool, bool) {
 		sol = 0
 	}
 
-	// Use FindAllIndex for efficiency
-	matches := br.re.FindAllIndex(input, -1)
-	if len(matches) == 0 {
-		return false, false
-	}
-
 	displayWidth := br.dispWidth
 	if br.modeNumbers {
 		displayWidth -= NUMCOLWIDTH
@@ -427,36 +435,44 @@ func (br *browseObj) undisplayedMatches(input []byte, sol int) (bool, bool) {
 		return false, false
 	}
 
-	leftMatch, rightMatch := false, false
-
-	for _, index := range matches {
-		// Ensure index has at least 2 elements (start and end positions)
-		if len(index) < 2 {
-			continue
-		}
-
-		// Validate index bounds
-		if index[0] < 0 || index[0] >= len(input) {
-			continue
-		}
-
-		if !leftMatch && index[0] < sol {
-			leftMatch = true
-		}
-
-		// Calculate right boundary with safety checks
-		rightBoundary := index[1] - sol + 2
-		if !rightMatch && rightBoundary > displayWidth {
-			// NB: off by two
-			rightMatch = true
-		}
-
-		if leftMatch && rightMatch {
+	// Find one match at a time. FindAllIndex retains an index pair for every
+	// match, which is wasteful on long lines with dense matches. Matches are
+	// returned in left-to-right order, so the first one determines the left
+	// marker and the scan can stop as soon as the right marker is known.
+	leftMatch := false
+	rightLimit := sol + displayWidth - 2
+	for offset := 0; offset <= len(input); {
+		index := br.re.FindIndex(input[offset:])
+		if index == nil {
 			break
 		}
+
+		start, end := offset+index[0], offset+index[1]
+		if start >= len(input) {
+			break
+		}
+		if start < sol {
+			leftMatch = true
+		}
+		if end > rightLimit {
+			return leftMatch, true
+		}
+
+		if end > start {
+			offset = end
+			continue
+		}
+
+		// Advance over one UTF-8 rune after an empty match to guarantee
+		// progress without beginning the next regexp search mid-rune.
+		if end == len(input) {
+			break
+		}
+		_, width := utf8.DecodeRune(input[end:])
+		offset = end + width
 	}
 
-	return leftMatch, rightMatch
+	return leftMatch, false
 }
 
 // vim: set ts=4 sw=4 noet:
