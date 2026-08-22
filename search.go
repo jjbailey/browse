@@ -153,7 +153,7 @@ func (br *browseObj) searchStartLine(forward, next bool, mapSize int) int {
 // currentPageSearchStart returns the first current-page line to inspect.
 func (br *browseObj) currentPageSearchStart(forward bool, mapSize int) int {
 	if forward {
-		return br.firstRow
+		return maximum(br.firstRow, 1)
 	}
 
 	return minimum(br.firstRow+br.dispRows-1, mapSize-1)
@@ -161,7 +161,8 @@ func (br *browseObj) currentPageSearchStart(forward bool, mapSize int) int {
 
 // findForwardMatch scans from startLine up to endLine for the first match.
 func (br *browseObj) findForwardMatch(startLine, endLine, mapSize int) int {
-	startLine = maximum(startLine, 0)
+	// Line zero is the synthetic SOF marker, not file content.
+	startLine = maximum(startLine, 1)
 	endLine = minimum(endLine, mapSize)
 
 	for lineNum := startLine; lineNum < endLine; lineNum++ {
@@ -176,7 +177,8 @@ func (br *browseObj) findForwardMatch(startLine, endLine, mapSize int) int {
 // findReverseMatch scans from startLine down to endLine for the first match.
 func (br *browseObj) findReverseMatch(startLine, endLine, mapSize int) int {
 	startLine = minimum(startLine, mapSize-1)
-	endLine = maximum(endLine, 0)
+	// Line zero is the synthetic SOF marker, not file content.
+	endLine = maximum(endLine, 1)
 
 	for lineNum := startLine; lineNum >= endLine; lineNum-- {
 		if br.lineIsMatch(lineNum) {
