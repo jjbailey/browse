@@ -92,7 +92,7 @@ func (br *browseObj) readRcFile() bool {
 		return false
 	}
 
-	return true
+	return linesRead == 7
 }
 
 func (br *browseObj) handleRcFileLine(i int, line string) bool {

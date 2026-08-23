@@ -339,6 +339,9 @@ in every context:
 | `~`    | Home directory                                            |
 | `-`    | Previous file or previous directory                       |
 
+All listed symbols can be escaped with a preceding backslash to prevent
+expansion.
+
 ## Configuration and History
 
 **browse** stores configuration and history in:
