@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "1.3.4"
+	BR_VERSION = "1.3.5"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -27,6 +27,7 @@ const (
 // Core limits and defaults.
 const (
 	MAXMARKS     = 10
+	NUMCOLWIDTH  = 7 // %6d + one space
 	READBUFSIZ   = 4096
 	SEARCH_RESET = -1
 	TABWIDTH     = 4
