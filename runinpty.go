@@ -178,6 +178,7 @@ func (br *browseObj) runInPty(cmdbuf string) {
 		break
 	}
 
+	fmt.Print(LINEWRAPOFF)
 	br.catchSignals()
 }
 
