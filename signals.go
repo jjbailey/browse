@@ -21,13 +21,31 @@ var sigChan chan os.Signal
 
 // resizeWindow handles terminal resize events.
 func (br *browseObj) resizeWindow() {
+	mapSize := br.currentMapSize()
+	wasAtEOF := br.lastRow > mapSize
+
 	br.screenInit(br.tty)
+	topLine := resizedTopLine(br.firstRow, br.dispRows, mapSize, wasAtEOF)
+
+	// pageHeader clears the terminal. Update firstRow before printPage so its
+	// nearby-page optimization cannot choose an incremental scroll against the
+	// now-empty screen.
+	br.firstRow = topLine
 	br.pageHeader()
-	br.pageCurrent()
+	br.printPage(topLine)
 
 	if br.inMotion() {
 		fmt.Print(CURRESTORE)
 	}
+}
+
+// resizedTopLine preserves an EOF-bottom anchor across terminal size changes.
+func resizedTopLine(firstRow, dispRows, mapSize int, wasAtEOF bool) int {
+	if wasAtEOF {
+		return maximum(0, mapSize-dispRows+1)
+	}
+
+	return adjustLineNumber(firstRow, dispRows, mapSize)
 }
 
 // saneExit restores terminal state and exits cleanly.
@@ -65,7 +83,11 @@ func (br *browseObj) catchSignals() {
 			switch sig {
 
 			case syscall.SIGWINCH:
-				br.resizeWindow()
+				// Rendering belongs to the main goroutine. The command loop
+				// polls the tty, then drains this event on its next tick.
+				br.mutex.Lock()
+				br.resizePending = true
+				br.mutex.Unlock()
 
 			default:
 				br.printMessage(fmt.Sprintf("%v \n", sig), MSG_RED)

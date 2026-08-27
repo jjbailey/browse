@@ -44,6 +44,10 @@ func readFile(br *browseObj, ch chan bool) {
 
 	br.mutex.Lock()
 	br.readerAlive = true
+	readInit(br, &bytesRead)
+	sourceFp := br.fp
+	savFileName := br.fileName
+	savFileSeq := br.fileSeq
 	br.mutex.Unlock()
 
 	// Guarantee R is never dropped: if this reader exits (I/O error, lost
@@ -63,11 +67,9 @@ func readFile(br *browseObj, ch chan bool) {
 		}
 	}()
 
-	readInit(br, &bytesRead)
-
-	dupFd, err := unix.Dup(int(br.fp.Fd()))
+	dupFd, err := unix.Dup(int(sourceFp.Fd()))
 	if err != nil {
-		br.printMessage("Failed to duplicate file descriptor: "+err.Error(), MSG_RED)
+		br.postMessage("Failed to duplicate file descriptor: "+err.Error(), MSG_RED)
 		select {
 		case ch <- false:
 		default:
@@ -75,10 +77,10 @@ func readFile(br *browseObj, ch chan bool) {
 		return
 	}
 
-	readerFp := os.NewFile(uintptr(dupFd), br.fileName)
+	readerFp := os.NewFile(uintptr(dupFd), savFileName)
 	if readerFp == nil {
 		unix.Close(dupFd)
-		br.printMessage("Failed to create file from descriptor", MSG_RED)
+		br.postMessage("Failed to create file from descriptor", MSG_RED)
 		select {
 		case ch <- false:
 		default:
@@ -89,12 +91,6 @@ func readFile(br *browseObj, ch chan bool) {
 		readerFp.Close()
 	}()
 	fd := int(readerFp.Fd())
-
-	// Get initial filename with mutex protection
-	br.mutex.Lock()
-	savFileName := br.fileName
-	savFileSeq := br.fileSeq
-	br.mutex.Unlock()
 
 	// Keep the reader buffer bounded: readLineLength consumes long lines in
 	// fixed-size fragments instead of allocating a string as large as the line.

@@ -145,14 +145,19 @@ func (br *browseObj) drainDisplayEvents() {
 	transient := br.pendingMsgTransient
 	refresh := br.refreshPending
 	cancelScroll := br.scrollCancelPending
+	resize := br.resizePending
 	br.pendingMsg = ""
 	br.pendingMsgTransient = false
 	br.refreshPending = false
 	br.scrollCancelPending = false
+	br.resizePending = false
 	br.mutex.Unlock()
 
 	if cancelScroll {
 		br.modeScroll = MODE_SCROLL_NONE
+	}
+	if resize {
+		br.resizeWindow()
 	}
 
 	// Transient notices (e.g. "Re-reading file") print first and get a

@@ -230,6 +230,7 @@ type browseObj struct {
 	pendingMsgTransient bool
 	refreshPending      bool
 	scrollCancelPending bool
+	resizePending       bool
 }
 
 // browseResumeState preserves the visible position when a nested list returns.

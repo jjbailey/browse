@@ -314,6 +314,9 @@ func processFileBrowsing(br *browseObj) {
 	// Wait for reader to be ready and process commands
 	readerOK := <-syncOK
 	if !readerOK {
+		// Initialization failures are posted by the reader so that only this
+		// goroutine draws. Display the queued error before leaving the file.
+		br.drainDisplayEvents()
 		return
 	}
 
@@ -335,6 +338,7 @@ func resetState(br *browseObj) {
 
 // restoreResumeState restores the parent file's viewport after a nested list.
 func restoreResumeState(br *browseObj) {
+	br.mutex.Lock()
 	br.fileName = br.resume.fileName
 	br.absFileName = br.resume.absFileName
 	br.title = br.resume.title
@@ -343,6 +347,7 @@ func restoreResumeState(br *browseObj) {
 	br.lastRow = br.resume.lastRow
 	br.shiftWidth = br.resume.shiftWidth
 	br.modeScroll = MODE_SCROLL_NONE
+	br.mutex.Unlock()
 }
 
 // preInitialization performs startup setup before browsing begins.
