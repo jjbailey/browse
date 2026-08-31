@@ -30,6 +30,7 @@ func (br *browseObj) scrollDown(count int) {
 	// continuous and tail modes this avoids several small writes per row.
 	scrollBuf := lineBufPool.Get().(*bytes.Buffer)
 	scrollBuf.Reset()
+	scrollBuf.WriteString(LINEWRAPOFF)
 	for i := 0; i < count && !br.hitEOFState(); i++ {
 		// printLine finds EOF, sets hitEOF
 		// add line -- +1 for header
@@ -37,7 +38,7 @@ func (br *browseObj) scrollDown(count int) {
 
 		if br.shownEOFState() {
 			// print previous line before printing the current line
-			scrollBuf.WriteString(CURRESTORE + CURUP)
+			scrollBuf.WriteString(CURRESTORE + LINEWRAPOFF + CURUP)
 			br.appendLine(scrollBuf, br.lastRow-1, mapSize)
 			scrollBuf.WriteString(CURSAVE)
 		}
@@ -52,7 +53,7 @@ func (br *browseObj) scrollDown(count int) {
 	}
 
 	if br.inMotion() {
-		scrollBuf.WriteString(CURRESTORE)
+		scrollBuf.WriteString(CURRESTORE + LINEWRAPOFF)
 	} else {
 		writeCursorPos(scrollBuf, 2, 1)
 	}
@@ -77,6 +78,7 @@ func (br *browseObj) scrollUp(count int) {
 	// Batch the whole scroll into one write instead of three per row.
 	scrollBuf := lineBufPool.Get().(*bytes.Buffer)
 	scrollBuf.Reset()
+	scrollBuf.WriteString(LINEWRAPOFF)
 
 	for range rowsToScroll {
 		br.firstRow--

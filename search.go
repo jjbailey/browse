@@ -20,9 +20,6 @@ import (
 
 // Search formatting and limits.
 const (
-	// %6d + one space
-	NUMCOLWIDTH = 7
-
 	// Maximum regex pattern length to avoid accidental oversized searches.
 	MAX_PATTERN_LENGTH = 1000
 )

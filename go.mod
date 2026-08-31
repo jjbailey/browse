@@ -6,7 +6,7 @@ go 1.27.0
 require (
 	github.com/creack/pty v1.1.24
 	github.com/jjbailey/go-prompt v0.2.10
-	github.com/pborman/getopt/v2 v2.1.0
+	github.com/pborman/getopt/v2 v2.2.0
 	golang.org/x/sys v0.47.0
 	golang.org/x/term v0.45.0
 )

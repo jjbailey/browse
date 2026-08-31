@@ -673,8 +673,9 @@ func fileCommand(br *browseObj) bool {
 
 	// Split first so a substituted filename with spaces stays one token.
 	tokens := fieldsQuoted(newFile)
+	currentFile := br.currentFileName()
 	for i, tok := range tokens {
-		tokens[i] = subCommandChars(tok, "%", br.fileName)
+		tokens[i] = subCommandChars(tok, "%", currentFile)
 	}
 	if len(tokens) == 0 {
 		br.pageCurrent()
