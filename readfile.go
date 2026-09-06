@@ -428,12 +428,16 @@ func readLineLength(reader *bufio.Reader) (length int64, hasNewline bool, err er
 		length += int64(len(fragment))
 
 		switch readErr {
+
 		case nil:
 			return length, true, nil
+
 		case bufio.ErrBufferFull:
 			continue
+
 		case io.EOF:
 			return length, false, io.EOF
+
 		default:
 			return length, false, readErr
 		}
