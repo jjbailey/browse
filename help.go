@@ -52,7 +52,7 @@ func (br *browseObj) printHelp() {
 		"  Ctrl+R                            Rewind current browse list             ",
 		"  c C                               Print/Change working directory         ",
 		"  h H                               Show help screen/man page              ",
-		"  q Q                               Quit, save/don't save browserc         ",
+		"  q Q                               Next file, quit if last (save/no-save) ",
 		"  x X                               Exit list, save/don't save browserc    ",
 		"  Ctrl+X                            Exit all lists, save browserc          ",
 		"  Ctrl+Y                            Exit all lists, don't save browserc    ",
