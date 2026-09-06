@@ -115,9 +115,16 @@ func updateHistory(newEntry, historyFile string) {
 		return
 	}
 
-	if historyFile == commHistory || historyFile == searchHistory {
+	switch historyFile {
+
+	case commHistory:
 		newEntry = unQuote(newEntry)
-	} else {
+
+	case searchHistory:
+		// no quoting/unquoting: a search pattern's leading/trailing quotes
+		// (if any) are part of the pattern, not shell quoting
+
+	default:
 		if strings.ContainsAny(newEntry, " ") && !strings.ContainsAny(newEntry, "'") {
 			newEntry = "'" + newEntry + "'"
 		}
