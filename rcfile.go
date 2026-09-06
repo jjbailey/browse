@@ -22,7 +22,11 @@ import (
 func (br *browseObj) writeRcFile() bool {
 	var data strings.Builder
 
-	rcFileName := filepath.Join(os.Getenv("HOME"), RCDIRNAME, RCFILENAME)
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return false
+	}
+	rcFileName := filepath.Join(home, RCDIRNAME, RCFILENAME)
 
 	// abs fileName
 	data.WriteString(br.absFileName)
@@ -56,14 +60,17 @@ func (br *browseObj) writeRcFile() bool {
 	data.WriteByte('\n')
 
 	// save
-	err := os.WriteFile(rcFileName, []byte(data.String()), 0644)
+	err = os.WriteFile(rcFileName, []byte(data.String()), 0644)
 
 	return err == nil
 }
 
 func (br *browseObj) readRcFile() bool {
-	rcFileName := path.Join(os.Getenv("HOME"), RCDIRNAME, RCFILENAME)
-	rcFileName = os.ExpandEnv(rcFileName)
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return false
+	}
+	rcFileName := path.Join(home, RCDIRNAME, RCFILENAME)
 
 	fp, err := os.Open(rcFileName)
 	if err != nil {
