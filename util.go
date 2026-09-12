@@ -17,7 +17,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"sync"
 )
 
 var tabSpaces = [TABWIDTH]byte{' ', ' ', ' ', ' '}
@@ -179,31 +178,35 @@ func isBinaryFile(filename string) bool {
 	return isBinaryFileFp(file)
 }
 
-// subCommandReCache memoizes the compiled regex per delimiter character, which
-// is drawn from a small fixed set (! % &) across all call sites.
-var subCommandReCache sync.Map
-
-// subCommandChars replaces unescaped occurrences of a character.
-// negative lookbehind not supported in golang RE2 engine
-// pattern := `(?<!\\)%`
+// subCommandChars replaces unescaped occurrences of a character, honoring
+// shell backslash-escaping rules: a run of N backslashes followed by the
+// target character collapses to N/2 literal backslashes, and substitutes
+// only if N is even (i.e. the character itself is unescaped).
 func subCommandChars(input, char, repl string) string {
-	var re *regexp.Regexp
+	target := rune(char[0])
+	var sb strings.Builder
+	slashRun := 0
 
-	if cached, ok := subCommandReCache.Load(char); ok {
-		re = cached.(*regexp.Regexp)
-	} else {
-		compiled, err := regexp.Compile(`(^|[^\\])` + regexp.QuoteMeta(char))
-		if err != nil {
-			return input
+	for _, r := range input {
+		switch {
+
+		case r == '\\':
+			slashRun++
+
+		case r == target && slashRun%2 == 0:
+			sb.WriteString(strings.Repeat(`\`, slashRun/2))
+			slashRun = 0
+			sb.WriteString(repl)
+
+		default:
+			sb.WriteString(strings.Repeat(`\`, slashRun))
+			slashRun = 0
+			sb.WriteRune(r)
 		}
-		subCommandReCache.Store(char, compiled)
-		re = compiled
 	}
 
-	return re.ReplaceAllStringFunc(input, func(match string) string {
-		prefix := strings.TrimSuffix(match, char)
-		return prefix + repl
-	})
+	sb.WriteString(strings.Repeat(`\`, slashRun))
+	return sb.String()
 }
 
 // resolveSymlink resolves symlinks and returns a clean path.

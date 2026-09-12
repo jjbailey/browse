@@ -145,6 +145,7 @@ func processFileList(br *browseObj, args []string, toplevel bool) bool {
 			}
 
 			switch br.listAction {
+
 			case LIST_ACTION_REWIND:
 				br.listAction = LIST_ACTION_NONE
 				resetState(br)
