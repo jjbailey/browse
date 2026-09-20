@@ -15,18 +15,29 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
+
+var historyWarningOnce sync.Once
+
+func warnHistoryPersistence(err error) {
+	historyWarningOnce.Do(func() {
+		fmt.Fprintf(os.Stderr, "browse: history persistence unavailable: %v\n", err)
+	})
+}
 
 // loadHistory reads the history file and returns recent entries.
 func loadHistory(historyFile string) []string {
 	home, err := os.UserHomeDir()
 	if err != nil {
+		warnHistoryPersistence(err)
 		return []string{}
 	}
 
 	historyPath := filepath.Join(home, RCDIRNAME, historyFile)
 	file, err := os.OpenFile(historyPath, os.O_RDONLY|os.O_CREATE, 0600)
 	if err != nil {
+		warnHistoryPersistence(err)
 		return []string{}
 	}
 	defer file.Close()
@@ -38,6 +49,7 @@ func loadHistory(historyFile string) []string {
 		history = append(history, scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {
+		warnHistoryPersistence(err)
 		return []string{}
 	}
 
@@ -79,12 +91,14 @@ func saveHistory(history []string, historyFile string) {
 
 	home, err := os.UserHomeDir()
 	if err != nil {
+		warnHistoryPersistence(err)
 		return
 	}
 
 	historyPath := filepath.Join(home, RCDIRNAME, historyFile)
 	file, err := os.OpenFile(historyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
+		warnHistoryPersistence(err)
 		return
 	}
 	defer file.Close()
@@ -93,7 +107,9 @@ func saveHistory(history []string, historyFile string) {
 	for _, cmd := range history {
 		fmt.Fprintln(writer, cmd)
 	}
-	writer.Flush()
+	if err := writer.Flush(); err != nil {
+		warnHistoryPersistence(err)
+	}
 }
 
 // updateDirHistory records directory changes in the directory history.

@@ -111,17 +111,17 @@ browse -p ERROR app.log
 browse [OPTIONS] [FILE] [FILE...]
 ```
 
-| Option                | Function                                      |
-| --------------------- | --------------------------------------------- |
-| `-f`, `--follow`      | Follow file changes while still browsing      |
-| `-F`, `--tail`        | Follow file changes like `tail -f`            |
-| `-i`, `--ignore-case` | Search ignores case                           |
-| `-I`, `--fixed-case`  | Search fixed case                             |
-| `-n`, `--numbers`     | Start with line numbers turned on             |
-| `-p`, `--pattern`     | Initial search pattern                        |
-| `-t`, `--title`       | Page title, default filename, blank for stdin |
-| `-v`, `--version`     | Print browse version number                   |
-| `-?`, `--help`        | Print browse command line options             |
+| Option                 | Function                                      |
+| ---------------------- | --------------------------------------------- |
+| `-f`, `--follow`       | Follow file changes while still browsing      |
+| `-F`, `--tail`         | Follow file changes like `tail -f`            |
+| `-i`, `--ignore-case`  | Search ignores case                           |
+| `-I`, `--fixed-string` | Search literal strings                        |
+| `-n`, `--numbers`      | Start with line numbers turned on             |
+| `-p`, `--pattern`      | Initial search pattern                        |
+| `-t`, `--title`        | Page title, default filename, blank for stdin |
+| `-v`, `--version`      | Print browse version number                   |
+| `-?`, `--help`         | Print browse command line options             |
 
 ## Keyboard Shortcuts
 

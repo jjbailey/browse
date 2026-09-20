@@ -74,7 +74,9 @@ func (br *browseObj) readRcFile() bool {
 
 	fp, err := os.Open(rcFileName)
 	if err != nil {
-		fmt.Println(err)
+		if !os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr, "browse: cannot read session file %s: %v\n", rcFileName, err)
+		}
 		return false
 	}
 	defer fp.Close()

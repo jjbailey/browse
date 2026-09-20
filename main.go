@@ -34,7 +34,7 @@ func main() {
 	followFlag := getopt.BoolLong("follow", 'f', "follow file")
 	tailFlag := getopt.BoolLong("tail", 'F', "fast follow")
 	caseFlag := getopt.BoolLong("ignore-case", 'i', "search ignores case")
-	fixedFlag := getopt.BoolLong("fixed-case", 'I', "search fixed case")
+	fixedFlag := getopt.BoolLong("fixed-string", 'I', "search strings")
 	numberFlag := getopt.BoolLong("numbers", 'n', "line numbers")
 	patternStr := getopt.StringLong("pattern", 'p', "", "search pattern")
 	titleStr := getopt.StringLong("title", 't', "", "page title")
@@ -127,17 +127,17 @@ func brVersion() {
 
 // usageMessage prints CLI usage information.
 func usageMessage(arg0 string) {
-	fmt.Printf("Usage: %s [-fFiInv] [-p pattern] [-t title] [filename...]\n",
+	fmt.Printf("Usage: %s [-fFiInv?] [-p pattern] [-t title] [filename...]\n",
 		filepath.Base(arg0))
-	fmt.Print("  -f, --follow       follow file\n")
-	fmt.Print("  -F, --tail         fast follow\n")
-	fmt.Print("  -i, --ignore-case  search ignores case\n")
-	fmt.Print("  -I, --fixed-case   search fixed case\n")
-	fmt.Print("  -n, --numbers      line numbers\n")
-	fmt.Print("  -p, --pattern      search pattern\n")
-	fmt.Print("  -t, --title        page title\n")
-	fmt.Print("  -v, --version      print version number\n")
-	fmt.Print("  -?, --help         this message\n")
+	fmt.Print("  -f, --follow        follow file\n")
+	fmt.Print("  -F, --tail          fast follow\n")
+	fmt.Print("  -i, --ignore-case   search ignores case\n")
+	fmt.Print("  -I, --fixed-string  search literal strings\n")
+	fmt.Print("  -n, --numbers       line numbers\n")
+	fmt.Print("  -p, --pattern       search pattern\n")
+	fmt.Print("  -t, --title         page title\n")
+	fmt.Print("  -v, --version       print version number\n")
+	fmt.Print("  -?, --help          this message\n")
 }
 
 // vim: set ts=4 sw=4 noet:
