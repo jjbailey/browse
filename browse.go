@@ -353,7 +353,9 @@ func restoreResumeState(br *browseObj) {
 
 // preInitialization performs startup setup before browsing begins.
 func preInitialization() {
-	setupBrDir()
+	if err := setupBrDir(); err != nil {
+		fmt.Fprintf(os.Stderr, "browse: history and session persistence unavailable: %v\n", err)
+	}
 	ttySaveTerm()
 	syscall.Umask(077)
 }

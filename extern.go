@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "1.3.6"
+	BR_VERSION = "1.3.7"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -99,10 +99,9 @@ const (
 	VIDBOLDREV = _VID_BOLD + _VID_REV
 	VIDHELP    = _VID_WHITE_FG + _VID_BLUE_BG
 
-	MSG_GREEN         = _VID_BOLD + _VID_BLACK_FG + _VID_GREEN_BG
-	MSG_ORANGE        = _VID_BOLD + _VID_BLACK_FG + _VID_ORANGE_BG
-	MSG_RED           = _VID_BOLD + _VID_WHITE_FG + _VID_RED_BG
-	MSG_NO_COMPLETION = _VID_BOLD + _VID_ORANGE_FG + _VID_BLACK_BG
+	MSG_GREEN  = _VID_BOLD + _VID_BLACK_FG + _VID_GREEN_BG
+	MSG_ORANGE = _VID_BOLD + _VID_BLACK_FG + _VID_ORANGE_BG
+	MSG_RED    = _VID_BOLD + _VID_WHITE_FG + _VID_RED_BG
 )
 
 // Byte forms of the sequences applied per rendered line, so the render path

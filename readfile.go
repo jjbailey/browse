@@ -482,8 +482,9 @@ func (br *browseObj) readFromMap(lineno int) []byte {
 
 	seek, size := br.seekMap[lineno], br.sizeMap[lineno]
 
-	// Make sure size is reasonable to avoid panics (16MB)
-	if size < 0 || size > (16<<20) {
+	// Reader metadata is capped at READBUFSIZ; reject corrupted metadata before
+	// using it as a slice length or allocation size.
+	if size < 0 || size > READBUFSIZ {
 		br.mutex.Unlock()
 		return nil
 	}
