@@ -45,7 +45,7 @@ func (br *browseObj) printHelp() {
 		"  i I                                Case-sensitive/Fixed-string search      ",
 		"  a A                                Print browse list/stack                 ",
 		"  F                                  Run 'fmt -s -w' on the current file     ",
-		"  &                                  Run 'grep -P' for pattern               ",
+		"  &                                  Run 'grep -P' (or -F) for pattern       ",
 		"  p P                                Print/Clear search pattern              ",
 		"  !                                  bash command                            ",
 		"  B                                  Browse file (expands %, ~, glob)        ",

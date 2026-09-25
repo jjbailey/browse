@@ -102,13 +102,6 @@ const (
 	MSG_RED    = _VID_BOLD + _VID_WHITE_FG + _VID_RED_BG
 )
 
-// Byte forms of the sequences applied per rendered line, so the render path
-// does not re-convert them from strings on every line.
-var (
-	vidGreenFG = []byte(_VID_GREEN_FG)
-	vidOff     = []byte(VIDOFF)
-)
-
 // ─── Scrolling Modes ────────────────────────────────────────────────
 
 // Scroll mode constants.
@@ -173,22 +166,26 @@ type browseObj struct {
 	lastKey     byte
 
 	// Search and match
-	pattern          string
-	re               *regexp.Regexp
-	replace          string
-	replaceBytes     []byte
-	replaceWrapBytes []byte
-	ignoreCase       bool
-	searchFixed      bool
-	lastMatch        int
-	searchDir        bool
-	matchScratch     []byte
+	pattern      string
+	re           *regexp.Regexp
+	ignoreCase   bool
+	searchFixed  bool
+	lastMatch    int
+	searchDir    bool
+	matchLiteral []byte
+	matchFold    bool
+
+	// Keys typed during a search, replayed by the command loop.
+	pendingInput []byte
 
 	// Per-session scratch buffers for the main goroutine's render and
-	// search paths. See readFromMap and lineIsMatch.
-	readScratch     []byte
-	readTabScratch  []byte
-	matchTabScratch []byte
+	// search paths. See readFromMap and loadSearchBlock.
+	readScratch      []byte
+	readTabScratch   []byte
+	searchBuf        []byte
+	searchLines      [][]byte
+	matchTabScratch  []byte
+	matchFoldScratch []byte
 
 	// State flags
 	hitEOF      bool

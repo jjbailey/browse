@@ -474,7 +474,7 @@ func (br *browseObj) readStdin(fin, fout *os.File) bool {
 }
 
 // readFromMap reads a line by index using the seek and size maps. Like
-// lineIsMatch it reuses per-session scratch buffers rather than allocating
+// the search scan it reuses per-session scratch buffers rather than allocating
 // per line, so it is only safe to call from the main goroutine and the
 // returned bytes are valid only until the next call.
 func (br *browseObj) readFromMap(lineno int) []byte {

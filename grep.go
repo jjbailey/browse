@@ -1,5 +1,5 @@
 // grep.go
-// pipe the current search to grep -nP
+// pipe the current search to grep -nP, or grep -nF for fixed strings
 //
 // Copyright (c) 2024-2026 jjb
 // All rights reserved.
@@ -14,14 +14,17 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 // grep option letters for the external grep command and browse flags.
 const (
-	grepPerl         = "P"
-	grepIgnoreCase   = "i"
-	grepLineNumbers  = "n"
-	browseIgnoreCase = "-i"
+	grepPerl          = "P"
+	grepFixed         = "F"
+	grepIgnoreCase    = "i"
+	grepLineNumbers   = "n"
+	browseIgnoreCase  = "-i"
+	browseFixedString = "-I"
 )
 
 // runGrep pipes the current search pattern to grep and opens the results.
@@ -53,17 +56,23 @@ func (br *browseObj) runGrep() {
 		return
 	}
 
-	// case sensitivity and line numbers follow the current session
+	// case sensitivity, fixed-string search, and line numbers follow the
+	// current session
 	grepOpts := "-"
-	brOpts := ""
+	var brOpts []string
 	if br.ignoreCase {
 		grepOpts += grepIgnoreCase
-		brOpts = browseIgnoreCase
+		brOpts = append(brOpts, browseIgnoreCase)
 	}
 	if br.modeNumbers {
 		grepOpts += grepLineNumbers
 	}
-	grepOpts += grepPerl
+	if br.searchFixed {
+		grepOpts += grepFixed
+		brOpts = append(brOpts, browseFixedString)
+	} else {
+		grepOpts += grepPerl
+	}
 
 	title := fmt.Sprintf("grep %s -e \"%s\"", grepOpts, br.pattern)
 	if !br.fromStdin {
@@ -79,7 +88,7 @@ func (br *browseObj) runGrep() {
 	cmd := fmt.Sprintf(
 		"%s %s -e %s %s | %s %s -p %s -t %s",
 		grepPathArg, grepOpts, patternArg, fileNameArg,
-		brPathArg, brOpts, patternArg, titleArg,
+		brPathArg, strings.Join(brOpts, " "), patternArg, titleArg,
 	)
 
 	// Display command preview

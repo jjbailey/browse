@@ -126,7 +126,7 @@ const (
 func commands(br *browseObj) {
 	var searchCompileErr error
 
-	if _, err := br.reCompile(br.pattern); err != nil {
+	if err := br.reCompile(br.pattern); err != nil {
 		searchCompileErr = err
 		br.pattern = ""
 		br.clearSearchRegex()
@@ -164,7 +164,15 @@ func commands(br *browseObj) {
 		for i := range b {
 			b[i] = 0
 		}
-		n, err := br.tty.Read(b)
+		var n int
+		var err error
+		if len(br.pendingInput) > 0 {
+			// replay keys typed while a search was running
+			n = copy(b, br.pendingInput)
+			br.pendingInput = br.pendingInput[n:]
+		} else {
+			n, err = br.tty.Read(b)
+		}
 
 		// apply display work posted by the reader goroutine
 		br.drainDisplayEvents()
@@ -383,20 +391,18 @@ func commands(br *browseObj) {
 			br.searchFile(br.pattern, !br.searchDir, true)
 
 		case CMD_SEARCH_IGN_CASE:
-			br.ignoreCase = !br.ignoreCase
-			br.lastMatch = SEARCH_RESET
-			br.reCompile(br.pattern)
-			if br.ignoreCase {
+			if err := br.toggleSearchOption(&br.ignoreCase); err != nil {
+				br.printMessage(fmt.Sprintf("Regex compilation error: %v", err), MSG_ORANGE)
+			} else if br.ignoreCase {
 				br.printMessage("Search ignores case", MSG_GREEN)
 			} else {
 				br.printMessage("Search considers case", MSG_GREEN)
 			}
 
 		case CMD_SEARCH_FIXED:
-			br.searchFixed = !br.searchFixed
-			br.lastMatch = SEARCH_RESET
-			br.reCompile(br.pattern)
-			if br.searchFixed {
+			if err := br.toggleSearchOption(&br.searchFixed); err != nil {
+				br.printMessage(fmt.Sprintf("Regex compilation error: %v", err), MSG_ORANGE)
+			} else if br.searchFixed {
 				br.printMessage("Fixed-string search", MSG_GREEN)
 			} else {
 				br.printMessage("Regex search", MSG_GREEN)

@@ -23,9 +23,16 @@ var tabSpaces = [TABWIDTH]byte{' ', ' ', ' ', ' '}
 
 var urlRe = regexp.MustCompile(`https?://[^\s\x1b<>"` + "`" + `()\[\]{}]+`)
 
+// oscClose ends an OSC 8 terminal hyperlink.
+const oscClose = "\033]8;;\033\\"
+
+// oscOpen starts an OSC 8 terminal hyperlink to url.
+func oscOpen(url string) string {
+	return "\033]8;;" + url + "\033\\"
+}
+
 func oscWrap(text, url string) string {
-	const ST = "\033\\"
-	return "\033]8;;" + url + ST + text + "\033]8;;" + ST
+	return oscOpen(url) + text + oscClose
 }
 
 func linkURLs(s string) string {

@@ -166,6 +166,9 @@ browse [-fFiInv?] [-p pattern] [-t title] [filename...]
 
 When ignore-case search is enabled, `&` adds the `-i` flag to `grep`.
 When line numbering is enabled, `&` adds the `-n` flag to `grep`.
+When fixed-string search is enabled, `&` runs `grep -F` instead of `grep -P`.
+
+Press `Ctrl-C` to cancel a search that is taking too long on a large file.
 
 ### Files, Lists, and Session Control
 
