@@ -146,12 +146,19 @@ func (br *browseObj) drainDisplayEvents() {
 	refresh := br.refreshPending
 	cancelScroll := br.scrollCancelPending
 	resize := br.resizePending
+	partialFrom := br.partialRedrawFrom
 	br.pendingMsg = ""
 	br.pendingMsgTransient = false
 	br.refreshPending = false
 	br.scrollCancelPending = false
 	br.resizePending = false
+	br.partialRedrawFrom = 0
 	br.mutex.Unlock()
+
+	// A growing file's unterminated last line is displayed provisionally.
+	// Scrolling only draws new rows, so a completed line still on screen
+	// would keep showing its truncated text unless the page is redrawn.
+	redrawPartial := partialFrom > 0 && partialFrom < br.lastRow
 
 	if cancelScroll {
 		br.modeScroll = MODE_SCROLL_NONE
@@ -170,7 +177,7 @@ func (br *browseObj) drainDisplayEvents() {
 		}
 	}
 
-	if refresh {
+	if refresh || redrawPartial {
 		br.pageCurrent()
 	}
 

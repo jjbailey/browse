@@ -109,7 +109,7 @@ func processCompressedFile(br *browseObj, format, absPath, title string) {
 	browseFile(br, fp, tmp.Name(), title, true)
 
 	if br.saveRC {
-		br.writeRcFile()
+		br.saveRcFile()
 	}
 }
 
@@ -325,7 +325,7 @@ func processFileBrowsing(br *browseObj) {
 
 	// Save session state if requested
 	if !br.fromStdin && br.saveRC {
-		br.writeRcFile()
+		br.saveRcFile()
 	}
 }
 

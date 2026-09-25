@@ -9,4 +9,4 @@ The commands install in `/usr/local/bin`.
 To build browse:
 
     cd /path/to/go/src
-    go build -ldflags="-linkmode external -extldflags -static -s -w" -trimpath .
+    go build -ldflags="-linkmode external -extldflags -static -s -w" -buildvcs=false -trimpath .

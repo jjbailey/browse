@@ -39,6 +39,7 @@ func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin boo
 	br.pendingMsgTransient = false
 	br.refreshPending = false
 	br.scrollCancelPending = false
+	br.partialRedrawFrom = 0
 	br.mutex.Unlock()
 
 	if rescueFd > 0 {

@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -85,7 +84,8 @@ const (
 	CMD_GREP      = '&'
 	CMD_HELP      = 'h'
 	CMD_MANPAGE   = 'H'
-	CMD_JUMP      = 'j'
+	CMD_JUMPLINE  = 'j'
+	CMD_JUMPPOS   = 'J'
 	CMD_MARK      = 'm'
 	CMD_NUMBERS   = '#'
 	CMD_FILEPOS   = '%'
@@ -152,9 +152,6 @@ func commands(br *browseObj) {
 	if searchCompileErr != nil {
 		br.printMessage(fmt.Sprintf("Regex compilation error: %v", searchCompileErr), MSG_ORANGE)
 	}
-
-	// searchDir controls the direction of search operations
-	var searchDir bool = SEARCH_FWD
 
 	// handle panic
 	defer handlePanic(br)
@@ -362,34 +359,28 @@ func commands(br *browseObj) {
 				fmt.Print(CURRESTORE)
 			}
 
-		case CMD_JUMP:
+		case CMD_JUMPLINE:
 			// jump to line
-			lbuf, cancelled := br.userInput("Jump: ")
-			if !cancelled && len(lbuf) > 0 {
-				n, err := strconv.Atoi(strings.TrimSpace(lbuf))
-				if err != nil {
-					br.printMessage("Invalid line number", MSG_ORANGE)
-				} else if n < 0 {
-					br.printMessage("Line number must be positive", MSG_ORANGE)
-				} else {
-					br.printPage(n)
-				}
-			}
+			jumpLine(br)
+
+		case CMD_JUMPPOS:
+			// jump to position
+			jumpPosition(br)
 
 		case CMD_SEARCH_FWD:
 			// search forward/down
-			searchDir = br.doSearch(searchDir, SEARCH_FWD)
+			br.searchDir = br.doSearch(br.searchDir, SEARCH_FWD)
 
 		case CMD_SEARCH_REV:
 			// search backward/up
-			searchDir = br.doSearch(searchDir, SEARCH_REV)
+			br.searchDir = br.doSearch(br.searchDir, SEARCH_REV)
 
 		case CMD_SEARCH_NEXT:
-			br.searchFile(br.pattern, searchDir, true)
+			br.searchFile(br.pattern, br.searchDir, true)
 
 		case CMD_SEARCH_NEXT_REV:
 			// vim compat
-			br.searchFile(br.pattern, !searchDir, true)
+			br.searchFile(br.pattern, !br.searchDir, true)
 
 		case CMD_SEARCH_IGN_CASE:
 			br.ignoreCase = !br.ignoreCase
@@ -446,7 +437,7 @@ func commands(br *browseObj) {
 			br.runFormat()
 
 		case CMD_GREP:
-			// grep -nP pattern
+			// grep -P pattern
 			br.runGrep()
 
 		case CMD_HALF_PAGE_DN, CMD_HALF_PAGE_DN_1, CMD_HALF_PAGE_DN_2:

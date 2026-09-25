@@ -26,6 +26,7 @@ import (
 // main parses flags and launches the browse session.
 func main() {
 	var br browseObj
+	br.searchDir = SEARCH_FWD
 	var tty *os.File
 	var fromStdin bool
 
@@ -34,7 +35,7 @@ func main() {
 	followFlag := getopt.BoolLong("follow", 'f', "follow file")
 	tailFlag := getopt.BoolLong("tail", 'F', "fast follow")
 	caseFlag := getopt.BoolLong("ignore-case", 'i', "search ignores case")
-	fixedFlag := getopt.BoolLong("fixed-string", 'I', "search strings")
+	fixedFlag := getopt.BoolLong("fixed-string", 'I', "search literal strings")
 	numberFlag := getopt.BoolLong("numbers", 'n', "line numbers")
 	patternStr := getopt.StringLong("pattern", 'p', "", "search pattern")
 	titleStr := getopt.StringLong("title", 't', "", "page title")

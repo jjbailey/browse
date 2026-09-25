@@ -379,6 +379,10 @@ func readFile(br *browseObj, ch chan bool) {
 				br.seekMap = br.seekMap[:br.mapSiz-1]
 				br.sizeMap = br.sizeMap[:br.mapSiz-1]
 				br.mapSiz--
+				// the partial text may already be on screen
+				if br.partialRedrawFrom == 0 || br.mapSiz < br.partialRedrawFrom {
+					br.partialRedrawFrom = br.mapSiz
+				}
 			}
 			for _, info := range pendingLines {
 				br.seekMap = append(br.seekMap, info.offset)

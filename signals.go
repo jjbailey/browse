@@ -60,9 +60,7 @@ func (br *browseObj) saneExit() {
 	}
 
 	if !br.fromStdin && br.saveRC {
-		if !br.writeRcFile() {
-			fmt.Fprintln(os.Stderr, "browse: could not save session file")
-		}
+		br.saveRcFile()
 	}
 
 	os.Exit(0)

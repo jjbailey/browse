@@ -16,10 +16,11 @@ import (
 	"path/filepath"
 )
 
-// grep options for the external grep command and browse flags.
+// grep option letters for the external grep command and browse flags.
 const (
-	grepDefaultOpts  = "-nP"
-	grepIgnoreCase   = "-inP"
+	grepPerl         = "P"
+	grepIgnoreCase   = "i"
+	grepLineNumbers  = "n"
 	browseIgnoreCase = "-i"
 )
 
@@ -52,13 +53,17 @@ func (br *browseObj) runGrep() {
 		return
 	}
 
-	// case sensitivity
-	grepOpts := grepDefaultOpts
+	// case sensitivity and line numbers follow the current session
+	grepOpts := "-"
 	brOpts := ""
 	if br.ignoreCase {
-		grepOpts = grepIgnoreCase
+		grepOpts += grepIgnoreCase
 		brOpts = browseIgnoreCase
 	}
+	if br.modeNumbers {
+		grepOpts += grepLineNumbers
+	}
+	grepOpts += grepPerl
 
 	title := fmt.Sprintf("grep %s -e \"%s\"", grepOpts, br.pattern)
 	if !br.fromStdin {

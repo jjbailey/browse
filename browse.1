@@ -59,7 +59,7 @@ Continuous scrolling in both directions.
 .IP \[bu] 2
 Horizontal scrolling for wide lines.
 .IP \[bu] 2
-Jump to line numbers.
+Jump to line numbers and character positions.
 .IP \[bu] 2
 Mark pages and return to them.
 .IP \[bu] 2
@@ -161,7 +161,7 @@ browse -p ERROR app.log
 .SS Command Line Options
 .nf
 
-browse [OPTIONS] [FILE] [FILE...]
+browse [-fFiInv?] [-p pattern] [-t title] [filename...]
 \f[R]
 .fi
 .PP
@@ -310,6 +310,11 @@ T}@T{
 Jump to line number
 T}
 T{
+\f[V]J\f[R]
+T}@T{
+Jump to character position
+T}
+T{
 \f[V]0\f[R], \f[V]Home\f[R]
 T}@T{
 Jump to start of file, column 1
@@ -385,13 +390,15 @@ T}
 T{
 \f[V]&\f[R]
 T}@T{
-Run \f[V]grep -nP\f[R] on current file for search pattern in a new
+Run \f[V]grep -P\f[R] on current file for search pattern in a new
 session
 T}
 .TE
 .PP
-When ignore-case search is enabled, \f[V]&\f[R] uses \f[V]grep -inP\f[R]
-instead.
+When ignore-case search is enabled, \f[V]&\f[R] adds the \f[V]-i\f[R]
+flag to \f[V]grep\f[R].
+When line numbering is enabled, \f[V]&\f[R] adds the \f[V]-n\f[R] flag
+to \f[V]grep\f[R].
 .SS Files, Lists, and Session Control
 .PP
 .ne 12v
@@ -761,6 +768,9 @@ The session file is:
 \f[R]
 .fi
 .PP
+When installed, the same program is also available through the
+\f[V]br\f[R] command.
+.PP
 Launching \f[V]browse\f[R] with no filenames attempts to restore that
 saved session.
 If no saved session is available, \f[B]browse\f[R] prints the usage
@@ -781,6 +791,8 @@ Page title.
 Search case-sensitivity mode.
 .IP \[bu] 2
 Fixed-string search mode.
+.IP \[bu] 2
+Search direction.
 .PP
 History files are maintained for common workflows, with behavior similar
 to Bash history:

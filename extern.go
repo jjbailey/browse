@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "1.3.7"
+	BR_VERSION = "1.4.0"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -27,7 +27,7 @@ const (
 // Core limits and defaults.
 const (
 	MAXMARKS     = 10
-	NUMCOLWIDTH  = 7 // %6d + one space
+	NUMCOLWIDTH  = 8
 	READBUFSIZ   = 4096
 	SEARCH_RESET = -1
 	TABWIDTH     = 4
@@ -78,12 +78,10 @@ const (
 	_VID_OFF   = "\033[0m"
 	_VID_REV   = "\033[7m"
 
-	_VID_BLACK_FG  = "\033[38;5;16m"
-	_VID_WHITE_FG  = "\033[38;5;15m"
-	_VID_GREEN_FG  = "\033[38;5;46m"
-	_VID_ORANGE_FG = "\033[38;5;208m"
+	_VID_BLACK_FG = "\033[38;5;16m"
+	_VID_WHITE_FG = "\033[38;5;15m"
+	_VID_GREEN_FG = "\033[38;5;46m"
 
-	_VID_BLACK_BG  = "\033[48;5;16m"
 	_VID_GREEN_BG  = "\033[48;5;46m"
 	_VID_BLUE_BG   = "\033[48;5;21m"
 	_VID_ORANGE_BG = "\033[48;5;208m"
@@ -183,6 +181,7 @@ type browseObj struct {
 	ignoreCase       bool
 	searchFixed      bool
 	lastMatch        int
+	searchDir        bool
 	matchScratch     []byte
 
 	// Per-session scratch buffers for the main goroutine's render and
@@ -230,6 +229,11 @@ type browseObj struct {
 	refreshPending      bool
 	scrollCancelPending bool
 	resizePending       bool
+
+	// Lowest line index whose provisional (unterminated) entry the reader
+	// replaced since the last drain; 0 means none. The main goroutine may
+	// already have drawn the partial text, so it must redraw that row.
+	partialRedrawFrom int
 }
 
 // browseResumeState preserves the visible position when a nested list returns.
