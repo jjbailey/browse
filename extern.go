@@ -26,11 +26,10 @@ const (
 
 // Core limits and defaults.
 const (
-	MAXMARKS     = 10
-	NUMCOLWIDTH  = 8
-	READBUFSIZ   = 4096
-	SEARCH_RESET = -1
-	TABWIDTH     = 4
+	MAXMARKS    = 10
+	NUMCOLWIDTH = 8
+	READBUFSIZ  = 4096
+	TABWIDTH    = 4
 )
 
 // ─── Terminal Control Sequences ─────────────────────────────────────
@@ -170,7 +169,7 @@ type browseObj struct {
 	re           *regexp.Regexp
 	ignoreCase   bool
 	searchFixed  bool
-	lastMatch    int
+	invertMatch  bool
 	searchDir    bool
 	matchLiteral []byte
 	matchFold    bool

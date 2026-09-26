@@ -1,5 +1,5 @@
 // grep.go
-// pipe the current search to grep -nP, or grep -nF for fixed strings
+// pipe the current search to grep -P, or grep -F for fixed strings
 //
 // Copyright (c) 2024-2026 jjb
 // All rights reserved.
@@ -21,10 +21,12 @@ import (
 const (
 	grepPerl          = "P"
 	grepFixed         = "F"
+	grepInvert        = "v"
 	grepIgnoreCase    = "i"
 	grepLineNumbers   = "n"
 	browseIgnoreCase  = "-i"
 	browseFixedString = "-I"
+	browseInvertMatch = "-V"
 )
 
 // runGrep pipes the current search pattern to grep and opens the results.
@@ -56,8 +58,23 @@ func (br *browseObj) runGrep() {
 		return
 	}
 
-	// case sensitivity, fixed-string search, and line numbers follow the
-	// current session
+	cmd := br.grepCommand(grepPath, brPath, fileName)
+
+	// Display command preview
+	moveCursor(br.dispHeight, 1, true)
+	fmt.Printf("---\n%s%s%s\n", LINEWRAPON, shellPrompt(), cmd)
+
+	// Run command in a PTY
+	resetScrRegion()
+	br.runInPty(cmd)
+	br.resizeWindow()
+}
+
+// grepCommand builds the shell pipeline that greps fileName for the current
+// pattern and browses the results.
+func (br *browseObj) grepCommand(grepPath, brPath, fileName string) string {
+	// case sensitivity, fixed-string search, inverted matching, and line
+	// numbers follow the current session
 	grepOpts := "-"
 	var brOpts []string
 	if br.ignoreCase {
@@ -66,6 +83,10 @@ func (br *browseObj) runGrep() {
 	}
 	if br.modeNumbers {
 		grepOpts += grepLineNumbers
+	}
+	if br.invertMatch {
+		grepOpts += grepInvert
+		brOpts = append(brOpts, browseInvertMatch)
 	}
 	if br.searchFixed {
 		grepOpts += grepFixed
@@ -84,21 +105,12 @@ func (br *browseObj) runGrep() {
 	grepPathArg := shellEscapeSingle(grepPath)
 	brPathArg := shellEscapeSingle(brPath)
 
-	// Construct command - grep should pipe output to browse for display
-	cmd := fmt.Sprintf(
+	// grep pipes its output to browse for display
+	return fmt.Sprintf(
 		"%s %s -e %s %s | %s %s -p %s -t %s",
 		grepPathArg, grepOpts, patternArg, fileNameArg,
 		brPathArg, strings.Join(brOpts, " "), patternArg, titleArg,
 	)
-
-	// Display command preview
-	moveCursor(br.dispHeight, 1, true)
-	fmt.Printf("---\n%s%s%s\n", LINEWRAPON, shellPrompt(), cmd)
-
-	// Run command in a PTY
-	resetScrRegion()
-	br.runInPty(cmd)
-	br.resizeWindow()
 }
 
 // vim: set ts=4 sw=4 noet:

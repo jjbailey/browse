@@ -108,7 +108,7 @@ browse -p ERROR app.log
 ## Command Line Options
 
 ```bash
-browse [-fFiInv?] [-p pattern] [-t title] [filename...]
+browse [-fFiInvV?] [-p pattern] [-t title] [filename...]
 ```
 
 | Option                 | Function                                      |
@@ -117,6 +117,7 @@ browse [-fFiInv?] [-p pattern] [-t title] [filename...]
 | `-F`, `--tail`         | Follow file changes like `tail -f`            |
 | `-i`, `--ignore-case`  | Search ignores case                           |
 | `-I`, `--fixed-string` | Search literal strings                        |
+| `-V`, `--invert-match` | `grep` (`&`) shows non-matching lines         |
 | `-n`, `--numbers`      | Start with line numbers turned on             |
 | `-p`, `--pattern`      | Initial search pattern                        |
 | `-t`, `--title`        | Page title, default filename, blank for stdin |
@@ -160,6 +161,7 @@ browse [-fFiInv?] [-p pattern] [-t title] [filename...]
 | `N` | Repeat search in opposite direction                               |
 | `i` | Toggle case-sensitive or case-insensitive search                  |
 | `I` | Toggle regex or fixed-string search                               |
+| `V` | Toggle inverted matching (`grep -v`) for `&`                      |
 | `p` | Print current search pattern                                      |
 | `P` | Clear search pattern                                              |
 | `&` | Run `grep -P` on current file for search pattern in a new session |
@@ -167,6 +169,8 @@ browse [-fFiInv?] [-p pattern] [-t title] [filename...]
 When ignore-case search is enabled, `&` adds the `-i` flag to `grep`.
 When line numbering is enabled, `&` adds the `-n` flag to `grep`.
 When fixed-string search is enabled, `&` runs `grep -F` instead of `grep -P`.
+When inverted matching is enabled, `&` adds the `-v` flag to `grep` to show
+lines that do not match. It does not change `/`, `?`, `n`, or `N`.
 
 Press `Ctrl-C` to cancel a search that is taking too long on a large file.
 
@@ -376,6 +380,7 @@ Stored session data includes:
 - Search case-sensitivity mode.
 - Fixed-string search mode.
 - Search direction.
+- Inverted matching for `grep` (`&`).
 
 History files are maintained for common workflows, with behavior similar to
 Bash history:

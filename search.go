@@ -53,13 +53,8 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 			return false
 		}
 
-		br.lastMatch = SEARCH_RESET
 		next = false
 	}
-
-	// A search that starts on the current page leaves the page in place when
-	// the match is already visible.
-	fromCurrentPage := !next || br.lastMatch == SEARCH_RESET
 
 	matchLine, wrapped, err := br.findSearchMatch(forward, next)
 	if err != nil {
@@ -78,13 +73,14 @@ func (br *browseObj) searchFile(pattern string, forward, next bool) bool {
 		br.displayWrapMessage(forward)
 	}
 
-	br.lastMatch = matchLine
+	// A new search starts on the current page and leaves the page in place
+	// when the match is already visible.
 	displayTop := br.searchDisplayTop(matchLine, forward)
-	if fromCurrentPage && !wrapped && br.lineOnCurrentPage(matchLine) {
+	if !next && !wrapped && br.lineOnCurrentPage(matchLine) {
 		displayTop = br.firstRow
 	}
-	br.printPage(displayTop)
 
+	br.printPage(displayTop)
 	return true
 }
 
@@ -148,8 +144,10 @@ func (br *browseObj) findSearchMatch(forward, next bool) (int, bool, error) {
 }
 
 // searchStartLine returns the first line to inspect for this search action.
+// Repeated searches (n, N) skip the current page, whose matches are already
+// highlighted.
 func (br *browseObj) searchStartLine(forward, next bool, mapSize int) int {
-	if !next || br.lastMatch == SEARCH_RESET {
+	if !next {
 		return br.currentPageSearchStart(forward, mapSize)
 	}
 
@@ -490,7 +488,8 @@ func highlightLine(content []byte, matches [][]int, sol int, offscreen bool) str
 
 	for {
 		if inHL && hl[h].end == pos {
-			sb.WriteString(VIDOFF + base)
+			sb.WriteString(VIDOFF)
+			sb.WriteString(base)
 			inHL = false
 			h++
 		}
@@ -723,7 +722,6 @@ func (br *browseObj) toggleSearchOption(option *bool) error {
 		return err
 	}
 
-	br.lastMatch = SEARCH_RESET
 	return nil
 }
 

@@ -42,7 +42,7 @@ func (br *browseObj) printHelp() {
 		"  m                                  Mark a page with number 1-9             ",
 		"  / ?                                Regex search forward/reverse            ",
 		"  n N                                Repeat search forward/reverse           ",
-		"  i I                                Case-sensitive/Fixed-string search      ",
+		"  i I V                              Ignore-case/Fixed-string/grep -v        ",
 		"  a A                                Print browse list/stack                 ",
 		"  F                                  Run 'fmt -s -w' on the current file     ",
 		"  &                                  Run 'grep -P' (or -F) for pattern       ",

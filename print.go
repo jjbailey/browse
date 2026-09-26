@@ -108,8 +108,7 @@ func (br *browseObj) appendLine(buf *bytes.Buffer, lineno, mapSize int) {
 		return
 	}
 
-	// Get content from map. Search owns br.lastMatch; rendering must not move it.
-	// Read directly: replaceMatch re-runs the regex itself, so a match here
+	// Get content from map. Read directly: replaceMatch re-runs the regex itself, so a match here
 	// would be thrown away.
 	input := br.readFromMap(lineno)
 

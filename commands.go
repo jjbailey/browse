@@ -51,6 +51,7 @@ const (
 	CMD_SEARCH_NEXT_REV = 'N'
 	CMD_SEARCH_IGN_CASE = 'i'
 	CMD_SEARCH_FIXED    = 'I'
+	CMD_INVERT_MATCH    = 'V'
 	CMD_SEARCH_PRINT    = 'p'
 	CMD_SEARCH_CLEAR    = 'P'
 
@@ -406,6 +407,15 @@ func commands(br *browseObj) {
 				br.printMessage("Fixed-string search", MSG_GREEN)
 			} else {
 				br.printMessage("Regex search", MSG_GREEN)
+			}
+
+		case CMD_INVERT_MATCH:
+			// only affects grep (&) for now
+			br.invertMatch = !br.invertMatch
+			if br.invertMatch {
+				br.printMessage("grep shows non-matching lines (-v)", MSG_GREEN)
+			} else {
+				br.printMessage("grep shows matching lines", MSG_GREEN)
 			}
 
 		case CMD_SEARCH_PRINT:

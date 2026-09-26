@@ -74,6 +74,10 @@ func (br *browseObj) writeRcFile() bool {
 	data.WriteString(strconv.FormatBool(br.searchDir))
 	data.WriteByte('\n')
 
+	// invertMatch
+	data.WriteString(strconv.FormatBool(br.invertMatch))
+	data.WriteByte('\n')
+
 	// save
 	err = os.WriteFile(rcFileName, []byte(data.String()), 0644)
 
@@ -96,10 +100,11 @@ func (br *browseObj) readRcFile() bool {
 	}
 	defer fp.Close()
 
-	// searchDir was added as line 8; older 7-line files remain valid
+	// searchDir and invertMatch were added as lines 8 and 9; older 7- and
+	// 8-line files remain valid
 	const (
 		rcLinesMin = 7
-		rcLinesMax = 8
+		rcLinesMax = 9
 	)
 
 	scanner := bufio.NewScanner(fp)
@@ -175,6 +180,14 @@ func (br *browseObj) handleRcFileLine(i int, line string) bool {
 			return false
 		}
 		br.searchDir = searchDir
+
+	case 8:
+		// invertMatch
+		invertMatch, err := strconv.ParseBool(line)
+		if err != nil {
+			return false
+		}
+		br.invertMatch = invertMatch
 	}
 
 	return true

@@ -36,6 +36,7 @@ func main() {
 	tailFlag := getopt.BoolLong("tail", 'F', "fast follow")
 	caseFlag := getopt.BoolLong("ignore-case", 'i', "search ignores case")
 	fixedFlag := getopt.BoolLong("fixed-string", 'I', "search literal strings")
+	invertFlag := getopt.BoolLong("invert-match", 'V', "grep (&) shows non-matching lines")
 	numberFlag := getopt.BoolLong("numbers", 'n', "line numbers")
 	patternStr := getopt.StringLong("pattern", 'p', "", "search pattern")
 	titleStr := getopt.StringLong("title", 't', "", "page title")
@@ -88,6 +89,10 @@ func main() {
 		br.searchFixed = *fixedFlag
 	}
 
+	if getopt.IsSet('V') {
+		br.invertMatch = *invertFlag
+	}
+
 	br.modeNumbers = *numberFlag
 
 	if len(*patternStr) > 0 {
@@ -128,12 +133,13 @@ func brVersion() {
 
 // usageMessage prints CLI usage information.
 func usageMessage(arg0 string) {
-	fmt.Printf("Usage: %s [-fFiInv?] [-p pattern] [-t title] [filename...]\n",
+	fmt.Printf("Usage: %s [-fFiInvV?] [-p pattern] [-t title] [filename...]\n",
 		filepath.Base(arg0))
 	fmt.Print("  -f, --follow        follow file\n")
 	fmt.Print("  -F, --tail          fast follow\n")
 	fmt.Print("  -i, --ignore-case   search ignores case\n")
 	fmt.Print("  -I, --fixed-string  search literal strings\n")
+	fmt.Print("  -V, --invert-match  grep (&) shows non-matching lines\n")
 	fmt.Print("  -n, --numbers       line numbers\n")
 	fmt.Print("  -p, --pattern       search pattern\n")
 	fmt.Print("  -t, --title         page title\n")
