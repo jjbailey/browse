@@ -28,7 +28,7 @@ Conceptually, the program may be understood as combining the behavior of
 - Forward and reverse paging.
 - Continuous scrolling in both directions.
 - Horizontal scrolling for wide lines.
-- Jump to line numbers.
+- Jump to line numbers and character positions.
 - Mark pages and return to them.
 - Follow and tail modes for changing files.
 
@@ -108,7 +108,7 @@ browse -p ERROR app.log
 ## Command Line Options
 
 ```bash
-browse [OPTIONS] [FILE] [FILE...]
+browse [-fFiInvV?] [-p pattern] [-t title] [filename...]
 ```
 
 | Option                 | Function                                      |
@@ -117,6 +117,7 @@ browse [OPTIONS] [FILE] [FILE...]
 | `-F`, `--tail`         | Follow file changes like `tail -f`            |
 | `-i`, `--ignore-case`  | Search ignores case                           |
 | `-I`, `--fixed-string` | Search literal strings                        |
+| `-V`, `--invert-match` | `grep` (`&`) shows non-matching lines         |
 | `-n`, `--numbers`      | Start with line numbers turned on             |
 | `-p`, `--pattern`      | Initial search pattern                        |
 | `-t`, `--title`        | Page title, default filename, blank for stdin |
@@ -144,6 +145,7 @@ browse [OPTIONS] [FILE] [FILE...]
 | `e`, `End`                    | Jump to EOF, follow at EOF                  |
 | `t`                           | Jump to EOF, tail at EOF                    |
 | `j`                           | Jump to line number                         |
+| `J`                           | Jump to character position                  |
 | `0`, `Home`                   | Jump to start of file, column 1             |
 | `G`                           | Jump to end of file                         |
 | `m`                           | Mark current page with number 1-9           |
@@ -151,19 +153,26 @@ browse [OPTIONS] [FILE] [FILE...]
 
 ### Search
 
-| Key | Function                                                           |
-| --- | ------------------------------------------------------------------ |
-| `/` | Regex search forward                                               |
-| `?` | Regex search reverse                                               |
-| `n` | Repeat search in current direction                                 |
-| `N` | Repeat search in opposite direction                                |
-| `i` | Toggle case-sensitive or case-insensitive search                   |
-| `I` | Toggle regex or fixed-string search                                |
-| `p` | Print current search pattern                                       |
-| `P` | Clear search pattern                                               |
-| `&` | Run `grep -nP` on current file for search pattern in a new session |
+| Key | Function                                                          |
+| --- | ----------------------------------------------------------------- |
+| `/` | Regex search forward                                              |
+| `?` | Regex search reverse                                              |
+| `n` | Repeat search in current direction                                |
+| `N` | Repeat search in opposite direction                               |
+| `i` | Toggle case-sensitive or case-insensitive search                  |
+| `I` | Toggle regex or fixed-string search                               |
+| `V` | Toggle inverted matching (`grep -v`) for `&`                      |
+| `p` | Print current search pattern                                      |
+| `P` | Clear search pattern                                              |
+| `&` | Run `grep -P` on current file for search pattern in a new session |
 
-When ignore-case search is enabled, `&` uses `grep -inP` instead.
+When ignore-case search is enabled, `&` adds the `-i` flag to `grep`.
+When line numbering is enabled, `&` adds the `-n` flag to `grep`.
+When fixed-string search is enabled, `&` runs `grep -F` instead of `grep -P`.
+When inverted matching is enabled, `&` adds the `-v` flag to `grep` to show
+lines that do not match. It does not change `/`, `?`, `n`, or `N`.
+
+Press `Ctrl-C` to cancel a search that is taking too long on a large file.
 
 ### Files, Lists, and Session Control
 
@@ -356,6 +365,8 @@ The session file is:
 ~/.browse/browserc
 ```
 
+When installed, the same program is also available through the `br` command.
+
 Launching `browse` with no filenames attempts to restore that saved session. If
 no saved session is available, **browse** prints the usage message and exits.
 
@@ -368,6 +379,8 @@ Stored session data includes:
 - Page title.
 - Search case-sensitivity mode.
 - Fixed-string search mode.
+- Search direction.
+- Inverted matching for `grep` (`&`).
 
 History files are maintained for common workflows, with behavior similar to
 Bash history:

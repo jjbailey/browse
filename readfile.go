@@ -379,6 +379,10 @@ func readFile(br *browseObj, ch chan bool) {
 				br.seekMap = br.seekMap[:br.mapSiz-1]
 				br.sizeMap = br.sizeMap[:br.mapSiz-1]
 				br.mapSiz--
+				// the partial text may already be on screen
+				if br.partialRedrawFrom == 0 || br.mapSiz < br.partialRedrawFrom {
+					br.partialRedrawFrom = br.mapSiz
+				}
 			}
 			for _, info := range pendingLines {
 				br.seekMap = append(br.seekMap, info.offset)
@@ -470,7 +474,7 @@ func (br *browseObj) readStdin(fin, fout *os.File) bool {
 }
 
 // readFromMap reads a line by index using the seek and size maps. Like
-// lineIsMatch it reuses per-session scratch buffers rather than allocating
+// the search scan it reuses per-session scratch buffers rather than allocating
 // per line, so it is only safe to call from the main goroutine and the
 // returned bytes are valid only until the next call.
 func (br *browseObj) readFromMap(lineno int) []byte {

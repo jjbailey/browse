@@ -17,7 +17,18 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 )
+
+var sessionWarningOnce sync.Once
+
+func (br *browseObj) saveRcFile() {
+	if !br.writeRcFile() {
+		sessionWarningOnce.Do(func() {
+			fmt.Fprintln(os.Stderr, "browse: could not save session file")
+		})
+	}
+}
 
 func (br *browseObj) writeRcFile() bool {
 	var data strings.Builder
@@ -59,6 +70,14 @@ func (br *browseObj) writeRcFile() bool {
 	data.WriteString(strconv.FormatBool(br.searchFixed))
 	data.WriteByte('\n')
 
+	// searchDir
+	data.WriteString(strconv.FormatBool(br.searchDir))
+	data.WriteByte('\n')
+
+	// invertMatch
+	data.WriteString(strconv.FormatBool(br.invertMatch))
+	data.WriteByte('\n')
+
 	// save
 	err = os.WriteFile(rcFileName, []byte(data.String()), 0644)
 
@@ -81,10 +100,17 @@ func (br *browseObj) readRcFile() bool {
 	}
 	defer fp.Close()
 
+	// searchDir and invertMatch were added as lines 8 and 9; older 7- and
+	// 8-line files remain valid
+	const (
+		rcLinesMin = 7
+		rcLinesMax = 9
+	)
+
 	scanner := bufio.NewScanner(fp)
 
 	linesRead := 0
-	for i := range 7 {
+	for i := range rcLinesMax {
 		if !scanner.Scan() {
 			break
 		}
@@ -101,7 +127,7 @@ func (br *browseObj) readRcFile() bool {
 		return false
 	}
 
-	return linesRead == 7
+	return linesRead >= rcLinesMin
 }
 
 func (br *browseObj) handleRcFileLine(i int, line string) bool {
@@ -146,6 +172,22 @@ func (br *browseObj) handleRcFileLine(i int, line string) bool {
 			return false
 		}
 		br.searchFixed = searchFixed
+
+	case 7:
+		// searchDir
+		searchDir, err := strconv.ParseBool(line)
+		if err != nil {
+			return false
+		}
+		br.searchDir = searchDir
+
+	case 8:
+		// invertMatch
+		invertMatch, err := strconv.ParseBool(line)
+		if err != nil {
+			return false
+		}
+		br.invertMatch = invertMatch
 	}
 
 	return true

@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -52,6 +51,7 @@ const (
 	CMD_SEARCH_NEXT_REV = 'N'
 	CMD_SEARCH_IGN_CASE = 'i'
 	CMD_SEARCH_FIXED    = 'I'
+	CMD_INVERT_MATCH    = 'V'
 	CMD_SEARCH_PRINT    = 'p'
 	CMD_SEARCH_CLEAR    = 'P'
 
@@ -85,7 +85,8 @@ const (
 	CMD_GREP      = '&'
 	CMD_HELP      = 'h'
 	CMD_MANPAGE   = 'H'
-	CMD_JUMP      = 'j'
+	CMD_JUMPLINE  = 'j'
+	CMD_JUMPPOS   = 'J'
 	CMD_MARK      = 'm'
 	CMD_NUMBERS   = '#'
 	CMD_FILEPOS   = '%'
@@ -126,7 +127,7 @@ const (
 func commands(br *browseObj) {
 	var searchCompileErr error
 
-	if _, err := br.reCompile(br.pattern); err != nil {
+	if err := br.reCompile(br.pattern); err != nil {
 		searchCompileErr = err
 		br.pattern = ""
 		br.clearSearchRegex()
@@ -153,9 +154,6 @@ func commands(br *browseObj) {
 		br.printMessage(fmt.Sprintf("Regex compilation error: %v", searchCompileErr), MSG_ORANGE)
 	}
 
-	// searchDir controls the direction of search operations
-	var searchDir bool = SEARCH_FWD
-
 	// handle panic
 	defer handlePanic(br)
 
@@ -167,7 +165,15 @@ func commands(br *browseObj) {
 		for i := range b {
 			b[i] = 0
 		}
-		n, err := br.tty.Read(b)
+		var n int
+		var err error
+		if len(br.pendingInput) > 0 {
+			// replay keys typed while a search was running
+			n = copy(b, br.pendingInput)
+			br.pendingInput = br.pendingInput[n:]
+		} else {
+			n, err = br.tty.Read(b)
+		}
 
 		// apply display work posted by the reader goroutine
 		br.drainDisplayEvents()
@@ -362,53 +368,54 @@ func commands(br *browseObj) {
 				fmt.Print(CURRESTORE)
 			}
 
-		case CMD_JUMP:
+		case CMD_JUMPLINE:
 			// jump to line
-			lbuf, cancelled := br.userInput("Jump: ")
-			if !cancelled && len(lbuf) > 0 {
-				n, err := strconv.Atoi(strings.TrimSpace(lbuf))
-				if err != nil {
-					br.printMessage("Invalid line number", MSG_ORANGE)
-				} else if n < 0 {
-					br.printMessage("Line number must be positive", MSG_ORANGE)
-				} else {
-					br.printPage(n)
-				}
-			}
+			jumpLine(br)
+
+		case CMD_JUMPPOS:
+			// jump to position
+			jumpPosition(br)
 
 		case CMD_SEARCH_FWD:
 			// search forward/down
-			searchDir = br.doSearch(searchDir, SEARCH_FWD)
+			br.searchDir = br.doSearch(br.searchDir, SEARCH_FWD)
 
 		case CMD_SEARCH_REV:
 			// search backward/up
-			searchDir = br.doSearch(searchDir, SEARCH_REV)
+			br.searchDir = br.doSearch(br.searchDir, SEARCH_REV)
 
 		case CMD_SEARCH_NEXT:
-			br.searchFile(br.pattern, searchDir, true)
+			br.searchFile(br.pattern, br.searchDir, true)
 
 		case CMD_SEARCH_NEXT_REV:
 			// vim compat
-			br.searchFile(br.pattern, !searchDir, true)
+			br.searchFile(br.pattern, !br.searchDir, true)
 
 		case CMD_SEARCH_IGN_CASE:
-			br.ignoreCase = !br.ignoreCase
-			br.lastMatch = SEARCH_RESET
-			br.reCompile(br.pattern)
-			if br.ignoreCase {
+			if err := br.toggleSearchOption(&br.ignoreCase); err != nil {
+				br.printMessage(fmt.Sprintf("Regex compilation error: %v", err), MSG_ORANGE)
+			} else if br.ignoreCase {
 				br.printMessage("Search ignores case", MSG_GREEN)
 			} else {
 				br.printMessage("Search considers case", MSG_GREEN)
 			}
 
 		case CMD_SEARCH_FIXED:
-			br.searchFixed = !br.searchFixed
-			br.lastMatch = SEARCH_RESET
-			br.reCompile(br.pattern)
-			if br.searchFixed {
+			if err := br.toggleSearchOption(&br.searchFixed); err != nil {
+				br.printMessage(fmt.Sprintf("Regex compilation error: %v", err), MSG_ORANGE)
+			} else if br.searchFixed {
 				br.printMessage("Fixed-string search", MSG_GREEN)
 			} else {
 				br.printMessage("Regex search", MSG_GREEN)
+			}
+
+		case CMD_INVERT_MATCH:
+			// only affects grep (&) for now
+			br.invertMatch = !br.invertMatch
+			if br.invertMatch {
+				br.printMessage("grep shows non-matching lines (-v)", MSG_GREEN)
+			} else {
+				br.printMessage("grep shows matching lines", MSG_GREEN)
 			}
 
 		case CMD_SEARCH_PRINT:
@@ -446,7 +453,7 @@ func commands(br *browseObj) {
 			br.runFormat()
 
 		case CMD_GREP:
-			// grep -nP pattern
+			// grep -P pattern
 			br.runGrep()
 
 		case CMD_HALF_PAGE_DN, CMD_HALF_PAGE_DN_1, CMD_HALF_PAGE_DN_2:
