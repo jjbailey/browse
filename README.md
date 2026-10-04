@@ -108,7 +108,7 @@ browse -p ERROR app.log
 ## Command Line Options
 
 ```bash
-browse [-fFiInvV?] [-p pattern] [-t title] [filename...]
+browse [-fFiInv?] [-p pattern] [-t title] [filename...]
 ```
 
 | Option                 | Function                                      |
@@ -117,7 +117,6 @@ browse [-fFiInvV?] [-p pattern] [-t title] [filename...]
 | `-F`, `--tail`         | Follow file changes like `tail -f`            |
 | `-i`, `--ignore-case`  | Search ignores case                           |
 | `-I`, `--fixed-string` | Search literal strings                        |
-| `-V`, `--invert-match` | `grep` (`&`) shows non-matching lines         |
 | `-n`, `--numbers`      | Start with line numbers turned on             |
 | `-p`, `--pattern`      | Initial search pattern                        |
 | `-t`, `--title`        | Page title, default filename, blank for stdin |
