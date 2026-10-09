@@ -16,7 +16,7 @@ import (
 	"path/filepath"
 )
 
-// runFormat pipes the current search pattern to fmt and opens the results.
+// runFormat pipes the current file through fmt and opens the results.
 func (br *browseObj) runFormat() {
 	// Snapshot fileName under the lock; the reader goroutine may rotate it.
 	fileName := br.currentFileName()

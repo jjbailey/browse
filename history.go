@@ -52,6 +52,11 @@ func loadHistory(historyFile string) []string {
 		warnHistoryPersistence(err)
 		return []string{}
 	}
+	if historyFile == fileHistory || historyFile == dirHistory {
+		for i, entry := range history {
+			history[i] = normalizePathHistoryEntry(entry)
+		}
+	}
 
 	// If history is too large, keep only the most recent entries
 	if len(history) > maxHistorySize {
@@ -141,9 +146,7 @@ func updateHistory(newEntry, historyFile string) {
 		// (if any) are part of the pattern, not shell quoting
 
 	default:
-		if strings.ContainsAny(newEntry, " ") && !strings.ContainsAny(newEntry, "'") {
-			newEntry = "'" + newEntry + "'"
-		}
+		newEntry = quotePathHistoryEntry(newEntry)
 	}
 
 	history := loadHistory(historyFile)
@@ -155,6 +158,35 @@ func updateHistory(newEntry, historyFile string) {
 
 	history = append(history, newEntry)
 	saveHistory(history, historyFile)
+}
+
+// quotePathHistoryEntry stores a path so fieldsQuoted can replay it exactly.
+func quotePathHistoryEntry(path string) string {
+	if strings.ContainsAny(path, "'\"") {
+		// Double quotes preserve apostrophes. Escape double quotes and
+		// backslashes so fieldsQuoted can replay the path exactly.
+		return `"` + strings.NewReplacer("\\", "\\\\", "\"", "\\\"").Replace(path) + `"`
+	}
+	if strings.ContainsAny(path, " \t") {
+		return "'" + path + "'"
+	}
+	return path
+}
+
+// normalizePathHistoryEntry preserves old unescaped paths and accepts entries
+// already stored in the quoted format.
+func normalizePathHistoryEntry(entry string) string {
+	fields := fieldsQuoted(entry)
+	if len(fields) == 1 {
+		quoted := quotePathHistoryEntry(fields[0])
+		wrapped := len(entry) >= 2 &&
+			((entry[0] == '\'' && entry[len(entry)-1] == '\'') ||
+				(entry[0] == '"' && entry[len(entry)-1] == '"'))
+		if quoted == entry || wrapped {
+			return quoted
+		}
+	}
+	return quotePathHistoryEntry(entry)
 }
 
 // vim: set ts=4 sw=4 noet:

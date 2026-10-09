@@ -630,7 +630,7 @@ func dirCommand(br *browseObj) bool {
 			return false
 		}
 
-		newDir = unQuote(pdir)
+		newDir = pdir
 	}
 
 	// Save original working directory
@@ -705,7 +705,12 @@ func fileCommand(br *browseObj) bool {
 				return false
 			}
 
-			tok = unQuote(history[len(history)-2])
+			previous := history[len(history)-2]
+			if fields := fieldsQuoted(previous); len(fields) == 1 {
+				tok = fields[0]
+			} else {
+				tok = unQuote(previous)
+			}
 		}
 
 		// Expand globs for each token
@@ -738,7 +743,8 @@ func fileCommand(br *browseObj) bool {
 	return false
 }
 
-// fieldsQuoted splits a string into fields, preserving quoted substrings.
+// fieldsQuoted splits on whitespace outside quotes, removes quote delimiters,
+// and decodes escaped quotes and backslashes inside double quotes.
 func fieldsQuoted(s string) []string {
 	var (
 		fields  []string
@@ -746,7 +752,18 @@ func fieldsQuoted(s string) []string {
 		field   strings.Builder
 	)
 
-	for _, r := range s {
+	runes := []rune(s)
+	for i := 0; i < len(runes); i++ {
+		r := runes[i]
+
+		// Within double quotes, allow escaped double quotes and backslashes.
+		if inQuote == '"' && r == '\\' && i+1 < len(runes) &&
+			(runes[i+1] == '"' || runes[i+1] == '\\') {
+			i++
+			field.WriteRune(runes[i])
+			continue
+		}
+
 		switch {
 
 		case r == '\'' || r == '"':

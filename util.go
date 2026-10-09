@@ -259,7 +259,11 @@ func prevDirectory() string {
 		return ""
 	}
 
-	return history[len(history)-2]
+	entry := history[len(history)-2]
+	if fields := fieldsQuoted(entry); len(fields) == 1 {
+		return fields[0]
+	}
+	return unQuote(entry)
 }
 
 // unQuote removes surrounding single quotes from a string.
