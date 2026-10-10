@@ -193,7 +193,7 @@ func (br *browseObj) printPage(lineno int) {
 	lineno = adjustLineNumber(lineno, br.dispRows, mapSize)
 	sop := lineno
 	// +1 for EOF
-	eop := minimum(sop+br.dispRows, mapSize+1)
+	eop := min(sop+br.dispRows, mapSize+1)
 
 	if mapSize > br.dispRows && br.tryScroll(sop) {
 		return

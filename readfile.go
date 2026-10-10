@@ -19,11 +19,14 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-// readInit resets reader state for a new or truncated file.
+// readInit resets reader state for a new or truncated file. Callers hold
+// br.mutex. Bumping mapGen invalidates the render read-ahead: this is the
+// only path on which bytes already read can be replaced by different ones.
 func readInit(br *browseObj, bytesRead *int64) {
 	br.mapSiz = 1
 	br.seekMap = []int64{0}
 	br.sizeMap = []int64{0}
+	br.mapGen++
 	br.newFileSiz = 0
 	br.savFileSiz = 0
 	br.newInode = 0
@@ -477,6 +480,9 @@ func (br *browseObj) readStdin(fin, fout *os.File) bool {
 // the search scan it reuses per-session scratch buffers rather than allocating
 // per line, so it is only safe to call from the main goroutine and the
 // returned bytes are valid only until the next call.
+//
+// Consecutive lines are served from one read-ahead block, so painting a page
+// costs a single read rather than one per line.
 func (br *browseObj) readFromMap(lineno int) []byte {
 	br.mutex.Lock()
 	if lineno < 0 || lineno >= br.mapSiz || br.fp == nil {
@@ -493,20 +499,109 @@ func (br *browseObj) readFromMap(lineno int) []byte {
 		return nil
 	}
 
+	data, ok := br.readLineBytes(lineno, seek, size)
+	br.mutex.Unlock()
+	if !ok {
+		return nil
+	}
+
+	expanded, scratch := expandTabs(data, br.readTabScratch)
+	br.readTabScratch = scratch
+	return expanded
+}
+
+// readLineBytes returns the raw bytes of one line, from the read-ahead block
+// when it holds them and from a single-line read otherwise. Callers hold
+// br.mutex. The returned bytes alias a scratch buffer and stay valid only
+// until the next call.
+func (br *browseObj) readLineBytes(lineno int, seek, size int64) ([]byte, bool) {
+	if br.readAheadHolds(seek, size) {
+		off := seek - br.readAheadOff
+		return br.readAheadBuf[off : off+size], true
+	}
+
+	// Refill unless this line sits inside a block that already came up
+	// short, which means the file is shrinking under us. Re-reading the
+	// block for every line would then cost two reads per line instead of
+	// falling back to one.
+	shortBlock := br.readAheadEnd > br.readAheadOff &&
+		br.readAheadSeq == br.fileSeq && br.readAheadGen == br.mapGen &&
+		seek >= br.readAheadOff && seek < br.readAheadEnd
+
+	if !shortBlock && br.fillReadAhead(lineno) && br.readAheadHolds(seek, size) {
+		off := seek - br.readAheadOff
+		return br.readAheadBuf[off : off+size], true
+	}
+
+	// Single-line fallback: a short read or an unreadable block.
 	if int64(cap(br.readScratch)) < size {
 		br.readScratch = make([]byte, size)
 	}
 	data := br.readScratch[:size]
 
 	n, err := br.fp.ReadAt(data, seek)
-	br.mutex.Unlock()
 	if err != nil && err != io.EOF {
-		return nil
+		return nil, false
 	}
 
-	expanded, scratch := expandTabs(data[:n], br.readTabScratch)
-	br.readTabScratch = scratch
-	return expanded
+	return data[:n], true
+}
+
+// readAheadHolds reports whether the cached block was read from the current
+// file and generation and actually covers [seek, seek+size). Bytes already in
+// the file never change except across a readInit, which bumps mapGen, so a
+// covered range is still the file's current content.
+func (br *browseObj) readAheadHolds(seek, size int64) bool {
+	return br.readAheadLen > 0 &&
+		br.readAheadSeq == br.fileSeq &&
+		br.readAheadGen == br.mapGen &&
+		seek >= br.readAheadOff &&
+		seek+size <= br.readAheadOff+int64(br.readAheadLen)
+}
+
+// fillReadAhead reads a block starting at lineno and covering as many
+// following lines as fit in READAHEADSIZ. Callers hold br.mutex.
+func (br *browseObj) fillReadAhead(lineno int) bool {
+	start := br.seekMap[lineno]
+	end := start + br.sizeMap[lineno]
+
+	// Grow the block over following lines. Lines ascend through the file
+	// without overlap; stop at anything else rather than cache garbage.
+	for next := lineno + 1; next < br.mapSiz; next++ {
+		size := br.sizeMap[next]
+		if size < 0 || size > READBUFSIZ {
+			break
+		}
+
+		nextEnd := br.seekMap[next] + size
+		if br.seekMap[next] < end || nextEnd-start > READAHEADSIZ {
+			break
+		}
+
+		end = nextEnd
+	}
+
+	// The first line is capped at READBUFSIZ and the run stops at
+	// READAHEADSIZ, so one full-size buffer always suffices.
+	if cap(br.readAheadBuf) < READAHEADSIZ {
+		br.readAheadBuf = make([]byte, READAHEADSIZ)
+	}
+
+	// Record the attempt before reading, so a block that comes up short or
+	// unreadable is not retried for each of its lines.
+	br.readAheadOff = start
+	br.readAheadEnd = end
+	br.readAheadSeq = br.fileSeq
+	br.readAheadGen = br.mapGen
+	br.readAheadLen = 0
+
+	n, err := br.fp.ReadAt(br.readAheadBuf[:end-start], start)
+	if err != nil && err != io.EOF {
+		return false
+	}
+
+	br.readAheadLen = n
+	return true
 }
 
 // vim: set ts=4 sw=4 noet:

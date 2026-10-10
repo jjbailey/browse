@@ -30,6 +30,10 @@ const (
 	NUMCOLWIDTH = 8
 	READBUFSIZ  = 4096
 	TABWIDTH    = 4
+
+	// Bytes read per system call when rendering lines. One block covers a
+	// typical page, so a paint costs one read instead of one per line.
+	READAHEADSIZ = 64 * 1024
 )
 
 // ─── Terminal Control Sequences ─────────────────────────────────────
@@ -161,8 +165,13 @@ type browseObj struct {
 	mapSiz      int
 	seekMap     []int64
 	sizeMap     []int64
-	shiftWidth  int
-	lastKey     byte
+
+	// mapGen counts resets of the line maps. Appends leave earlier entries
+	// valid, so only readInit bumps it; the render read-ahead uses it to
+	// discard a block whose file bytes may have been rewritten underneath.
+	mapGen     uint64
+	shiftWidth int
+	lastKey    byte
 
 	// Search and match
 	pattern      string
@@ -185,6 +194,15 @@ type browseObj struct {
 	searchLines      [][]byte
 	matchTabScratch  []byte
 	matchFoldScratch []byte
+
+	// Render read-ahead: one block of file bytes serving consecutive
+	// readFromMap calls. See readFromMap and fillReadAhead.
+	readAheadBuf []byte
+	readAheadOff int64
+	readAheadEnd int64
+	readAheadLen int
+	readAheadSeq uint64
+	readAheadGen uint64
 
 	// State flags
 	hitEOF      bool

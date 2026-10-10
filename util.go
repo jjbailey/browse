@@ -16,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -29,20 +30,6 @@ const oscClose = "\033]8;;\033\\"
 // oscOpen starts an OSC 8 terminal hyperlink to url.
 func oscOpen(url string) string {
 	return "\033]8;;" + url + "\033\\"
-}
-
-func oscWrap(text, url string) string {
-	return oscOpen(url) + text + oscClose
-}
-
-func linkURLs(s string) string {
-	if !strings.Contains(s, "://") {
-		return s
-	}
-
-	return urlRe.ReplaceAllStringFunc(s, func(url string) string {
-		return oscWrap(url, url)
-	})
 }
 
 // expandTabs replaces tabs, carriage returns, and form feeds with spaces.
@@ -79,14 +66,22 @@ func expandTabs(data, dst []byte) ([]byte, []byte) {
 	return out, out[:0]
 }
 
-// moveCursor positions the cursor and optionally clears the line.
+// moveCursor positions the cursor and optionally clears the line. The escape
+// is assembled in a stack buffer and emitted with a single write; this runs
+// on nearly every command, so it avoids fmt's formatting and boxing.
 func moveCursor(row, col int, clrflag bool) {
+	buf := make([]byte, 0, 32)
+	buf = append(buf, '\033', '[')
+	buf = strconv.AppendInt(buf, int64(row), 10)
+	buf = append(buf, ';')
+	buf = strconv.AppendInt(buf, int64(col), 10)
+	buf = append(buf, 'H')
+
 	if clrflag {
-		fmt.Printf(CURPOS+CLEARLINE, row, col)
-		return
+		buf = append(buf, CLEARLINE...)
 	}
 
-	fmt.Printf(CURPOS, row, col)
+	os.Stdout.Write(buf)
 }
 
 // appendSEOF appends SOF/EOF markers to the pending output buffer.
@@ -107,24 +102,6 @@ func appendSEOF(buf *bytes.Buffer, what string) {
 // windowAtEOF reports whether a line index is at EOF.
 func windowAtEOF(lineno, mapsiz int) bool {
 	return lineno == mapsiz
-}
-
-// maximum returns the larger of two integers.
-func maximum(a, b int) int {
-	if a > b {
-		return a
-	}
-
-	return b
-}
-
-// minimum returns the smaller of two integers.
-func minimum(a, b int) int {
-	if a < b {
-		return a
-	}
-
-	return b
 }
 
 // resetScrRegion restores the terminal scroll region.
@@ -239,10 +216,10 @@ func resolveSymlink(path string) (string, error) {
 func lastNChars(s string, dispWidth int) string {
 	const padding = 45
 
-	usable := max(maximum(dispWidth-padding, dispWidth>>1), 0)
+	usable := max(dispWidth-padding, dispWidth>>1, 0)
 	runes := []rune(s)
 	runeLen := len(runes)
-	size := minimum(usable, runeLen)
+	size := min(usable, runeLen)
 
 	return string(runes[len(runes)-size:])
 }

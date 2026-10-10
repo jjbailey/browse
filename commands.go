@@ -860,7 +860,7 @@ func waitForInput(br *browseObj) {
 	if curMapSiz < targetSize {
 		// did not get a full read -- reset
 		// +2 for header, EOF
-		br.firstRow = maximum(0, curMapSiz-br.dispHeight+2)
+		br.firstRow = max(0, curMapSiz-br.dispHeight+2)
 	}
 }
 
@@ -875,7 +875,7 @@ func shiftLongest(br *browseObj) int {
 	br.mutex.Lock()
 	mapSize := br.mapSiz
 	br.mutex.Unlock()
-	lastRow := minimum(br.firstRow+br.dispRows, mapSize)
+	lastRow := min(br.firstRow+br.dispRows, mapSize)
 
 	for i := br.firstRow; i < lastRow; i++ {
 		line := br.readFromMap(i)

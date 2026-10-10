@@ -34,7 +34,7 @@ func (br *browseObj) scrollDown(count int) {
 	for i := 0; i < count && !br.hitEOFState(); i++ {
 		// printLine finds EOF, sets hitEOF
 		// add line -- +1 for header
-		writeCursorPos(scrollBuf, minimum(br.lastRow+1, br.dispHeight), 1)
+		writeCursorPos(scrollBuf, min(br.lastRow+1, br.dispHeight), 1)
 
 		if br.shownEOFState() {
 			// print previous line before printing the current line
@@ -71,7 +71,7 @@ func (br *browseObj) scrollUp(count int) {
 		return
 	}
 
-	rowsToScroll := minimum(count, br.firstRow)
+	rowsToScroll := min(count, br.firstRow)
 	scrollRevCmd := fmt.Sprintf(CURPOS+SCROLLREV, 2, 1)
 	mapSize := br.currentMapSize()
 
