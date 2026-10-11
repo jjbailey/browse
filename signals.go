@@ -42,7 +42,7 @@ func (br *browseObj) resizeWindow() {
 // resizedTopLine preserves an EOF-bottom anchor across terminal size changes.
 func resizedTopLine(firstRow, dispRows, mapSize int, wasAtEOF bool) int {
 	if wasAtEOF {
-		return maximum(0, mapSize-dispRows+1)
+		return max(0, mapSize-dispRows+1)
 	}
 
 	return adjustLineNumber(firstRow, dispRows, mapSize)

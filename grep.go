@@ -26,7 +26,6 @@ const (
 	grepLineNumbers   = "n"
 	browseIgnoreCase  = "-i"
 	browseFixedString = "-I"
-	browseInvertMatch = "-V"
 )
 
 // runGrep pipes the current search pattern to grep and opens the results.
@@ -86,7 +85,6 @@ func (br *browseObj) grepCommand(grepPath, brPath, fileName string) string {
 	}
 	if br.invertMatch {
 		grepOpts += grepInvert
-		brOpts = append(brOpts, browseInvertMatch)
 	}
 	if br.searchFixed {
 		grepOpts += grepFixed

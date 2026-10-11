@@ -122,7 +122,7 @@ func (br *browseObj) findSearchMatch(forward, next bool) (int, bool, error) {
 		}
 
 		if startLine > 0 {
-			if matchLine, err := br.findForwardMatch(0, minimum(startLine, mapSize), mapSize); matchLine >= 0 || err != nil {
+			if matchLine, err := br.findForwardMatch(0, min(startLine, mapSize), mapSize); matchLine >= 0 || err != nil {
 				return matchLine, true, err
 			}
 		}
@@ -135,7 +135,7 @@ func (br *browseObj) findSearchMatch(forward, next bool) (int, bool, error) {
 	}
 
 	if startLine < mapSize-1 {
-		if matchLine, err := br.findReverseMatch(mapSize-1, maximum(startLine+1, 0), mapSize); matchLine >= 0 || err != nil {
+		if matchLine, err := br.findReverseMatch(mapSize-1, max(startLine+1, 0), mapSize); matchLine >= 0 || err != nil {
 			return matchLine, true, err
 		}
 	}
@@ -161,17 +161,17 @@ func (br *browseObj) searchStartLine(forward, next bool, mapSize int) int {
 // currentPageSearchStart returns the first current-page line to inspect.
 func (br *browseObj) currentPageSearchStart(forward bool, mapSize int) int {
 	if forward {
-		return maximum(br.firstRow, 1)
+		return max(br.firstRow, 1)
 	}
 
-	return minimum(br.firstRow+br.dispRows-1, mapSize-1)
+	return min(br.firstRow+br.dispRows-1, mapSize-1)
 }
 
 // findForwardMatch scans from startLine up to endLine for the first match.
 func (br *browseObj) findForwardMatch(startLine, endLine, mapSize int) (int, error) {
 	// Line zero is the synthetic SOF marker, not file content.
-	startLine = maximum(startLine, 1)
-	endLine = minimum(endLine, mapSize)
+	startLine = max(startLine, 1)
+	endLine = min(endLine, mapSize)
 
 	for first := startLine; first < endLine; {
 		if br.searchCancelled() {
@@ -197,9 +197,9 @@ func (br *browseObj) findForwardMatch(startLine, endLine, mapSize int) (int, err
 
 // findReverseMatch scans from startLine down to endLine for the first match.
 func (br *browseObj) findReverseMatch(startLine, endLine, mapSize int) (int, error) {
-	startLine = minimum(startLine, mapSize-1)
+	startLine = min(startLine, mapSize-1)
 	// Line zero is the synthetic SOF marker, not file content.
-	endLine = maximum(endLine, 1)
+	endLine = max(endLine, 1)
 
 	for last := startLine; last >= endLine; {
 		if br.searchCancelled() {
@@ -393,6 +393,32 @@ func (br *browseObj) searchDisplayTop(matchLine int, forward bool) int {
 	return matchLine - (br.dispRows*5)/6
 }
 
+// lineMatches returns the positions of every match in a full line, for
+// highlighting. A plain case-sensitive literal is located with bytes.Index,
+// which is cheaper than running the regexp engine over every rendered line.
+// Lines with no match return nil without allocating.
+func (br *browseObj) lineMatches(input []byte) [][]int {
+	if len(br.matchLiteral) == 0 || br.matchFold {
+		return br.re.FindAllIndex(input, -1)
+	}
+
+	var matches [][]int
+	width := len(br.matchLiteral)
+
+	for off := 0; off+width <= len(input); {
+		i := bytes.Index(input[off:], br.matchLiteral)
+		if i < 0 {
+			break
+		}
+
+		start := off + i
+		matches = append(matches, []int{start, start + width})
+		off = start + width
+	}
+
+	return matches
+}
+
 // replaceMatch highlights matches in a line and formats it for display.
 func (br *browseObj) replaceMatch(lineno int, input []byte) string {
 	sol := max(br.shiftWidth, 0)
@@ -405,12 +431,14 @@ func (br *browseObj) replaceMatch(lineno int, input []byte) string {
 	}
 
 	if br.re == nil {
-		return br.formatLine(lineno, linkURLs(string(content)))
+		// No pattern: highlightLine with no matches still wraps URLs, and
+		// takes the line as bytes rather than copying it to a string.
+		return br.formatLine(lineno, highlightLine(content, nil, sol, false))
 	}
 
 	// Match against the whole line, not the shifted slice, so anchors and
 	// word boundaries keep their meaning after a horizontal shift.
-	matches := br.re.FindAllIndex(input, -1)
+	matches := br.lineMatches(input)
 	leftMatch, rightMatch := undisplayedMatches(matches, sol, br.rightLimit(input, sol))
 
 	if len(content) == 0 {

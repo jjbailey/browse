@@ -235,7 +235,7 @@ func fileCompleter(word string) []prompt.Suggest {
 // pathCompleter completes executable names from PATH entries.
 func pathCompleter(word string) []prompt.Suggest {
 	candidates := pathCompleterCandidates()
-	suggestions := make([]prompt.Suggest, 0, minimum(len(candidates), maxSuggestions))
+	suggestions := make([]prompt.Suggest, 0, min(len(candidates), maxSuggestions))
 
 	for _, candidate := range candidates {
 		if !strings.HasPrefix(candidate.name, word) {
@@ -401,7 +401,7 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 func matchFileCandidates(files []os.DirEntry, dir, prefix string,
 	useFullPath bool, onlyType, limit int) []completionCandidate {
 
-	candidates := make([]completionCandidate, 0, minimum(len(files), maxSuggestions))
+	candidates := make([]completionCandidate, 0, min(len(files), maxSuggestions))
 
 	for _, file := range files {
 		if limit > 0 && len(candidates) >= limit {

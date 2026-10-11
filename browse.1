@@ -161,7 +161,7 @@ browse -p ERROR app.log
 .SS Command Line Options
 .nf
 
-browse [-fFiInvV?] [-p pattern] [-t title] [filename...]
+browse [-fFiInv?] [-p pattern] [-t title] [filename...]
 \f[R]
 .fi
 .PP
@@ -194,11 +194,6 @@ T{
 \f[V]-I\f[R], \f[V]--fixed-string\f[R]
 T}@T{
 Search literal strings
-T}
-T{
-\f[V]-V\f[R], \f[V]--invert-match\f[R]
-T}@T{
-\f[V]grep\f[R] (\f[V]&\f[R]) shows non-matching lines
 T}
 T{
 \f[V]-n\f[R], \f[V]--numbers\f[R]
@@ -418,6 +413,22 @@ It does not change \f[V]/\f[R], \f[V]?\f[R], \f[V]n\f[R], or
 .PP
 Press \f[V]Ctrl-C\f[R] to cancel a search that is taking too long on a
 large file.
+.SS External Commands
+.PP
+Some commands use external programs:
+.IP \[bu] 2
+\f[V]&\f[R] uses \f[V]grep -P\f[R] for regex searches, so the installed
+\f[V]grep\f[R] must support \f[V]-P\f[R] (commonly GNU grep built with
+PCRE support).
+Fixed-string mode uses \f[V]grep -F\f[R] instead.
+.IP \[bu] 2
+\f[V]F\f[R] uses the \f[V]fmt\f[R] command.
+.IP \[bu] 2
+\f[V]!\f[R], \f[V]&\f[R], and \f[V]F\f[R] run commands through
+\f[V]bash\f[R], which must be available in \f[V]PATH\f[R].
+.PP
+Compressed-file decompressor requirements are listed in Browsing
+Compressed Files.
 .SS Files, Lists, and Session Control
 .PP
 .ne 12v
@@ -545,8 +556,11 @@ T}
 Press \f[V]B\f[R] to open a new file or file set.
 The prompt accepts one or more file names, shell globs such as
 \f[V]*.go\f[R], quoted filenames containing spaces, and history entries.
-It also expands special symbols such as \f[V]%\f[R] for the current file
-and \f[V]\[ti]\f[R] for the home directory.
+Double-quoted names preserve apostrophes; use \f[V]\[rs]\[dq]\f[R] and
+\f[V]\[rs]\[rs]\f[R] for literal double quotes and backslashes within
+double quotes.
+The prompt also expands special symbols such as \f[V]%\f[R] for the
+current file and \f[V]\[ti]\f[R] for the home directory.
 .PP
 When a file set is opened with \f[V]B\f[R], \f[B]browse\f[R] temporarily
 suspends the current list.

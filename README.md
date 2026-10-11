@@ -108,7 +108,7 @@ browse -p ERROR app.log
 ## Command Line Options
 
 ```bash
-browse [-fFiInvV?] [-p pattern] [-t title] [filename...]
+browse [-fFiInv?] [-p pattern] [-t title] [filename...]
 ```
 
 | Option                 | Function                                      |
@@ -117,7 +117,6 @@ browse [-fFiInvV?] [-p pattern] [-t title] [filename...]
 | `-F`, `--tail`         | Follow file changes like `tail -f`            |
 | `-i`, `--ignore-case`  | Search ignores case                           |
 | `-I`, `--fixed-string` | Search literal strings                        |
-| `-V`, `--invert-match` | `grep` (`&`) shows non-matching lines         |
 | `-n`, `--numbers`      | Start with line numbers turned on             |
 | `-p`, `--pattern`      | Initial search pattern                        |
 | `-t`, `--title`        | Page title, default filename, blank for stdin |
@@ -174,6 +173,20 @@ lines that do not match. It does not change `/`, `?`, `n`, or `N`.
 
 Press `Ctrl-C` to cancel a search that is taking too long on a large file.
 
+### External Commands
+
+Some commands use external programs:
+
+- `&` uses `grep -P` for regex searches, so the installed `grep` must support
+  `-P` (commonly GNU grep built with PCRE support). Fixed-string mode uses
+  `grep -F` instead.
+- `F` uses the `fmt` command.
+- `!`, `&`, and `F` run commands through `bash`, which must be available in
+  `PATH`.
+
+Compressed-file decompressor requirements are listed in
+[Browsing Compressed Files](#browsing-compressed-files).
+
 ### Files, Lists, and Session Control
 
 | Key      | Function                                        |
@@ -209,8 +222,10 @@ Press `Ctrl-C` to cancel a search that is taking too long on a large file.
 
 Press `B` to open a new file or file set. The prompt accepts one or more file
 names, shell globs such as `*.go`, quoted filenames containing spaces, and
-history entries. It also expands special symbols such as `%` for the current
-file and `~` for the home directory.
+history entries. Double-quoted names preserve apostrophes; use `\"` and `\\`
+for literal double quotes and backslashes within double quotes. The prompt also
+expands special symbols such as `%` for the current file and `~` for the home
+directory.
 
 When a file set is opened with `B`, **browse** temporarily suspends the current
 list. After the nested list is finished, **browse** resumes the previous list

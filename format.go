@@ -16,7 +16,7 @@ import (
 	"path/filepath"
 )
 
-// runFormat pipes the current search pattern to fmt and opens the results.
+// runFormat pipes the current file through fmt and opens the results.
 func (br *browseObj) runFormat() {
 	// Snapshot fileName under the lock; the reader goroutine may rotate it.
 	fileName := br.currentFileName()
@@ -55,7 +55,7 @@ func (br *browseObj) runFormat() {
 	brPathArg := shellEscapeSingle(brPath)
 
 	// Use correct fmt command options with width parameter
-	formatOpts := fmt.Sprintf("-s -w %d", maximum(10, br.dispWidth-NUMCOLWIDTH-1))
+	formatOpts := fmt.Sprintf("-s -w %d", max(10, br.dispWidth-NUMCOLWIDTH-1))
 
 	// Construct command - fmt should pipe output to browse for display
 	cmd := fmt.Sprintf("%s %s %s | %s -t %s",
