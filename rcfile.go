@@ -79,7 +79,7 @@ func (br *browseObj) writeRcFile() bool {
 	data.WriteByte('\n')
 
 	// save
-	err = os.WriteFile(rcFileName, []byte(data.String()), 0644)
+	err = os.WriteFile(rcFileName, []byte(data.String()), 0600)
 
 	return err == nil
 }
@@ -108,6 +108,7 @@ func (br *browseObj) readRcFile() bool {
 	)
 
 	scanner := bufio.NewScanner(fp)
+	scanner.Buffer(make([]byte, 0, 64*1024), 1<<20)
 
 	linesRead := 0
 	for i := range rcLinesMax {

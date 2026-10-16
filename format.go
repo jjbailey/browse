@@ -23,7 +23,7 @@ func (br *browseObj) runFormat() {
 
 	// Check if file exists before attempting to format
 	_, err := os.Stat(fileName)
-	if os.IsNotExist(err) {
+	if err != nil {
 		br.printMessage("File does not exist", MSG_ORANGE)
 		return
 	}
