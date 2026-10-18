@@ -17,6 +17,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"unicode/utf8"
 )
 
 // userAnyKey waits for any key press with an optional prompt.
@@ -156,7 +157,8 @@ func (br *browseObj) userInput(promptStr string) (string, bool) {
 
 		case BACKSPACE, DELETE:
 			if len(linebuf) > 0 {
-				linebuf = linebuf[:len(linebuf)-1]
+				_, size := utf8.DecodeLastRuneInString(linebuf)
+				linebuf = linebuf[:len(linebuf)-size]
 				moveCursor(br.dispHeight, 1, true)
 				fmt.Print(promptStr, linebuf)
 			} else {
@@ -164,8 +166,10 @@ func (br *browseObj) userInput(promptStr string) (string, bool) {
 			}
 
 		case ERASEWORD:
-			if n := strings.LastIndex(linebuf, " "); n > 0 {
-				linebuf = linebuf[:n]
+			// drop trailing whitespace, then the word before it
+			trimmed := strings.TrimRight(linebuf, " \t")
+			if n := strings.LastIndexAny(trimmed, " \t"); n >= 0 {
+				linebuf = trimmed[:n+1]
 			} else {
 				linebuf = ""
 			}

@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -211,8 +212,8 @@ func (br *browseObj) findReverseMatch(startLine, endLine, mapSize int) (int, err
 			break
 		}
 
-		for i := len(lines) - 1; i >= 0; i-- {
-			if br.searchLineMatches(lines[i]) {
+		for i, line := range slices.Backward(lines) {
+			if br.searchLineMatches(line) {
 				return first + i, nil
 			}
 		}

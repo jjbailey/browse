@@ -12,6 +12,7 @@ package main
 import (
 	"bytes"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -264,11 +265,11 @@ func (br *browseObj) browseStackText() string {
 	sb.WriteString(br.currentFileName())
 	sb.WriteString("]")
 
-	for i := len(br.browseStack) - 1; i >= 0; i-- {
-		if br.browseStack[i].fromStdin {
+	for _, v := range slices.Backward(br.browseStack) {
+		if v.fromStdin {
 			continue
 		}
-		name := " " + br.browseStack[i].fileName
+		name := " " + v.fileName
 		if sb.Len()+len(name) > maxLen {
 			sb.WriteString(" ...")
 			break

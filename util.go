@@ -18,6 +18,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 var tabSpaces = [TABWIDTH]byte{' ', ' ', ' ', ' '}
@@ -259,7 +260,7 @@ func fdLinkPath(fd int) string {
 
 // abbreviateFileName abbreviates the file name if it's too long for display.
 func abbreviateFileName(dispName string, availableWidth int) string {
-	if len(dispName) <= availableWidth {
+	if utf8.RuneCountInString(dispName) <= availableWidth {
 		return dispName
 	}
 
@@ -271,8 +272,13 @@ func abbreviateFileName(dispName string, availableWidth int) string {
 	abbrevName := "..." + "/" + filepath.Base(parentDir) + "/" + baseName
 
 	// If still too long, just use parent/base format without ellipsis
-	if len(abbrevName) > availableWidth {
+	if utf8.RuneCountInString(abbrevName) > availableWidth {
 		abbrevName = filepath.Base(parentDir) + "/" + baseName
+	}
+
+	// still too long: keep the tail, which holds the file name
+	if r := []rune(abbrevName); availableWidth > 1 && len(r) > availableWidth {
+		abbrevName = "…" + string(r[len(r)-availableWidth+1:])
 	}
 
 	return abbrevName

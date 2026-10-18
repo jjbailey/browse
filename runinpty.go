@@ -31,18 +31,34 @@ const (
 	WAITSIGS = 2
 )
 
+// lookPathAbs finds name using only the absolute entries of $PATH. Relative
+// entries ("." or empty) are skipped, so a binary in the current directory is
+// never picked up by accident, yet bash is still found when the CWD is itself
+// a PATH directory such as /usr/bin.
+func lookPathAbs(name string) (string, error) {
+	for _, dir := range filepath.SplitList(os.Getenv("PATH")) {
+		if !filepath.IsAbs(dir) {
+			continue
+		}
+		p := filepath.Join(dir, name)
+		if err := unix.Access(p, unix.X_OK); err != nil {
+			continue
+		}
+		if fi, err := os.Stat(p); err == nil && fi.Mode().IsRegular() {
+			return p, nil
+		}
+	}
+	return "", &exec.Error{Name: name, Err: exec.ErrNotFound}
+}
+
 // runInPty executes a command in a pseudo-terminal and restores state.
 func (br *browseObj) runInPty(cmdbuf string) {
 	var err error
 
-	bashPath, err := exec.LookPath("bash")
+	bashPath, err := lookPathAbs("bash")
 	if err != nil {
-		if errors.Is(err, exec.ErrDot) {
-			bashPath, _ = filepath.Abs(bashPath)
-		} else {
-			br.printMessage("Cannot find bash", MSG_RED)
-			return
-		}
+		br.printMessage("Cannot find bash", MSG_RED)
+		return
 	}
 
 	cmd := exec.Command(bashPath, "-c", cmdbuf)
@@ -65,7 +81,7 @@ func (br *browseObj) runInPty(cmdbuf string) {
 	ptySave, err := term.MakeRaw(int(os.Stdout.Fd()))
 	if err != nil {
 		// Failed to set raw mode - restore signals and return
-		ptmx.Close()
+		// (the deferred Close releases ptmx)
 		br.catchSignals()
 		return
 	}

@@ -11,7 +11,9 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -35,8 +37,12 @@ func loadHistory(historyFile string) []string {
 	}
 
 	historyPath := filepath.Join(home, RCDIRNAME, historyFile)
-	file, err := os.OpenFile(historyPath, os.O_RDONLY|os.O_CREATE, 0600)
+	file, err := os.OpenFile(historyPath, os.O_RDONLY, 0600)
 	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			// no history yet; saveHistory creates the file
+			return []string{}
+		}
 		warnHistoryPersistence(err)
 		return []string{}
 	}
@@ -45,6 +51,7 @@ func loadHistory(historyFile string) []string {
 	var history []string
 
 	scanner := bufio.NewScanner(file)
+	scanner.Buffer(make([]byte, 0, 64*1024), 1<<20)
 	for scanner.Scan() {
 		history = append(history, scanner.Text())
 	}
