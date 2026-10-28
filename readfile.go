@@ -59,6 +59,10 @@ func readFile(br *browseObj, ch chan bool) {
 	// relaunch loop on pre-loop init failures, which surface their own error.
 	defer func() {
 		br.mutex.Lock()
+		if br.fileSeq != savFileSeq {
+			br.mutex.Unlock()
+			return
+		}
 		br.readerAlive = false
 		relaunch := entered && br.rereadPending && !br.fromStdin
 		if relaunch {
@@ -189,6 +193,10 @@ func readFile(br *browseObj, ch chan bool) {
 		if pendingReread && targetReread != "" {
 			if err := reopenReader(targetReread, true); err != nil {
 				br.mutex.Lock()
+				if br.fileSeq != savFileSeq {
+					br.mutex.Unlock()
+					return
+				}
 				br.rereadPending = false
 				br.pendingMsg = "Cannot re-open: " + err.Error()
 				br.pendingMsgColor = MSG_RED
@@ -205,6 +213,10 @@ func readFile(br *browseObj, ch chan bool) {
 		newFileSiz, newInode, err := getFileInodeSize(currentFileName)
 		if err != nil {
 			br.mutex.Lock()
+			if br.fileSeq != savFileSeq {
+				br.mutex.Unlock()
+				return
+			}
 			br.scrollCancelPending = true
 			rescueWasSet := br.rescueFd > 0
 			if !rescueWasSet {
@@ -277,7 +289,7 @@ func readFile(br *browseObj, ch chan bool) {
 		// Store the file info we just retrieved
 		br.newFileSiz = newFileSiz
 		br.newInode = newInode
-		stdinFinalPending := br.fromStdin && br.stdinEOF && bytesRead < br.newFileSiz
+		stdinFinalPending := br.fromStdin && br.streamComplete() && bytesRead < br.newFileSiz
 
 		// handleFileReset runs with br.mutex held, so it posts
 		// display work by writing the pending fields directly
@@ -350,7 +362,7 @@ func readFile(br *browseObj, ch chan bool) {
 				if err == io.EOF && !hasNewline {
 					br.mutex.Lock()
 					fromStdin := br.fromStdin
-					stdinDone := fromStdin && br.stdinEOF
+					stdinDone := fromStdin && br.streamComplete()
 					br.mutex.Unlock()
 					if fromStdin && !stdinDone {
 						break
@@ -423,6 +435,17 @@ func readFile(br *browseObj, ch chan bool) {
 		}
 
 		time.Sleep(time.Second)
+	}
+}
+
+// streamComplete reports producer completion for the active stream. Callers
+// hold br.mutex so stdinDone cannot change underneath the reader.
+func (br *browseObj) streamComplete() bool {
+	select {
+	case <-br.stdinDone:
+		return true
+	default:
+		return false
 	}
 }
 

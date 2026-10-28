@@ -1,6 +1,6 @@
 module internetguy.net/browse
 
-go 1.27.2
+go 1.27.3
 
 // Direct dependencies
 require (
