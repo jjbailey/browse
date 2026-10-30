@@ -500,6 +500,9 @@ func highlightLine(content []byte, matches [][]int, sol int, offscreen bool) str
 			urls = append(urls, textSpan{u[0], u[1]})
 		}
 	}
+	if len(hl) == 0 && len(urls) == 0 && !offscreen {
+		return string(content)
+	}
 
 	base := ""
 	if offscreen {
