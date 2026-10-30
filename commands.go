@@ -150,6 +150,11 @@ func commands(br *browseObj) {
 		br.pageCurrent()
 	}
 
+	if br.fromStdin && br.mapSiz < br.dispRows {
+		// wait again for a full page
+		waitForInput(br)
+	}
+
 	if searchCompileErr != nil {
 		br.printMessage(fmt.Sprintf("Regex compilation error: %v", searchCompileErr), MSG_ORANGE)
 	}
@@ -516,7 +521,9 @@ func commands(br *browseObj) {
 			}
 
 		case CMD_REWIND:
-			if br.fromStdin {
+			// Compressed files use a temporary stream but still belong to a
+			// rewindable file list. Only piped stdin has no source file.
+			if br.fromStdin && br.absFileName == "" {
 				br.printMessage("No browse list to rewind", MSG_ORANGE)
 				break
 			}
@@ -925,10 +932,11 @@ func filePosition(br *browseObj) {
 		t = float32(br.firstRow) / float32(lineCount) * 100.0
 	}
 
-	dispName := abbreviateFileName(br.currentFileName(), br.dispWidth*3/4)
-
-	br.printMessage(fmt.Sprintf("\"%s\" %d lines --%1.1f%%--",
-		dispName, lineCount, t), MSG_GREEN)
+	suffix := fmt.Sprintf("\" %d lines --%1.1f%%--", lineCount, t)
+	// printMessage adds a space on either side of the message.
+	nameWidth := min(br.dispWidth*3/4, br.dispWidth-len(suffix)-3)
+	dispName := abbreviateFileName(br.currentFileName(), nameWidth)
+	br.printMessage("\""+dispName+suffix, MSG_GREEN)
 }
 
 // vim: set ts=4 sw=4 noet:

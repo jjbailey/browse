@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "1.4.2"
+	BR_VERSION = "1.4.3"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -232,7 +232,7 @@ type browseObj struct {
 	mutex         sync.Mutex
 	rereadPending bool
 	readerAlive   bool
-	stdinEOF      bool
+	stdinDone     <-chan struct{}
 
 	// Display work posted by non-display goroutines (file reader,
 	// decompressor waiter) and applied by the main goroutine each

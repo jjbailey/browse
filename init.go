@@ -21,6 +21,7 @@ func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin boo
 	var rescueFd int
 
 	br.mutex.Lock()
+	oldFp := br.fp
 	if br.rescueFd > 0 {
 		rescueFd = br.rescueFd
 		br.rescueFd = 0
@@ -30,9 +31,11 @@ func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin boo
 	br.fp = fp
 	br.fromStdin = fromStdin
 	if !fromStdin {
-		br.stdinEOF = false
+		br.stdinDone = nil
 	}
 	br.fileSeq++
+	br.rereadPending = false
+	br.readerAlive = false
 	// drop display work posted for the previous file
 	br.pendingMsg = ""
 	br.pendingMsgTransient = false
@@ -41,6 +44,9 @@ func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin boo
 	br.partialRedrawFrom = 0
 	br.mutex.Unlock()
 
+	if oldFp != nil && oldFp != fp {
+		oldFp.Close()
+	}
 	if rescueFd > 0 {
 		_ = unix.Close(rescueFd)
 	}
@@ -51,6 +57,31 @@ func (br *browseObj) fileInit(fp *os.File, fileName, title string, fromStdin boo
 		br.initTitle = ""
 	} else {
 		br.title = title
+	}
+}
+
+// closeBrowseFile releases the active display handle, including any replacement
+// installed by R or rotation. A suspended parent's cleanup must not close a
+// newer nested session. Advancing fileSeq also stops its reader from reopening.
+func (br *browseObj) closeBrowseFile(seq uint64) {
+	br.mutex.Lock()
+	if br.fileSeq != seq {
+		br.mutex.Unlock()
+		return
+	}
+	fp, rescueFd := br.fp, br.rescueFd
+	br.fp = nil
+	br.rescueFd = 0
+	br.fdLink = ""
+	br.fileSeq++
+	br.rereadPending = false
+	br.readerAlive = false
+	br.mutex.Unlock()
+	if fp != nil {
+		fp.Close()
+	}
+	if rescueFd > 0 {
+		_ = unix.Close(rescueFd)
 	}
 }
 

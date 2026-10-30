@@ -293,11 +293,7 @@ func pathCompleterCandidates() []completionCandidate {
 			continue
 		}
 
-		for _, candidate := range matchFileCandidates(files, dir, "", false, onlyExec, 0) {
-			if _, seen := seenNames[candidate.name]; seen {
-				continue
-			}
-			seenNames[candidate.name] = struct{}{}
+		for _, candidate := range matchFileCandidates(files, dir, "", false, onlyExec, 0, seenNames) {
 			pathCache.candidates = append(pathCache.candidates, candidate)
 		}
 	}
@@ -387,7 +383,7 @@ func anyCompleter(dir, prefix string, onlyType int) []prompt.Suggest {
 func matchFiles(files []os.DirEntry, dir, prefix string,
 	useFullPath bool, onlyType int) []prompt.Suggest {
 
-	candidates := matchFileCandidates(files, dir, prefix, useFullPath, onlyType, maxSuggestions)
+	candidates := matchFileCandidates(files, dir, prefix, useFullPath, onlyType, maxSuggestions, nil)
 	suggestions := make([]prompt.Suggest, 0, len(candidates))
 
 	for _, candidate := range candidates {
@@ -399,7 +395,7 @@ func matchFiles(files []os.DirEntry, dir, prefix string,
 
 // matchFileCandidates filters directory entries and keeps raw names for caching.
 func matchFileCandidates(files []os.DirEntry, dir, prefix string,
-	useFullPath bool, onlyType, limit int) []completionCandidate {
+	useFullPath bool, onlyType, limit int, seenNames map[string]struct{}) []completionCandidate {
 
 	candidates := make([]completionCandidate, 0, min(len(files), maxSuggestions))
 
@@ -412,11 +408,17 @@ func matchFileCandidates(files []os.DirEntry, dir, prefix string,
 		if !strings.HasPrefix(name, prefix) {
 			continue
 		}
+		if _, seen := seenNames[name]; seen {
+			continue
+		}
 
 		fullPath := filepath.Join(dir, name)
 
 		if !matchesFileType(file, fullPath, onlyType) {
 			continue
+		}
+		if seenNames != nil {
+			seenNames[name] = struct{}{}
 		}
 
 		// Determine display name (quote if contains spaces)

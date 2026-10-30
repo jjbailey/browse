@@ -112,7 +112,9 @@ func main() {
 	br.catchSignals()
 
 	if fromStdin {
-		processPipeInput(&br)
+		if !processPipeInput(&br) {
+			return
+		}
 	} else {
 		processFileList(&br, args, true)
 	}

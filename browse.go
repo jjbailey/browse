@@ -11,6 +11,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -19,39 +20,67 @@ import (
 )
 
 // processPipeInput handles input piped on stdin into a temporary file for browsing.
-func processPipeInput(br *browseObj) {
+// It returns false when the stream ends before producing any data.
+func processPipeInput(br *browseObj) bool {
+	var first [1]byte
+	n, readErr := os.Stdin.Read(first[:])
+	if n == 0 {
+		if readErr != nil && readErr != io.EOF {
+			fmt.Fprintf(os.Stderr, "browse: error reading standard input: %v\n", readErr)
+			os.Exit(1)
+		}
+		return false
+	}
+
 	fpStdin, err := os.CreateTemp("", "browse")
 	if err != nil {
 		errorExit(fmt.Errorf("error creating temporary file: %v", err))
-		return
+		return false
 	}
 	defer os.Remove(fpStdin.Name())
+	if _, err := fpStdin.Write(first[:n]); err != nil {
+		fpStdin.Close()
+		errorExit(fmt.Errorf("error writing temporary file: %v", err))
+		return false
+	}
 
-	br.mutex.Lock()
-	br.stdinEOF = false
-	br.mutex.Unlock()
+	done := make(chan struct{})
 
 	// Goroutine owns fpStdin and closes it when stdin is exhausted
 	go func() {
 		br.readStdin(os.Stdin, fpStdin)
-		br.mutex.Lock()
-		br.stdinEOF = true
-		br.mutex.Unlock()
 		fpStdin.Close()
+		close(done)
 	}()
-
-	// Fast path for stdin: open temp file ourselves and pass to browseFile
-	fp, err := os.Open(fpStdin.Name())
-	if err != nil {
-		errorExit(fmt.Errorf("cannot open temporary browse file: %v", err))
-		return
-	}
-	defer fp.Close()
 
 	// Save arg list
 	br.currentList = []string{fpStdin.Name()}
 	br.listAtStart = true
-	browseFile(br, fp, fpStdin.Name(), "          ", true)
+	browseStream(br, fpStdin.Name(), "          ", done)
+	return true
+}
+
+// browseStream keeps a temporary stream alive across nested file lists. The
+// producer owns done, so completion while another file is active is not lost
+// or confused with a nested decompressor's completion.
+func browseStream(br *browseObj, fileName, title string, done <-chan struct{}) {
+	for {
+		fp, err := os.Open(fileName)
+		if err != nil {
+			br.printMessage(fmt.Sprintf("Cannot open temporary browse file: %v", err), MSG_RED)
+			return
+		}
+		br.mutex.Lock()
+		br.stdinDone = done
+		br.mutex.Unlock()
+		browseFile(br, fp, fileName, title, true)
+		if br.listAction != LIST_ACTION_RESUME {
+			return
+		}
+		br.listAction = LIST_ACTION_NONE
+		restoreResumeState(br)
+		title = br.title
+	}
 }
 
 // processCompressedFile decompresses a file into a temp file and browses it as a
@@ -80,9 +109,7 @@ func processCompressedFile(br *browseObj, format, absPath, title string) {
 		return
 	}
 
-	br.mutex.Lock()
-	br.stdinEOF = false
-	br.mutex.Unlock()
+	done := make(chan struct{})
 
 	dispName := lastNChars(absPath, br.dispWidth)
 
@@ -91,22 +118,12 @@ func processCompressedFile(br *browseObj, format, absPath, title string) {
 			br.postMessage(fmt.Sprintf("%s: decompressor failed: %v",
 				dispName, err), MSG_ORANGE)
 		}
-		br.mutex.Lock()
-		br.stdinEOF = true
-		br.mutex.Unlock()
 		tmp.Close()
+		close(done)
 	}()
 
-	fp, err := os.Open(tmp.Name())
-	if err != nil {
-		br.userAnyKey(fmt.Sprintf("%s %s: cannot open temp file ... [press any key] %s",
-			MSG_RED, lastNChars(absPath, br.dispWidth), VIDOFF))
-		return
-	}
-	defer fp.Close()
-
 	updateHistory(absPath, fileHistory)
-	browseFile(br, fp, tmp.Name(), title, true)
+	browseStream(br, tmp.Name(), title, done)
 
 	if br.saveRC {
 		br.saveRcFile()
@@ -141,7 +158,6 @@ func processFileList(br *browseObj, args []string, toplevel bool) bool {
 				processCompressedFile(br, format, abs, setTitle(br.title, abs))
 			} else {
 				browseFile(br, fp, br.absFileName, setTitle(br.title, abs), false)
-				fp.Close()
 			}
 
 			switch br.listAction {
@@ -215,7 +231,6 @@ func processFileList(br *browseObj, args []string, toplevel bool) bool {
 			}
 		} else {
 			browseFile(br, fp, absArgs[i], fileName, false)
-			fp.Close()
 		}
 
 		if br.listAction == LIST_ACTION_REWIND {
@@ -252,12 +267,18 @@ func processFileList(br *browseObj, args []string, toplevel bool) bool {
 	return openedAny
 }
 
-// browseFile initializes browsing state for a file and begins processing.
+// browseFile takes ownership of fp, initializes browsing state, and begins
+// processing. fileInit closes a suspended parent's handle; closeBrowseFile
+// closes this session's active handle, even if the reader replaced fp.
 func browseFile(br *browseObj, fp *os.File, fileName, title string, fromStdin bool) {
 	targetFile := strings.TrimSuffix(fileName, "/")
 
 	checkBinaryFile(br, fp, targetFile)
 	br.fileInit(fp, targetFile, title, fromStdin)
+	br.mutex.Lock()
+	seq := br.fileSeq
+	br.mutex.Unlock()
+	defer br.closeBrowseFile(seq)
 
 	if !br.fromStdin {
 		updateHistory(targetFile, fileHistory)
