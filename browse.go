@@ -11,6 +11,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -19,13 +20,29 @@ import (
 )
 
 // processPipeInput handles input piped on stdin into a temporary file for browsing.
-func processPipeInput(br *browseObj) {
+// It returns false when the stream ends before producing any data.
+func processPipeInput(br *browseObj) bool {
+	var first [1]byte
+	n, readErr := os.Stdin.Read(first[:])
+	if n == 0 {
+		if readErr != nil && readErr != io.EOF {
+			fmt.Fprintf(os.Stderr, "browse: error reading standard input: %v\n", readErr)
+			os.Exit(1)
+		}
+		return false
+	}
+
 	fpStdin, err := os.CreateTemp("", "browse")
 	if err != nil {
 		errorExit(fmt.Errorf("error creating temporary file: %v", err))
-		return
+		return false
 	}
 	defer os.Remove(fpStdin.Name())
+	if _, err := fpStdin.Write(first[:n]); err != nil {
+		fpStdin.Close()
+		errorExit(fmt.Errorf("error writing temporary file: %v", err))
+		return false
+	}
 
 	done := make(chan struct{})
 
@@ -40,6 +57,7 @@ func processPipeInput(br *browseObj) {
 	br.currentList = []string{fpStdin.Name()}
 	br.listAtStart = true
 	browseStream(br, fpStdin.Name(), "          ", done)
+	return true
 }
 
 // browseStream keeps a temporary stream alive across nested file lists. The
