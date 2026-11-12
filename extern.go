@@ -191,6 +191,7 @@ type browseObj struct {
 	readScratch      []byte
 	readTabScratch   []byte
 	searchBuf        []byte
+	searchRaw        []byte // bytes read by the last loadSearchBlock
 	searchLines      [][]byte
 	matchTabScratch  []byte
 	matchFoldScratch []byte

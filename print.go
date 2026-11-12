@@ -298,8 +298,8 @@ func adjustLineNumber(lineno, dispRows, mapSiz int) int {
 	return lineno
 }
 
-// timedMessage displays a temporary message on the status line.
-func (br *browseObj) timedMessage(msg, color string) {
+// drawStatus writes a message on the status line.
+func (br *browseObj) drawStatus(msg, color string) {
 	moveCursor(br.dispHeight, 1, true)
 	var sb strings.Builder
 	sb.Grow(len(msg) + len(color) + len(VIDOFF) + 8)
@@ -309,6 +309,11 @@ func (br *browseObj) timedMessage(msg, color string) {
 	sb.WriteByte(' ')
 	sb.WriteString(VIDOFF)
 	os.Stdout.WriteString(sb.String())
+}
+
+// timedMessage displays a temporary message on the status line.
+func (br *browseObj) timedMessage(msg, color string) {
+	br.drawStatus(msg, color)
 	time.Sleep(1500 * time.Millisecond)
 	// scrollDown needs this
 	br.shownMsg = true
@@ -316,15 +321,7 @@ func (br *browseObj) timedMessage(msg, color string) {
 
 // printMessage displays a message on the status line.
 func (br *browseObj) printMessage(msg string, color string) {
-	moveCursor(br.dispHeight, 1, true)
-	var sb strings.Builder
-	sb.Grow(len(msg) + len(color) + len(VIDOFF) + 8)
-	sb.WriteString(color)
-	sb.WriteByte(' ')
-	sb.WriteString(msg)
-	sb.WriteByte(' ')
-	sb.WriteString(VIDOFF)
-	os.Stdout.WriteString(sb.String())
+	br.drawStatus(msg, color)
 	moveCursor(2, 1, false)
 	// scrollDown needs this
 	br.shownMsg = true
