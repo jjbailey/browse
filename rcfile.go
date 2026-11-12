@@ -39,8 +39,8 @@ func (br *browseObj) writeRcFile() bool {
 	}
 	rcFileName := filepath.Join(home, RCDIRNAME, RCFILENAME)
 
-	// abs fileName
-	data.WriteString(br.absFileName)
+	// fileName
+	data.WriteString(br.fileName)
 	data.WriteByte('\n')
 
 	// firstRow
