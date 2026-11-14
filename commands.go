@@ -815,7 +815,7 @@ func waitForInput(br *browseObj) {
 	const (
 		maxAttempts      = 20
 		stableThreshold  = 10
-		waitInterval     = 150 * time.Millisecond
+		waitInterval     = 160 * time.Millisecond
 		modTimeThreshold = 4 * time.Second
 	)
 
@@ -830,15 +830,12 @@ func waitForInput(br *browseObj) {
 	for range maxAttempts {
 		br.mutex.Lock()
 		curMapSiz := br.mapSiz
+		statName := br.fileName
 		br.mutex.Unlock()
 
 		if curMapSiz >= targetSize {
 			break
 		}
-
-		br.mutex.Lock()
-		statName := br.fileName
-		br.mutex.Unlock()
 
 		info, err := os.Stat(statName)
 		if err == nil && time.Since(info.ModTime()) > modTimeThreshold {

@@ -38,11 +38,19 @@ func oscOpen(url string) string {
 // the returned slice aliases either data (no expansion needed) or dst, and is
 // valid only until the caller's next expandTabs call with the same dst.
 func expandTabs(data, dst []byte) ([]byte, []byte) {
-	if !bytes.ContainsAny(data, "\t\r\f") {
+	tabCount, other := 0, 0
+	for _, b := range data {
+		switch b {
+		case '\t':
+			tabCount++
+		case '\r', '\f':
+			other++
+		}
+	}
+	if tabCount+other == 0 {
 		return data, dst
 	}
 
-	tabCount := bytes.Count(data, []byte{'\t'})
 	need := len(data) + tabCount*(TABWIDTH-1)
 	if cap(dst) < need {
 		dst = make([]byte, 0, need)
@@ -107,7 +115,7 @@ func windowAtEOF(lineno, mapsiz int) bool {
 
 // resetScrRegion restores the terminal scroll region.
 func resetScrRegion() {
-	fmt.Print(CURSAVE + RESETREGION + CURRESTORE)
+	os.Stdout.WriteString(CURSAVE + RESETREGION + CURRESTORE)
 }
 
 // errorExit prints an error and exits after restoring the terminal.
@@ -142,9 +150,9 @@ func getMark(buf string) int {
 // isBinaryFileFp reports whether an open file appears to be binary.
 func isBinaryFileFp(file *os.File) bool {
 	const sampleSize = 4 * 1024
-	buffer := make([]byte, sampleSize)
+	var buffer [sampleSize]byte
 
-	bytesRead, err := file.ReadAt(buffer, 0)
+	bytesRead, err := file.ReadAt(buffer[:], 0)
 	if err != nil && err != io.EOF {
 		return false
 	}
@@ -218,11 +226,15 @@ func lastNChars(s string, dispWidth int) string {
 	const padding = 45
 
 	usable := max(dispWidth-padding, dispWidth>>1, 0)
-	runes := []rune(s)
-	runeLen := len(runes)
-	size := min(usable, runeLen)
 
-	return string(runes[len(runes)-size:])
+	// Walk back from the end; only the tail is needed.
+	start := len(s)
+	for n := 0; n < usable && start > 0; n++ {
+		_, w := utf8.DecodeLastRuneInString(s[:start])
+		start -= w
+	}
+
+	return s[start:]
 }
 
 // shellEscapeSingle safely single-quotes a string for the shell.

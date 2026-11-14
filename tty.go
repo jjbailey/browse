@@ -10,6 +10,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"golang.org/x/sys/unix"
@@ -21,9 +22,11 @@ var savedTermios *unix.Termios
 // ttySaveTerm captures the current terminal settings.
 func ttySaveTerm() {
 	termios, err := unix.IoctlGetTermios(int(os.Stdout.Fd()), unix.TCGETS)
-	if err == nil {
-		savedTermios = termios
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "browse: cannot get terminal settings: %v\n", err)
+		return
 	}
+	savedTermios = termios
 }
 
 // ttyRestore restores previously saved terminal settings.
@@ -37,6 +40,7 @@ func ttyRestore() {
 func ttyBrowser() {
 	termios, err := unix.IoctlGetTermios(int(os.Stdout.Fd()), unix.TCGETS)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "browse: cannot get terminal settings: %v\n", err)
 		return
 	}
 
@@ -62,13 +66,16 @@ func ttyBrowser() {
 	termios.Cc[unix.VERASE] = '\b'
 
 	// Apply the settings
-	unix.IoctlSetTermios(int(os.Stdout.Fd()), unix.TCSETSF, termios)
+	if err := unix.IoctlSetTermios(int(os.Stdout.Fd()), unix.TCSETSF, termios); err != nil {
+		fmt.Fprintf(os.Stderr, "browse: cannot set terminal modes: %v\n", err)
+	}
 }
 
 // ttyPrompter configures the terminal for prompt input.
 func ttyPrompter() {
 	termios, err := unix.IoctlGetTermios(int(os.Stdout.Fd()), unix.TCGETS)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "browse: cannot get terminal settings: %v\n", err)
 		return
 	}
 
@@ -85,7 +92,9 @@ func ttyPrompter() {
 	termios.Cc[unix.VTIME] = 1
 
 	// Apply the settings
-	unix.IoctlSetTermios(int(os.Stdout.Fd()), unix.TCSETSF, termios)
+	if err := unix.IoctlSetTermios(int(os.Stdout.Fd()), unix.TCSETSF, termios); err != nil {
+		fmt.Fprintf(os.Stderr, "browse: cannot set terminal modes: %v\n", err)
+	}
 }
 
 // vim: set ts=4 sw=4 noet:

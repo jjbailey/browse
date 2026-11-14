@@ -11,9 +11,13 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"os"
+	"strconv"
 )
+
+// scrollRevCmd opens a blank row at the top of the display: cursor to row 2,
+// column 1, then reverse-scroll.
+const scrollRevCmd = "\033[2;1H" + SCROLLREV
 
 // scrollDown advances the display by a number of lines toward EOF.
 func (br *browseObj) scrollDown(count int) {
@@ -72,7 +76,6 @@ func (br *browseObj) scrollUp(count int) {
 	}
 
 	rowsToScroll := min(count, br.firstRow)
-	scrollRevCmd := fmt.Sprintf(CURPOS+SCROLLREV, 2, 1)
 	mapSize := br.currentMapSize()
 
 	// Batch the whole scroll into one write instead of three per row.
@@ -161,7 +164,7 @@ func (br *browseObj) restoreLast() {
 
 	if br.lastRow < br.dispRows {
 		// partial display
-		fmt.Printf(CURPOS+CLEARSCREEN, br.dispRows, 1)
+		os.Stdout.WriteString("\033[" + strconv.Itoa(br.dispRows) + ";1H" + CLEARSCREEN)
 	}
 
 	if br.lastRow >= (br.dispHeight - promptLines) {
@@ -177,7 +180,7 @@ func (br *browseObj) restoreLast() {
 	}
 
 	if br.inMotion() {
-		fmt.Print(CURRESTORE)
+		os.Stdout.WriteString(CURRESTORE)
 	} else {
 		moveCursor(2, 1, false)
 	}

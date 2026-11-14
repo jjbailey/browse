@@ -112,8 +112,10 @@ func runCompleter(promptStr, historyFile string) (string, bool) {
 		prompt.OptionPrefix(promptStr),
 		prompt.OptionScrollbarBGColor(prompt.DefaultColor),
 		prompt.OptionScrollbarThumbColor(prompt.DefaultColor),
+		prompt.OptionSelectedDescriptionTextColor(prompt.Black),
 		prompt.OptionSelectedSuggestionBGColor(prompt.DarkGray),
 		prompt.OptionSelectedSuggestionTextColor(prompt.Yellow),
+		prompt.OptionSuggestionTextColor(prompt.Black),
 		prompt.OptionSwitchKeyBindMode(prompt.EmacsKeyBind),
 		prompt.OptionDisableTitle(),
 		prompt.OptionAddKeyBind(prompt.KeyBind{

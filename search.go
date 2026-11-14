@@ -240,6 +240,7 @@ func (br *browseObj) loadSearchBlock(line, limit int, forward bool) (int, [][]by
 	}
 
 	br.searchLines = br.searchLines[:0]
+	br.searchRaw = nil
 
 	// Reader metadata is capped at READBUFSIZ; reject corrupted metadata before
 	// using it as a slice length or allocation size.
@@ -290,6 +291,8 @@ func (br *browseObj) loadSearchBlock(line, limit int, forward bool) (int, [][]by
 		return first, br.searchLines
 	}
 
+	br.searchRaw = buf[:n]
+
 	// A short read (file truncated underneath us) leaves later lines partial.
 	for i := first; i <= last; i++ {
 		lineStart := min(int(br.seekMap[i]-start), n)
@@ -298,6 +301,28 @@ func (br *browseObj) loadSearchBlock(line, limit int, forward bool) (int, [][]by
 	}
 
 	return first, br.searchLines
+}
+
+// blockLacksLiteral reports whether the block just loaded provably holds no
+// match, so its lines can be skipped without inspecting each one. It is a
+// prefilter only: false means "unknown", never "match". It applies to a plain
+// case-sensitive literal, searched in the raw bytes, which is sound because
+// the per-line match runs on tab-expanded text and expansion only ever
+// introduces spaces. A literal with no space therefore matches an expanded
+// line only if the same bytes appear contiguously in the raw line. Anything
+// else (regex, case folding, a literal containing a space or newline, no
+// raw bytes after a read error) falls back to the per-line scan.
+func (br *browseObj) blockLacksLiteral() bool {
+	lit := br.matchLiteral
+	if len(lit) == 0 || br.matchFold || br.searchRaw == nil {
+		return false
+	}
+
+	if bytes.IndexByte(lit, ' ') >= 0 || bytes.IndexByte(lit, '\n') >= 0 {
+		return false
+	}
+
+	return bytes.Index(br.searchRaw, lit) < 0
 }
 
 // searchLineMatches reports whether a raw line matches the active pattern.
@@ -366,13 +391,13 @@ func (br *browseObj) searchCancelled() bool {
 		return false
 	}
 
-	pollFds := []unix.PollFd{{Fd: int32(br.tty.Fd()), Events: unix.POLLIN}}
-	if ready, err := unix.Poll(pollFds, 0); err != nil || ready == 0 {
+	pollFds := [1]unix.PollFd{{Fd: int32(br.tty.Fd()), Events: unix.POLLIN}}
+	if ready, err := unix.Poll(pollFds[:], 0); err != nil || ready == 0 {
 		return false
 	}
 
-	buf := make([]byte, 16)
-	n, err := br.tty.Read(buf)
+	var buf [16]byte
+	n, err := br.tty.Read(buf[:])
 	if err != nil || n == 0 {
 		return false
 	}

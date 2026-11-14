@@ -19,7 +19,7 @@ import (
 
 // BR_VERSION is the current application version.
 const (
-	BR_VERSION = "1.4.3"
+	BR_VERSION = "1.4.4"
 )
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -191,6 +191,7 @@ type browseObj struct {
 	readScratch      []byte
 	readTabScratch   []byte
 	searchBuf        []byte
+	searchRaw        []byte // bytes read by the last loadSearchBlock
 	searchLines      [][]byte
 	matchTabScratch  []byte
 	matchFoldScratch []byte
